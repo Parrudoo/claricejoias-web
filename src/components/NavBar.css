@@ -1,0 +1,46 @@
+.navbar-luxo {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: #1a1a1a; /* Fundo preto luxo */
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  
+  .navbar-logo h1 {
+    color: #D4AF37; /* Dourado */
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin: 0;
+  }
+  
+  .navbar-acoes {
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .maleta-icon-container {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+  }
+  
+  .badge-quantidade {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #D4AF37;
+    color: #1a1a1a;
+    font-size: 12px;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #1a1a1a;
+  }

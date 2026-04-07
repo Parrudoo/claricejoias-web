@@ -1,0 +1,134 @@
+.catalogo-container {
+    padding-top: 60px; /* Espaço para o menu fixo */
+  }
+  
+  .menu-categorias {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  
+  .menu-categorias button {
+    background: none;
+    border: none;
+    color: #D4AF37;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .secao-categoria {
+    margin-bottom: 50px;
+    padding: 0 20px;
+  }
+  
+  .titulo-categoria {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: #1a1a1a;
+    border-bottom: 2px solid #D4AF37;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+  
+  .titulo-subcategoria {
+    font-size: 18px;
+    color: #666;
+    margin: 15px 0;
+    text-transform: italic;
+  }
+  
+  .grid-produtos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+  }
+  
+  
+  
+  .preco {
+    display: block;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #333;
+  }
+
+  
+  
+  
+  
+ 
+
+  /* Botão Flutuante de Canto */
+.botao-maleta-flutuante {
+  position: fixed;
+  bottom: 30px; /* Distância do fundo */
+  right: 30px;  /* Distância da direita - o "cantinho" */
+  width: 65px;
+  height: 65px;
+  background-color: #1a1a1a; /* Preto Luxo */
+  color: #D4AF37; /* Dourado */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2500; /* Garante que fique acima de tudo */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 2px solid #D4AF37;
+  transition: transform 0.3s ease, background-color 0.3s;
+}
+
+.botao-maleta-flutuante:hover {
+  transform: scale(1.1); /* Dá um leve zoom ao passar o mouse */
+  background-color: #333;
+}
+
+/* Badge com a quantidade no cantinho do ícone */
+.badge-contagem {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #D4AF37;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1a1a1a;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Animação para o botão aparecer suavemente */
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.botao-maleta-flutuante {
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Ajuste mobile para não atrapalhar o scroll */
+@media (max-width: 480px) {
+  .botao-maleta-flutuante {
+      bottom: 20px;
+      right: 20px;
+      width: 55px;
+      height: 55px;
+  }
+}
+

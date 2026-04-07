@@ -1,0 +1,142 @@
+/* Container Principal */
+.checkout-minimalista {
+  max-width: 600px;
+  margin: 120px auto 40px; /* Espaço para o menu fixo no topo */
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Botão Voltar */
+.btn-voltar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.3s;
+}
+
+.btn-voltar:hover {
+  color: #D4AF37;
+  transform: translateX(-5px);
+}
+
+/* Tipografia */
+.checkout-minimalista h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.checkout-minimalista p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Formulário e Input */
+.campo-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.campo-nome label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+.campo-nome input {
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: 0.3s;
+}
+
+.campo-nome input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background-color: #fff;
+}
+
+/* Lista de Conferência */
+.lista-conferencia {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  margin-bottom: 30px;
+}
+
+.checkout-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.img-checkout {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.checkout-item-info h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.checkout-item-info span {
+  font-size: 14px;
+  color: #888;
+}
+
+/* Total */
+.checkout-total-final {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 2px dashed #eee;
+}
+
+.checkout-total-final strong {
+  font-size: 20px;
+  color: #D4AF37;
+}
+
+/* Botão WhatsApp */
+.btn-whatsapp {
+  width: 100%;
+  padding: 18px;
+  background-color: #25D366; /* Verde oficial WhatsApp */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: 0.3s;
+}
+
+.btn-whatsapp:hover {
+  background-color: #128C7E;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+}

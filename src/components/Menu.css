@@ -1,0 +1,39 @@
+.topo-fixo {
+    position: fixed; /* 📌 Mantém o menu no topo ao rolar a página */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* 🔝 Garante que o menu fique sobreposto aos outros elementos */
+    display: flex;
+    flex-direction: column; /* ↕️ Organiza a seção de login e categorias em coluna */
+  }
+  
+  .secao-login {
+    background-color: #000; /* 🖤 Cor de fundo preta */
+    color: #D4AF37; /* ✨ Cor dourada para o texto */
+    padding: 8px 20px;
+    display: flex;
+    justify-content: flex-end; /* ➡️ Move o login para a direita */
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+  
+  .secao-categorias {
+    background-color: #1a1a1a; /* 🌑 Cor de fundo cinza escuro */
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center; /* ↔️ Centraliza os botões de categoria */
+    gap: 20px;
+    border-top: 1px solid #333; /* 📏 Linha sutil para separar as barras */
+  }
+  
+  /* Estilo para os botões dentro de categorias */
+  .secao-categorias button {
+    background: none;
+    border: none;
+    color: #D4AF37;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
