@@ -1,39 +1,118 @@
 .topo-fixo {
-    position: fixed; /* 📌 Mantém o menu no topo ao rolar a página */
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000; /* 🔝 Garante que o menu fique sobreposto aos outros elementos */
-    display: flex;
-    flex-direction: column; /* ↕️ Organiza a seção de login e categorias em coluna */
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 3000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.secao-login {
+  background-color: #000;
+  height: 35px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.login-container {
+  color: #D4AF37;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.secao-categorias {
+  background-color: #1a1a1a;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #333;
+}
+
+.menu-lista {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-item {
+  position: relative; /* Pai relativo para o submenu ser absoluto */
+}
+
+.btn-categoria {
+  background: none;
+  border: none;
+  color: #D4AF37;
+  padding: 18px 25px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: 0.3s;
+}
+
+.btn-categoria:hover {
+  background-color: #252525;
+}
+
+/* --- ESTILO DO SUBMENU --- */
+.submenu {
+  position: absolute;
+  top: 100%; /* Cola no fundo do botão pai */
+  left: 0;
+  background-color: #1a1a1a;
+  min-width: 180px;
+  list-style: none;
+  padding: 10px 0;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.5);
   
-  .secao-login {
-    background-color: #000; /* 🖤 Cor de fundo preta */
-    color: #D4AF37; /* ✨ Cor dourada para o texto */
-    padding: 8px 20px;
-    display: flex;
-    justify-content: flex-end; /* ➡️ Move o login para a direita */
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-  }
-  
-  .secao-categorias {
-    background-color: #1a1a1a; /* 🌑 Cor de fundo cinza escuro */
-    padding: 12px 20px;
-    display: flex;
-    justify-content: center; /* ↔️ Centraliza os botões de categoria */
-    gap: 20px;
-    border-top: 1px solid #333; /* 📏 Linha sutil para separar as barras */
-  }
-  
-  /* Estilo para os botões dentro de categorias */
-  .secao-categorias button {
-    background: none;
-    border: none;
-    color: #D4AF37;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
+  /* Efeito de esconder/mostrar */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.menu-item:hover .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.submenu li button {
+  width: 100%;
+  text-align: left;
+  padding: 12px 20px;
+  color: #fff;
+  font-size: 12px;
+  text-transform: none;
+  font-weight: 400;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submenu li button:hover {
+  background-color: #D4AF37;
+  color: #000;
+}
+
+.seta-menu {
+  font-size: 12px;
+  transition: 0.3s;
+}
+
+.menu-item:hover .seta-menu {
+  transform: rotate(180deg);
+}
