@@ -1,0 +1,183 @@
+.cadastro-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+    background-color: #fafafa;
+}
+
+.categoria-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
+}
+
+.categoria-card h2 {
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    font-family: 'Playfair Display', serif;
+}
+
+.categoria-card p {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+/* --- ALINHAMENTO DOS CAMPOS (LABELS E INPUTS) --- */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.form-group.principal label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: 0.3s;
+    box-sizing: border-box; /* Garante que o padding não quebre o alinhamento */
+}
+
+.form-group input:focus, .linha-subcategoria input:focus {
+    border-color: #D4AF37;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.divisor-secao {
+    height: 1px;
+    background-color: #eee;
+    margin: 25px 0;
+}
+
+/* --- SEÇÃO DE SUBCATEGORIAS ALINHADAS --- */
+.header-subcategorias {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.header-subcategorias label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+
+.header-subcategorias label span {
+    font-weight: normal;
+    color: #999;
+    font-size: 12px;
+}
+
+.btn-add-linha {
+    background: none;
+    border: none;
+    color: #D4AF37;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-add-linha:hover {
+    color: #b5952f;
+}
+
+.linha-subcategoria {
+    display: flex;
+    align-items: center; /* Alinha o botão e o input perfeitamente ao centro */
+    gap: 12px;
+    margin-bottom: 12px;
+    animation: fadeIn 0.3s ease;
+    width: 100%;
+}
+
+.linha-subcategoria input {
+    flex: 1; /* 💎 ESTE É O SEGREDO: Faz o input esticar perfeitamente para preencher o espaço, mantendo o alinhamento esquerdo intacto */
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: 0.3s;
+    box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-remover {
+    background-color: #fff1f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+    border-radius: 8px;
+    width: 45px; /* Largura fixa para manter o alinhamento da coluna da direita */
+    height: 45px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+.btn-remover:hover {
+    background-color: #ff4d4f;
+    color: #fff;
+}
+
+/* --- BOTÃO DE SUBMIT E FEEDBACK --- */
+.btn-salvar {
+    width: 100%;
+    padding: 15px;
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 20px;
+}
+
+.btn-salvar:hover:not(:disabled) {
+    background-color: #D4AF37;
+}
+
+.btn-salvar:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.mensagem-feedback {
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.mensagem-feedback.sucesso { background-color: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
+.mensagem-feedback.erro { background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }

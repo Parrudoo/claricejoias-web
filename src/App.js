@@ -10,10 +10,11 @@ import Catalogo from './pages/Catalogo';
 
 // Estilos Globais
 import './App.css';
-import CadastroJoia from './pages/admin/CadastroJoia';
 import NavBar from './components/NavBar';
 import Maleta from './components/Maleta';
 import Checkout from './components/Checkout';
+import CadastroCategoria from './pages/admin/CadastroCategoria';
+import ListarCategorias from './pages/admin/categoria/ListarCategorias';
 
 function App() {
   return (
@@ -30,7 +31,8 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               
               {/* Rota de Administração para Cadastrar */}
-              <Route path="/admin/cadastrar" element={<CadastroJoia />} />
+              <Route path="/admin/cadastrar" element={<CadastroCategoria />} />
+              <Route path="/admin/listar" element={<ListarCategorias />} />
               
               {/* Você pode adicionar depois a rota de listagem/edição:
               <Route path="/admin/lista" element={<ListaJoiasAdmin />} /> 
