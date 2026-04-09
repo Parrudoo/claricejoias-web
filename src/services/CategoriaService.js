@@ -7,6 +7,12 @@ export const CategoriaService = {
         return response.data;
     },
 
+    // NOVO: Busca as subcategorias atreladas a uma categoria específica
+    listarSubcategoriasPorCategoria: async (id) => {
+        const response = await api.get(`/categorias/${id}/subcategorias`);
+        return response.data;
+    },
+
     // Métodos para o painel de administração (se houver)
     cadastrar: async (categoria) => {
         const response = await api.post('/categorias', categoria);

@@ -15,6 +15,8 @@ import Maleta from './components/Maleta';
 import Checkout from './components/Checkout';
 import CadastroCategoria from './pages/admin/CadastroCategoria';
 import ListarCategorias from './pages/admin/categoria/ListarCategorias';
+import ListaProdutos from './pages/admin/produtos/ListaProdutos';
+import CadastroProduto from './pages/admin/produtos/CadastroProduto';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
               {/* Rota de Administração para Cadastrar */}
               <Route path="/admin/cadastrar" element={<CadastroCategoria />} />
               <Route path="/admin/listar" element={<ListarCategorias />} />
+              <Route path="/admin/produtos" element={<ListaProdutos />} />
+               <Route path="/admin/prod" element={<CadastroProduto />} />
               
               {/* Você pode adicionar depois a rota de listagem/edição:
               <Route path="/admin/lista" element={<ListaJoiasAdmin />} /> 
