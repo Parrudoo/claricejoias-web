@@ -2,7 +2,7 @@ import React from 'react';
 import { useMaleta } from '../context/MaletaContext';
 import { FiX, FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
 import './Maleta.css';
-import { useNavigate, useNavigation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function Maleta() {
   const { itens, total, removerItem, alterarQuantidade, carrinhoAberto, setCarrinhoAberto } = useMaleta();

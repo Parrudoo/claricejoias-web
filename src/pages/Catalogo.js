@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiShoppingBag } from 'react-icons/fi';
 import { CardItem } from '../components/CardItem';
 import { Menu } from '../components/Menu';
 import { useMaleta } from '../context/MaletaContext';
+import { CategoriaService } from '../services/CategoriaService'; // Ajuste o caminho conforme seu projeto
 import './Catalogo.css';
 
 export default function Catalogo() {
     const { adicionarItem, itens, setCarrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
+
+    // Novos estados para a API
+    const [acervo, setAcervo] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Busca os dados assim que o componente é montado na tela
+    useEffect(() => {
+        carregarCatalogo();
+    }, []);
+
+    const carregarCatalogo = async () => {
+        try {
+            setLoading(true);
+            const dados = await CategoriaService.listarTodas();
+            setAcervo(dados);
+        } catch (error) {
+            console.error("Erro ao buscar o catálogo da API:", error);
+            alert("Não foi possível carregar as joias. Tente novamente mais tarde.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Função para rolar até o ID da categoria ou subcategoria
     const rolarPara = (id) => {
@@ -20,59 +43,20 @@ export default function Catalogo() {
         }
     };
 
-    const acervo = [
-        {
-            categoria: "Joias",
-            subcategorias: [
-                {
-                    nome: "Colares",
-                    itens: [
-                        { id: 1, nome: "Colar Riviera Clássico", preco: 280.00, img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400", material: "Ouro 18k" },
-                        { id: 2, nome: "Colar Veneziana", preco: 150.00, img: "https://images.unsplash.com/photo-1515562141207-7a18b5ce7142?w=400", material: "Prata 925" },
-                        { id: 3, nome: "Choker Elos Dourados", preco: 190.00, img: "https://images.unsplash.com/photo-1611085583191-a3b1a308c021?w=400", material: "Banho Ouro" },
-                        { id: 4, nome: "Colar Ponto de Luz", preco: 95.00, img: "https://via.placeholder.com/400x400?text=Colar+Ponto+Luz", material: "Prata 925" },
-                        { id: 5, nome: "Colar de Pérolas", preco: 320.00, img: "https://via.placeholder.com/400x400?text=Colar+Perolas", material: "Pérola Natural" },
-                    ]
-                },
-                {
-                    nome: "Brincos",
-                    itens: [
-                        { id: 11, nome: "Argola Cravejada G", preco: 135.00, img: "https://via.placeholder.com/400x400?text=Argola+G", material: "Banho Ouro" },
-                        { id: 12, nome: "Brinco Gota Safira", preco: 89.00, img: "https://via.placeholder.com/400x400?text=Gota+Safira", material: "Zircônia/Prata" },
-                    ]
-                }
-            ]
-        },
-        {
-            categoria: "Bolsas",
-            subcategorias: [
-                {
-                    nome: "Festa & Clutch",
-                    itens: [
-                        { id: 21, nome: "Clutch Dourada Glitter", preco: 350.00, img: "https://via.placeholder.com/400x400?text=Clutch+Dourada", material: "Sintético Premium" },
-                        { id: 22, nome: "Bolsa Carteira Cetim", preco: 280.00, img: "https://via.placeholder.com/400x400?text=Bolsa+Cetim", material: "Têxtil" },
-                    ]
-                }
-            ]
-        },
-        {
-            categoria: "Carteiras",
-            subcategorias: [
-                {
-                    nome: "Couro & Acessórios",
-                    itens: [
-                        { id: 31, nome: "Carteira Slim Couro", preco: 120.00, img: "https://via.placeholder.com/400x400?text=Slim+Couro", material: "Couro Bovino" },
-                    ]
-                }
-            ]
-        }
-    ];
-
-    // Transforma o acervo no formato que o Menu espera (com subitens)
+    // Transforma o acervo recebido da API no formato que o Menu espera
+    // Adaptado para usar 'cat.nome' que geralmente é o padrão vindo do banco de dados
     const dadosMenu = acervo.map(cat => ({
-        categoria: cat.categoria,
-        subitens: cat.subcategorias.map(sub => sub.nome)
+        categoria: cat.nome || cat.categoria, 
+        subitens: cat.subcategorias ? cat.subcategorias.map(sub => sub.nome) : []
     }));
+
+    if (loading) {
+        return (
+            <div className="catalogo-container" style={{ display: 'flex', justifyContent: 'center', paddingTop: '100px' }}>
+                <h2 style={{ color: '#D4AF37', fontFamily: 'Playfair Display' }}>Carregando a vitrine... ✨</h2>
+            </div>
+        );
+    }
 
     return (
         <div className="catalogo-container">
@@ -87,26 +71,32 @@ export default function Catalogo() {
             </header>
 
             <main className="vitrine-conteudo">
-                {acervo.map(cat => (
-                    <section key={cat.categoria} id={cat.categoria} className="secao-categoria">
-                        <h2 className="titulo-categoria">{cat.categoria}</h2>
-                        
-                        {cat.subcategorias.map(sub => (
-                            <div key={sub.nome} id={sub.nome} className="container-subcategoria">
-                                <h3 className="titulo-subcategoria">{sub.nome}</h3>
-                                <div className="grid-produtos">
-                                    {sub.itens.map(joia => (
-                                        <CardItem
-                                            key={joia.id}
-                                            joia={joia}
-                                            adicionarItem={adicionarItem}
-                                        />
-                                    ))}
+                {/* Verifica se existem categorias antes de mapear */}
+                {acervo.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>Nenhuma peça disponível no momento.</p>
+                ) : (
+                    acervo.map(cat => (
+                        <section key={cat.id || cat.categoria} id={cat.nome || cat.categoria} className="secao-categoria">
+                            <h2 className="titulo-categoria">{cat.nome || cat.categoria}</h2>
+                            
+                            {cat.subcategorias && cat.subcategorias.map(sub => (
+                                <div key={sub.id || sub.nome} id={sub.nome} className="container-subcategoria">
+                                    <h3 className="titulo-subcategoria">{sub.nome}</h3>
+                                    <div className="grid-produtos">
+                                        {/* A API pode retornar a lista como 'produtos' ou 'itens', adaptei para aceitar ambos */}
+                                        {(sub.produtos || sub.itens || []).map(joia => (
+                                            <CardItem
+                                                key={joia.id}
+                                                joia={joia}
+                                                adicionarItem={adicionarItem}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </section>
-                ))}
+                            ))}
+                        </section>
+                    ))
+                )}
             </main>
 
             {itens.length > 0 && (

@@ -1,22 +1,26 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Importação do Provedor de Estado Global
 import { MaletaProvider } from './context/MaletaContext';
 
+// Importação do Layout Administrativo que criamos
+// ATENÇÃO: Ajuste este caminho de acordo com a pasta onde você salvou o AdminLayout
+
 // Importação das Páginas (que você criará na pasta pages)
 import Catalogo from './pages/Catalogo';
 
-
 // Estilos Globais
 import './App.css';
-import NavBar from './components/NavBar';
 import Maleta from './components/Maleta';
 import Checkout from './components/Checkout';
+
+// Páginas Administrativas
 import CadastroCategoria from './pages/admin/CadastroCategoria';
 import ListarCategorias from './pages/admin/categoria/ListarCategorias';
 import ListaProdutos from './pages/admin/produtos/ListaProdutos';
 import CadastroProduto from './pages/admin/produtos/CadastroProduto';
+import AdminLayout from './pages/admin/adminLayout/AdminLayout';
 
 function App() {
   return (
@@ -25,26 +29,46 @@ function App() {
         <div className="App">
           {/* O NavBar fica fora das rotas para aparecer em todas as páginas */}
           {/* <NavBar />  */}
-          <Maleta /> {/* Componente lateral escondido */}
-          
-          <main className="conteudo-principal">
-          <Routes>
-              <Route path="/" element={<Catalogo />} />
-              <Route path="/checkout" element={<Checkout />} />
-              
-              {/* Rota de Administração para Cadastrar */}
-              <Route path="/admin/cadastrar" element={<CadastroCategoria />} />
-              <Route path="/admin/listar" element={<ListarCategorias />} />
-              <Route path="/admin/produtos" element={<ListaProdutos />} />
-               <Route path="/admin/prod" element={<CadastroProduto />} />
-              
-              {/* Você pode adicionar depois a rota de listagem/edição:
-              <Route path="/admin/lista" element={<ListaJoiasAdmin />} /> 
-              */}
-            </Routes>
-          </main>
+          <Maleta /> {/* Componente lateral escondido (Carrinho) */}
 
-          
+          <Routes>
+            {/* ====================================================== */}
+            {/* ROTAS PÚBLICAS (Visão do Cliente - Catálogo, Checkout) */}
+            {/* ====================================================== */}
+            
+            {/* Envolvi as rotas públicas na main para não quebrar o seu estilo antigo */}
+            <Route path="/" element={
+              <main className="conteudo-principal">
+                <Catalogo />
+              </main>
+            } />
+            
+            <Route path="/checkout" element={
+              <main className="conteudo-principal">
+                <Checkout />
+              </main>
+            } />
+
+
+            {/* ====================================================== */}
+            {/* ROTAS ADMINISTRATIVAS (Protegidas pelo AdminLayout)    */}
+            {/* ====================================================== */}
+            
+            {/* Tudo que começa com /admin cai aqui e renderiza o Layout (Menu Lateral) */}
+            <Route path="/admin" element={<AdminLayout />}>
+              
+              {/* Se o usuário digitar apenas "/admin", redireciona para a tela de produtos */}
+              <Route index element={<Navigate to="/admin/produtos" replace />} />
+              
+              {/* As rotas filhas não precisam da barra inicial, o React já entende que é /admin/alguma-coisa */}
+              <Route path="cadastrar" element={<CadastroCategoria />} />
+              <Route path="listar" element={<ListarCategorias />} />
+              <Route path="produtos" element={<ListaProdutos />} />
+              <Route path="prod" element={<CadastroProduto />} />
+
+            </Route>
+
+          </Routes>
         </div>
       </Router>
     </MaletaProvider>

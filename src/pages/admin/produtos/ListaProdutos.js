@@ -5,6 +5,9 @@ import { ProdutoService } from '../../../services/ProdutoService';
 const ListaProdutos = () => {
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Novos estados para controlar a edição
+  const [produtoEditando, setProdutoEditando] = useState(null);
 
   // Busca os produtos reais da API ao abrir a tela
   useEffect(() => {
@@ -34,6 +37,44 @@ const ListaProdutos = () => {
         console.error("Erro ao excluir a peça:", error);
         alert("Erro ao excluir o produto. Tente novamente.");
       }
+    }
+  };
+
+  // --- Funções de Edição ---
+  
+  const abrirModalEdicao = (produto) => {
+    // Clona o objeto para não alterar a tabela antes de salvar na API
+    setProdutoEditando({ ...produto });
+  };
+
+  const fecharModal = () => {
+    setProdutoEditando(null);
+  };
+
+  const handleChangeEdicao = (e) => {
+    const { name, value } = e.target;
+    setProdutoEditando(prev => ({
+      ...prev,
+      [name]: name === 'preco' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const salvarEdicao = async (e) => {
+    e.preventDefault();
+    try {
+      // Supondo que você tenha um método 'atualizar' ou 'editar' no ProdutoService
+      // await ProdutoService.atualizar(produtoEditando.id, produtoEditando);
+
+      // Atualiza o estado local para refletir na tabela imediatamente
+      setProdutos(produtos.map(prod => 
+        prod.id === produtoEditando.id ? produtoEditando : prod
+      ));
+      
+      alert('Peça atualizada com sucesso!');
+      fecharModal();
+    } catch (error) {
+      console.error("Erro ao atualizar a peça:", error);
+      alert("Erro ao salvar as alterações. Tente novamente.");
     }
   };
 
@@ -102,7 +143,8 @@ const ListaProdutos = () => {
 
                     <td className="col-acoes">
                       <div className="acoes-botoes">
-                        <button className="btn-icon azul" title="Editar Peça">
+                        {/* Botão de Editar agora chama abrirModalEdicao */}
+                        <button onClick={() => abrirModalEdicao(prod)} className="btn-icon azul" title="Editar Peça">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button onClick={() => excluirProduto(prod.id)} className="btn-icon vermelho" title="Excluir Peça">
@@ -117,6 +159,53 @@ const ListaProdutos = () => {
           </div>
         )}
       </div>
+
+      {/* --- MODAL DE EDIÇÃO --- */}
+      {produtoEditando && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div className="modal-header">
+              <h3>Editar Peça #{produtoEditando.id}</h3>
+              <button className="btn-close-modal" onClick={fecharModal}>&times;</button>
+            </div>
+            
+            <form onSubmit={salvarEdicao}>
+              <div className="form-group">
+                <label>Nome da Peça</label>
+                <input 
+                  type="text" 
+                  name="nome" 
+                  value={produtoEditando.nome || ''} 
+                  onChange={handleChangeEdicao} 
+                  required 
+                  className="input-estilizado"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Preço (R$)</label>
+                <input 
+                  type="number" 
+                  name="preco" 
+                  step="0.01"
+                  min="0"
+                  value={produtoEditando.preco || ''} 
+                  onChange={handleChangeEdicao} 
+                  required 
+                  className="input-estilizado"
+                />
+              </div>
+
+              {/* Se você tiver outros campos, como imagem URL ou categoria, basta adicionar divs .form-group semelhantes aqui */}
+
+              <div className="modal-footer">
+                <button type="button" className="btn-cancelar" onClick={fecharModal}>Cancelar</button>
+                <button type="submit" className="btn-salvar">Salvar Alterações</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
