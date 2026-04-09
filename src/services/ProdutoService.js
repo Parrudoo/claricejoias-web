@@ -14,14 +14,24 @@ export const ProdutoService = {
     },
 
     // Cria um novo produto (POST /api/produtos)
-    cadastrar: async (produto) => {
-        const response = await api.post('/produtos', produto);
+    // Atenção: Agora recebe formData em vez de um objeto produto simples
+    cadastrar: async (formData) => {
+        const response = await api.post('/produtos', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     },
 
     // Atualiza os dados de um produto existente (PUT /api/produtos/{id})
-    atualizar: async (id, produto) => {
-        const response = await api.put(`/produtos/${id}`, produto);
+    // Atenção: Agora recebe formData em vez de um objeto produto simples
+    atualizar: async (id, formData) => {
+        const response = await api.put(`/produtos/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     },
 

@@ -97,3 +97,26 @@
     font-weight: bold;
     cursor: pointer;
   }
+
+/* O container que segura a imagem */
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto !important; /* Força a altura a ser automática */
+  display: block; /* Removemos o flex, pois no Grid ele pode forçar alturas indesejadas */
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  background-color: #ffffff;
+}
+
+/* A imagem */
+.img-principal {
+  width: 100%;
+  height: auto !important; /* A altura sempre vai ser proporcional à largura */
+  display: block;
+  
+  /* Removemos o object-fit! 
+     Com width 100% e height auto, o navegador faz o escalonamento 
+     natural da foto sem cortar 1 único pixel. */
+  object-fit: unset; 
+}

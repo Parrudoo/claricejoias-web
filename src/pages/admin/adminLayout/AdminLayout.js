@@ -51,7 +51,7 @@ const AdminLayout = () => {
 
           {/* === GRUPO: PRODUTOS === */}
           <div className="nav-group">
-            <button 
+            {/* <button 
               className={`nav-group-btn ${submenuAberto === 'produtos' ? 'open' : ''}`} 
               onClick={() => toggleSubmenu('produtos')}
               title="Produtos"
@@ -61,7 +61,7 @@ const AdminLayout = () => {
                 <span className="nav-text">Produtos</span>
               </div>
               <svg className={`chevron ${submenuAberto === 'produtos' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            </button> */}
             
             {/* O conteúdo do submenu só renderiza se estiver aberto e a barra expandida */}
             {submenuAberto === 'produtos' && isExpanded && (

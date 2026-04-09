@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus } from 'react-icons/fi';
 import { CategoriaService } from '../../../services/CategoriaService';
-import { ProdutoService } from '../../../services/ProdutoService'; 
+import { ProdutoService } from '../../../services/ProdutoService';
 
 import './ListarCategorias.css';
 
@@ -11,7 +11,7 @@ const ListarCategorias = () => {
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
 
     const [categoriaEditando, setCategoriaEditando] = useState(null);
-    const [produtoModal, setProdutoModal] = useState(null); 
+    const [produtoModal, setProdutoModal] = useState(null);
     const [expandidos, setExpandidos] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,7 +58,7 @@ const ListarCategorias = () => {
     };
 
     const salvarEdicaoCategoria = async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         if (!categoriaEditando.nome.trim()) {
             mostrarMensagem('O nome não pode ficar vazio.', 'erro'); return;
         }
@@ -67,6 +67,7 @@ const ListarCategorias = () => {
             setCategorias(categorias.map(cat => cat.id === categoriaEditando.id ? { ...cat, nome: atualizada.nome } : cat));
             mostrarMensagem('Categoria atualizada!', 'sucesso');
             setCategoriaEditando(null);
+            carregarCategorias();
         } catch (error) {
             mostrarMensagem('Erro ao atualizar a categoria.', 'erro');
         }
@@ -75,7 +76,7 @@ const ListarCategorias = () => {
     // ==========================================
     // AÇÕES DE PRODUTO (NOVO MODAL RICO)
     // ==========================================
-    
+
     const abrirModalNovoProduto = (subcategoriaId) => {
         setProdutoModal({
             id: null,
@@ -89,7 +90,7 @@ const ListarCategorias = () => {
     };
 
     const abrirModalEditarProduto = (produto) => {
-        setProdutoModal({ 
+        setProdutoModal({
             ...produto,
             imagem: null,
             imagePreview: produto.img || null // Se tiver URL salva, mostra na prévia
@@ -125,31 +126,40 @@ const ListarCategorias = () => {
         e.preventDefault();
         try {
             setIsSubmitting(true);
-            
-            let imagemBase64 = produtoModal.id ? produtoModal.img : null; // Mantém a antiga se não mudar
-            if (produtoModal.imagem) {
-                imagemBase64 = await convertFileToBase64(produtoModal.imagem);
-            }
 
-            const payload = {
+            // 1. Cria um objeto FormData vazio
+            const formData = new FormData();
+
+            // 2. Prepara os dados de texto do Produto
+            const produtoData = {
                 nome: produtoModal.nome,
                 preco: parseFloat(produtoModal.preco),
-                descricao: produtoModal.descricao,
-                img: imagemBase64,
+                // Se no backend a propriedade se chama "material", faça esse mapeamento:
+                material: produtoModal.descricao,
                 subcategoria: { id: parseInt(produtoModal.subcategoriaId) }
             };
 
-            console.log(payload)
+            // 3. Adiciona o JSON no FormData como um Blob (Essencial para o @RequestPart funcionar no Spring)
+            const produtoBlob = new Blob([JSON.stringify(produtoData)], { type: "application/json" });
+            formData.append("produto", produtoBlob);
+
+            // 4. Adiciona a imagem física se ela existir no state (Ela vem direto do input file)
+            if (produtoModal.imagem) {
+                // "file" é o mesmo nome que você colocou no @RequestPart do backend
+                formData.append("file", produtoModal.imagem);
+            }
+
+            // 5. Envia o formData completo
             if (produtoModal.id) {
-                await ProdutoService.atualizar(produtoModal.id, payload);
+                await ProdutoService.atualizar(produtoModal.id, formData);
                 mostrarMensagem('Joia atualizada com sucesso!', 'sucesso');
             } else {
-                await ProdutoService.cadastrar(payload);
+                await ProdutoService.cadastrar(formData);
                 mostrarMensagem('Nova joia adicionada ao catálogo!', 'sucesso');
             }
-            
-            setProdutoModal(null); 
-            carregarCategorias(); 
+
+            setProdutoModal(null);
+            carregarCategorias();
         } catch (error) {
             console.error("Erro ao salvar produto:", error);
             mostrarMensagem('Erro ao salvar os dados da joia.', 'erro');
@@ -165,7 +175,7 @@ const ListarCategorias = () => {
         try {
             await ProdutoService.deletar(id);
             mostrarMensagem('Peça excluída com sucesso!', 'sucesso');
-            carregarCategorias(); 
+            carregarCategorias();
         } catch (error) {
             mostrarMensagem('Erro ao excluir a peça.', 'erro');
         }
@@ -244,7 +254,7 @@ const ListarCategorias = () => {
                                                                             (sub.produtos || sub.itens || []).map(prod => (
                                                                                 <div key={prod.id} className="card-produto-mini">
                                                                                     <div className="prod-mini-icone">
-                                                                                        {prod.img ? <img src={prod.img} alt="" style={{width:'100%', height:'100%', objectFit:'cover', borderRadius:'6px'}}/> : <FiPackage />}
+                                                                                        {prod.img ? <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} /> : <FiPackage />}
                                                                                     </div>
                                                                                     <div className="prod-mini-info">
                                                                                         <span className="prod-mini-nome">{prod.nome}</span>
@@ -279,28 +289,28 @@ const ListarCategorias = () => {
 
             {/* --- MODAL DE CATEGORIA OMITIDO PARA BREVIDADE (MANTENHA O SEU) --- */}
             {categoriaEditando && (
-                 <div className="modal-overlay">
-                 <div className="modal-card">
-                     <div className="modal-header">
-                         <h3>Editar Categoria #{categoriaEditando.id}</h3>
-                         <button className="btn-close-modal" onClick={() => setCategoriaEditando(null)}>&times;</button>
-                     </div>
-                     <form onSubmit={salvarEdicaoCategoria}>
-                         <div className="form-group">
-                             <label>Nome da Categoria</label>
-                             <input 
-                                 type="text" name="nome" value={categoriaEditando.nome || ''} 
-                                 onChange={(e) => setCategoriaEditando({...categoriaEditando, nome: e.target.value})} 
-                                 required className="input-estilizado" autoFocus
-                             />
-                         </div>
-                         <div className="modal-footer">
-                             <button type="button" className="btn-cancelar" onClick={() => setCategoriaEditando(null)}>Cancelar</button>
-                             <button type="submit" className="btn-salvar">Salvar Categoria</button>
-                         </div>
-                     </form>
-                 </div>
-             </div>
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <div className="modal-header">
+                            <h3>Editar Categoria #{categoriaEditando.id}</h3>
+                            <button className="btn-close-modal" onClick={() => setCategoriaEditando(null)}>&times;</button>
+                        </div>
+                        <form onSubmit={salvarEdicaoCategoria}>
+                            <div className="form-group">
+                                <label>Nome da Categoria</label>
+                                <input
+                                    type="text" name="nome" value={categoriaEditando.nome || ''}
+                                    onChange={(e) => setCategoriaEditando({ ...categoriaEditando, nome: e.target.value })}
+                                    required className="input-estilizado" autoFocus
+                                />
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn-cancelar" onClick={() => setCategoriaEditando(null)}>Cancelar</button>
+                                <button type="submit" className="btn-salvar">Salvar Categoria</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
 
             {/* ============================================== */}
@@ -313,9 +323,9 @@ const ListarCategorias = () => {
                             <h3>{produtoModal.id ? `Editar Peça #${produtoModal.id}` : '💎 Cadastrar Nova Peça'}</h3>
                             <button className="btn-close-modal" onClick={() => setProdutoModal(null)}>&times;</button>
                         </div>
-                        
+
                         <form onSubmit={salvarProduto} className="cadastro-form-modal">
-                            
+
                             {/* Área de Upload de Imagem */}
                             <div className="form-group form-image-group">
                                 <div className="image-upload-area">
@@ -353,20 +363,20 @@ const ListarCategorias = () => {
                                 {/* Nome e Preço lado a lado */}
                                 <div className="form-group flex-2">
                                     <label htmlFor="nome">Nome da Peça</label>
-                                    <input 
-                                        id="nome" type="text" name="nome" 
-                                        value={produtoModal.nome || ''} 
-                                        onChange={handleChangeProduto} 
-                                        required className="input-estilizado" 
+                                    <input
+                                        id="nome" type="text" name="nome"
+                                        value={produtoModal.nome || ''}
+                                        onChange={handleChangeProduto}
+                                        required className="input-estilizado"
                                         placeholder="Ex: Anel Ouro 18k"
                                     />
                                 </div>
                                 <div className="form-group flex-1">
                                     <label htmlFor="preco">Preço (R$)</label>
-                                    <input 
+                                    <input
                                         id="preco" type="number" name="preco" step="0.01" min="0"
-                                        value={produtoModal.preco || ''} 
-                                        onChange={handleChangeProduto} 
+                                        value={produtoModal.preco || ''}
+                                        onChange={handleChangeProduto}
                                         required className="input-estilizado"
                                         placeholder="0.00"
                                     />
