@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Importamos para poder voltar
+import { useNavigate } from 'react-router-dom';
 import { useMaleta } from '../context/MaletaContext';
-import { FiArrowLeft } from 'react-icons/fi'; // Ícone elegante de voltar
+import { FiArrowLeft } from 'react-icons/fi';
+import { leadService } from '../services/leadService'; // 1. Importando o serviço
 import './Checkout.css';
 
 export default function Checkout() {
   const { itens, total } = useMaleta();
   const [nome, setNome] = useState('');
-  const navigate = useNavigate(); // 2. Inicializamos o navegador
+  const [whatsapp, setWhatsapp] = useState('');
+  const navigate = useNavigate();
 
-  const enviarWhatsApp = (e) => {
+  const enviarWhatsApp = async (e) => { 
     e.preventDefault();
-    
-    let mensagem = `Olá! Meu nome é *${nome}* e tenho interesse nestas joias:\n\n`;
+
+    // 2. Chamada real para o seu backend via serviço
+    try {
+      await leadService.salvar(nome, whatsapp, itens);
+      console.log("Lead salvo no banco de dados com sucesso!", { nome, whatsapp });
+    } catch (error) {
+      console.error("Erro ao salvar o lead no backend", error);
+      // O fluxo continua normalmente para o WhatsApp mesmo se a API falhar
+    }
+
+    // 3. Montar e enviar a mensagem para o WhatsApp da Loja
+    let mensagem = `Olá! Meu nome é *${nome}* e tenho interesse nestas joias do catálogo:\n\n`;
 
     itens.forEach(item => {
       mensagem += `• ${item.nome} (${item.quantidade}x) - R$ ${(item.preco * item.quantidade).toFixed(2)}\n`;
     });
 
     mensagem += `\n*Total estimado:* R$ ${total.toFixed(2)}`;
+    mensagem += `\n*Meu contato:* ${whatsapp}`;
 
-    const numeroLoja = "5586999999999"; 
+    const numeroLoja = "5586995646615"; 
     const link = `https://wa.me/${numeroLoja}?text=${encodeURIComponent(mensagem)}`;
 
     window.open(link, '_blank');
@@ -28,7 +41,6 @@ export default function Checkout() {
 
   return (
     <div className="checkout-minimalista">
-      {/* Botão de Voltar sutil e sofisticado */}
       <button className="btn-voltar" onClick={() => navigate('/')}>
         <FiArrowLeft /> Voltar ao catálogo
       </button>
@@ -37,18 +49,30 @@ export default function Checkout() {
       <p>Confirme suas escolhas e nos chame para um atendimento exclusivo.</p>
 
       <form onSubmit={enviarWhatsApp}>
-        <div className="campo-nome">
-           <label>Como podemos lhe chamar?</label>
-           <input 
-            type="text" 
-            placeholder="Digite seu nome completo" 
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required 
-          />
+        <div className="linha-inputs">
+          <div className="campo-form">
+             <label>Como podemos lhe chamar?</label>
+             <input 
+              type="text" 
+              placeholder="Seu nome completo" 
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required 
+            />
+          </div>
+
+          <div className="campo-form">
+             <label>Seu WhatsApp</label>
+             <input 
+              type="tel" 
+              placeholder="(DDD) 90000-0000" 
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              required 
+            />
+          </div>
         </div>
 
-        {/* 3. Preenchendo o resumo visual das peças */}
         <div className="lista-conferencia">
           <h3>Resumo da Maleta</h3>
           {itens.map(item => (

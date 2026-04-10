@@ -140,3 +140,50 @@
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
 }
+
+/* Formulário e Inputs */
+.linha-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+/* Em telas maiores, coloca os campos lado a lado para economizar espaço vertical */
+@media (min-width: 600px) {
+  .linha-inputs {
+    flex-direction: row;
+  }
+  .campo-form {
+    flex: 1;
+  }
+}
+
+.campo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campo-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+.campo-form input {
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: 0.3s;
+  width: 100%;
+  box-sizing: border-box; /* Garante que o padding não quebre o layout */
+}
+
+.campo-form input:focus {
+  outline: none;
+  border-color: #D4AF37;
+  background-color: #fff;
+}
