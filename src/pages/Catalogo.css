@@ -132,3 +132,166 @@
   }
 }
 
+/* =========================================
+   ESTILOS DO MODAL DE DETALHES (GALERIA)
+   ========================================= */
+.modal-detalhes-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.modal-detalhes-card {
+    background: #fff;
+    width: 100%;
+    max-width: 850px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    overflow: hidden;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.btn-fechar-detalhes {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #f5f5f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #333;
+    z-index: 10;
+    transition: 0.2s;
+}
+
+.btn-fechar-detalhes:hover {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+.modal-detalhes-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.galeria-joia {
+    flex: 1;
+    min-width: 300px;
+    padding: 30px;
+    background-color: #fafafa;
+}
+
+.foto-principal {
+    width: 100%;
+    height: 350px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background-color: #fff;
+}
+
+.foto-principal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholder-foto {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+}
+
+.lista-miniaturas {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.miniatura {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6;
+    transition: 0.2s;
+}
+
+.miniatura:hover { opacity: 0.9; }
+.miniatura.selecionada { opacity: 1; border-color: #D4AF37; }
+
+.info-joia-detalhada {
+    flex: 1;
+    min-width: 300px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-joia-detalhada h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+.preco-destaque {
+    font-size: 26px;
+    font-weight: bold;
+    color: #D4AF37;
+    margin-bottom: 25px;
+}
+
+.descricao-box {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+.btn-add-maleta-modal {
+    background-color: #1a1a1a;
+    color: #D4AF37;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.btn-add-maleta-modal:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+}

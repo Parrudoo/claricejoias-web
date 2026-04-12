@@ -74,7 +74,7 @@ const ListarCategorias = () => {
     };
 
     // ==========================================
-    // AÇÕES DE PRODUTO (NOVO MODAL RICO)
+    // AÇÕES DE PRODUTO (MODAL RICO COM GALERIA)
     // ==========================================
 
     const abrirModalNovoProduto = (subcategoriaId) => {
@@ -84,16 +84,17 @@ const ListarCategorias = () => {
             preco: '',
             descricao: '',
             subcategoriaId: subcategoriaId,
-            imagem: null,
-            imagePreview: null
+            imagens: [], // Array para os arquivos físicos
+            previews: [] // Array para as URLs de visualização
         });
     };
 
     const abrirModalEditarProduto = (produto) => {
         setProdutoModal({
             ...produto,
-            imagem: null,
-            imagePreview: produto.img || null // Se tiver URL salva, mostra na prévia
+            imagens: [],
+            // Se o produto já tiver uma imagem salva (string URL), coloca na preview
+            previews: produto.img ? [produto.img] : [] 
         });
     };
 
@@ -106,20 +107,26 @@ const ListarCategorias = () => {
     };
 
     const handleImageChangeProduto = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const previewUrl = URL.createObjectURL(file);
-            setProdutoModal(prev => ({ ...prev, imagem: file, imagePreview: previewUrl }));
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            // Gera URLs temporárias para mostrar na tela
+            const novasPreviews = files.map(file => URL.createObjectURL(file));
+            
+            setProdutoModal(prev => ({ 
+                ...prev, 
+                // Adiciona os novos arquivos e previews aos que já existiam no array
+                imagens: [...(prev.imagens || []), ...files], 
+                previews: [...(prev.previews || []), ...novasPreviews] 
+            }));
         }
     };
 
-    const convertFileToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
+    const removerImagem = (indexToRemove) => {
+        setProdutoModal(prev => ({
+            ...prev,
+            imagens: prev.imagens.filter((_, index) => index !== indexToRemove),
+            previews: prev.previews.filter((_, index) => index !== indexToRemove)
+        }));
     };
 
     const salvarProduto = async (e) => {
@@ -134,19 +141,19 @@ const ListarCategorias = () => {
             const produtoData = {
                 nome: produtoModal.nome,
                 preco: parseFloat(produtoModal.preco),
-                // Se no backend a propriedade se chama "material", faça esse mapeamento:
-                material: produtoModal.descricao,
+                material: produtoModal.descricao, // Ajuste para bater com o nome no Spring se necessário
                 subcategoria: { id: parseInt(produtoModal.subcategoriaId) }
             };
 
-            // 3. Adiciona o JSON no FormData como um Blob (Essencial para o @RequestPart funcionar no Spring)
+            // 3. Adiciona o JSON no FormData como um Blob
             const produtoBlob = new Blob([JSON.stringify(produtoData)], { type: "application/json" });
             formData.append("produto", produtoBlob);
 
-            // 4. Adiciona a imagem física se ela existir no state (Ela vem direto do input file)
-            if (produtoModal.imagem) {
-                // "file" é o mesmo nome que você colocou no @RequestPart do backend
-                formData.append("file", produtoModal.imagem);
+            // 4. Adiciona todas as imagens selecionadas (como "files")
+            if (produtoModal.imagens && produtoModal.imagens.length > 0) {
+                produtoModal.imagens.forEach(img => {
+                    formData.append("files", img); 
+                });
             }
 
             // 5. Envia o formData completo
@@ -214,7 +221,6 @@ const ListarCategorias = () => {
                             <tbody>
                                 {categorias.map(cat => (
                                     <React.Fragment key={cat.id}>
-                                        {/* ... LINHA DA CATEGORIA (MANTIDA IGUAL) ... */}
                                         <tr className={`linha-categoria ${expandidos[cat.id] ? 'expandida' : ''}`}>
                                             <td className="col-toggle">
                                                 <button className="btn-toggle-row" onClick={() => toggleExpandir(cat.id)}>
@@ -232,7 +238,6 @@ const ListarCategorias = () => {
                                             </td>
                                         </tr>
 
-                                        {/* ... LINHA DAS SUBCATEGORIAS (MANTIDA IGUAL) ... */}
                                         {expandidos[cat.id] && (
                                             <tr className="linha-detalhes">
                                                 <td colSpan="5">
@@ -287,7 +292,7 @@ const ListarCategorias = () => {
                 )}
             </div>
 
-            {/* --- MODAL DE CATEGORIA OMITIDO PARA BREVIDADE (MANTENHA O SEU) --- */}
+            {/* MODAL DE CATEGORIA */}
             {categoriaEditando && (
                 <div className="modal-overlay">
                     <div className="modal-card">
@@ -313,12 +318,10 @@ const ListarCategorias = () => {
                 </div>
             )}
 
-            {/* ============================================== */}
-            {/* MODAL RICO DE PRODUTO (CADASTRAR E EDITAR)     */}
-            {/* ============================================== */}
+            {/* MODAL RICO DE PRODUTO */}
             {produtoModal && (
                 <div className="modal-overlay">
-                    <div className="modal-card modal-largo"> {/* Classe modal-largo para dar espaço pra grid */}
+                    <div className="modal-card modal-largo">
                         <div className="modal-header">
                             <h3>{produtoModal.id ? `Editar Peça #${produtoModal.id}` : '💎 Cadastrar Nova Peça'}</h3>
                             <button className="btn-close-modal" onClick={() => setProdutoModal(null)}>&times;</button>
@@ -326,33 +329,47 @@ const ListarCategorias = () => {
 
                         <form onSubmit={salvarProduto} className="cadastro-form-modal">
 
-                            {/* Área de Upload de Imagem */}
+                            {/* Área de Upload de Imagens (GALERIA) */}
                             <div className="form-group form-image-group">
-                                <div className="image-upload-area">
-                                    <div className="image-preview-container">
-                                        {produtoModal.imagePreview ? (
-                                            <img src={produtoModal.imagePreview} alt="Pré-visualização" className="image-preview" />
+                                <div className="image-upload-area column-layout">
+                                    <div className="image-preview-gallery">
+                                        {produtoModal.previews && produtoModal.previews.length > 0 ? (
+                                            produtoModal.previews.map((url, index) => (
+                                                <div key={index} className="preview-item">
+                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" />
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn-remove-preview" 
+                                                        onClick={() => removerImagem(index)}
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </div>
+                                            ))
                                         ) : (
                                             <div className="image-placeholder">
                                                 <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                                <span>Nenhuma foto</span>
                                             </div>
                                         )}
                                     </div>
+                                    
                                     <div className="image-upload-actions">
-                                        <div className="image-upload-text">
-                                            <label>Foto Principal da Joia</label>
-                                            <p>Fundo claro recomendado.</p>
+                                        <div className="image-upload-text" style={{textAlign: 'center'}}>
+                                            <label>Fotos da Joia</label>
+                                            <p>Selecione várias fotos de uma vez.</p>
                                         </div>
-                                        <div className="image-upload-btn">
+                                        <div className="image-upload-btn" style={{textAlign: 'center', marginTop: '10px'}}>
                                             <input
                                                 id="imagemModal"
                                                 type="file"
                                                 accept="image/*"
+                                                multiple
                                                 onChange={handleImageChangeProduto}
                                                 className="input-file-hidden"
                                             />
                                             <label htmlFor="imagemModal" className="label-file-custom">
-                                                {produtoModal.imagePreview ? 'Trocar Foto' : 'Procurar Foto'}
+                                                {produtoModal.previews?.length > 0 ? 'Adicionar mais fotos' : 'Procurar Fotos'}
                                             </label>
                                         </div>
                                     </div>
@@ -360,7 +377,6 @@ const ListarCategorias = () => {
                             </div>
 
                             <div className="form-grid">
-                                {/* Nome e Preço lado a lado */}
                                 <div className="form-group flex-2">
                                     <label htmlFor="nome">Nome da Peça</label>
                                     <input
@@ -382,7 +398,6 @@ const ListarCategorias = () => {
                                     />
                                 </div>
 
-                                {/* Descrição ocupando linha inteira */}
                                 <div className="form-group flex-full">
                                     <label htmlFor="descricao">Descrição Detalhada (Opcional)</label>
                                     <textarea
