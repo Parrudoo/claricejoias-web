@@ -37,14 +37,14 @@ export default function Catalogo() {
     const rolarPara = (id) => {
         const elemento = document.getElementById(id);
         if (elemento) {
-            const yOffset = -100; 
+            const yOffset = -100;
             const y = elemento.getBoundingClientRect().top + window.pageYOffset + yOffset;
             window.scrollTo({ top: y, behavior: 'smooth' });
         }
     };
 
     const dadosMenu = acervo.map(cat => ({
-        categoria: cat.nome || cat.categoria, 
+        categoria: cat.nome || cat.categoria,
         subitens: cat.subcategorias ? cat.subcategorias.map(sub => sub.nome) : []
     }));
 
@@ -85,7 +85,7 @@ export default function Catalogo() {
                     acervo.map(cat => (
                         <section key={cat.id || cat.categoria} id={cat.nome || cat.categoria} className="secao-categoria">
                             <h2 className="titulo-categoria">{cat.nome || cat.categoria}</h2>
-                            
+
                             {cat.subcategorias && cat.subcategorias.map(sub => (
                                 <div key={sub.id || sub.nome} id={sub.nome} className="container-subcategoria">
                                     <h3 className="titulo-subcategoria">{sub.nome}</h3>
@@ -137,10 +137,10 @@ export default function Catalogo() {
                                 {produtoSelecionado.imagens && produtoSelecionado.imagens.length > 1 && (
                                     <div className="lista-miniaturas">
                                         {produtoSelecionado.imagens.map((imgUrl, index) => (
-                                            <img 
-                                                key={index} 
-                                                src={imgUrl} 
-                                                alt={`Ângulo ${index + 1}`} 
+                                            <img
+                                                key={index}
+                                                src={imgUrl}
+                                                alt={`Ângulo ${index + 1}`}
                                                 onClick={() => setFotoDestaque(imgUrl)}
                                                 className={`miniatura ${fotoDestaque === imgUrl ? 'selecionada' : ''}`}
                                             />
@@ -152,17 +152,20 @@ export default function Catalogo() {
                             <div className="info-joia-detalhada">
                                 <h2>{produtoSelecionado.nome}</h2>
                                 <p className="preco-destaque">R$ {produtoSelecionado.preco ? produtoSelecionado.preco.toFixed(2).replace('.', ',') : '0,00'}</p>
-                                
+
                                 {produtoSelecionado.material && (
                                     <div className="descricao-box">
                                         <p>{produtoSelecionado.material}</p>
                                     </div>
                                 )}
 
-                                <button 
-                                    className="btn-add-maleta-modal" 
+                                <button
+                                    className="btn-add-maleta-modal"
                                     onClick={() => {
-                                        adicionarItem(produtoSelecionado);
+                                        adicionarItem({
+                                            ...produtoSelecionado, // Pega todos os dados da joia
+                                            imagemSelecionada: fotoDestaque // Salva a foto exata que estava na tela
+                                        });
                                         fecharDetalhes();
                                     }}
                                 >
