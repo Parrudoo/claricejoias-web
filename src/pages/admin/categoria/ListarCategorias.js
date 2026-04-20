@@ -80,20 +80,31 @@ const ListarCategorias = () => {
     const abrirModalNovoProduto = (subcategoriaId) => {
         setProdutoModal({
             id: null,
+            codigo: '',
             nome: '',
+            precoCusto: '',
             preco: '',
+            estoque: '', // Novo campo adicionado
             descricao: '',
             subcategoriaId: subcategoriaId,
-            imagens: [], // Array para os arquivos físicos
-            previews: [] // Array para as URLs de visualização
+            imagens: [],
+            previews: []
         });
     };
 
     const abrirModalEditarProduto = (produto) => {
         setProdutoModal({
-            ...produto,
+            id: produto.id,
+            codigo: produto.codigo || '',
+            nome: produto.nome || '',
+            precoCusto: produto.precoCusto || '',
+            preco: produto.preco || '',
+            estoque: produto.estoque || '',
+            // Mapeia o 'material' que vem do backend para o campo 'descricao' do formulário
+            descricao: produto.material || produto.descricao || '', 
+            // Pega o ID da subcategoria, verificando se vem aninhado do backend
+            subcategoriaId: produto.subcategoria ? produto.subcategoria.id : '',
             imagens: [],
-            // Se o produto já tiver uma imagem salva (string URL), coloca na preview
             previews: produto.img ? [produto.img] : [] 
         });
     };
@@ -102,19 +113,18 @@ const ListarCategorias = () => {
         const { name, value } = e.target;
         setProdutoModal(prev => ({
             ...prev,
-            [name]: name === 'preco' ? parseFloat(value) || '' : value
+            [name]: (name === 'preco' || name === 'precoCusto') 
+                ? parseFloat(value) || '' 
+                : (name === 'estoque' ? parseInt(value) || '' : value)
         }));
     };
 
     const handleImageChangeProduto = (e) => {
         const files = Array.from(e.target.files);
         if (files.length > 0) {
-            // Gera URLs temporárias para mostrar na tela
             const novasPreviews = files.map(file => URL.createObjectURL(file));
-            
             setProdutoModal(prev => ({ 
                 ...prev, 
-                // Adiciona os novos arquivos e previews aos que já existiam no array
                 imagens: [...(prev.imagens || []), ...files], 
                 previews: [...(prev.previews || []), ...novasPreviews] 
             }));
@@ -133,30 +143,27 @@ const ListarCategorias = () => {
         e.preventDefault();
         try {
             setIsSubmitting(true);
-
-            // 1. Cria um objeto FormData vazio
             const formData = new FormData();
 
-            // 2. Prepara os dados de texto do Produto
             const produtoData = {
+                codigo: produtoModal.codigo,
                 nome: produtoModal.nome,
+                precoCusto: parseFloat(produtoModal.precoCusto) || 0,
                 preco: parseFloat(produtoModal.preco),
-                material: produtoModal.descricao, // Ajuste para bater com o nome no Spring se necessário
+                estoque: parseInt(produtoModal.estoque) || 0, // Enviando estoque para o backend
+                material: produtoModal.descricao,
                 subcategoria: { id: parseInt(produtoModal.subcategoriaId) }
             };
 
-            // 3. Adiciona o JSON no FormData como um Blob
             const produtoBlob = new Blob([JSON.stringify(produtoData)], { type: "application/json" });
             formData.append("produto", produtoBlob);
 
-            // 4. Adiciona todas as imagens selecionadas (como "files")
             if (produtoModal.imagens && produtoModal.imagens.length > 0) {
                 produtoModal.imagens.forEach(img => {
                     formData.append("files", img); 
                 });
             }
 
-            // 5. Envia o formData completo
             if (produtoModal.id) {
                 await ProdutoService.atualizar(produtoModal.id, formData);
                 mostrarMensagem('Joia atualizada com sucesso!', 'sucesso');
@@ -259,7 +266,7 @@ const ListarCategorias = () => {
                                                                             (sub.produtos || sub.itens || []).map(prod => (
                                                                                 <div key={prod.id} className="card-produto-mini">
                                                                                     <div className="prod-mini-icone">
-                                                                                        {prod.img ? <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} /> : <FiPackage />}
+                                                                                        {prod.img ? <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', borderRadius: '6px' }} /> : <FiPackage />}
                                                                                     </div>
                                                                                     <div className="prod-mini-info">
                                                                                         <span className="prod-mini-nome">{prod.nome}</span>
@@ -292,32 +299,6 @@ const ListarCategorias = () => {
                 )}
             </div>
 
-            {/* MODAL DE CATEGORIA */}
-            {categoriaEditando && (
-                <div className="modal-overlay">
-                    <div className="modal-card">
-                        <div className="modal-header">
-                            <h3>Editar Categoria #{categoriaEditando.id}</h3>
-                            <button className="btn-close-modal" onClick={() => setCategoriaEditando(null)}>&times;</button>
-                        </div>
-                        <form onSubmit={salvarEdicaoCategoria}>
-                            <div className="form-group">
-                                <label>Nome da Categoria</label>
-                                <input
-                                    type="text" name="nome" value={categoriaEditando.nome || ''}
-                                    onChange={(e) => setCategoriaEditando({ ...categoriaEditando, nome: e.target.value })}
-                                    required className="input-estilizado" autoFocus
-                                />
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn-cancelar" onClick={() => setCategoriaEditando(null)}>Cancelar</button>
-                                <button type="submit" className="btn-salvar">Salvar Categoria</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {/* MODAL RICO DE PRODUTO */}
             {produtoModal && (
                 <div className="modal-overlay">
@@ -329,21 +310,15 @@ const ListarCategorias = () => {
 
                         <form onSubmit={salvarProduto} className="cadastro-form-modal">
 
-                            {/* Área de Upload de Imagens (GALERIA) */}
+                            {/* Área de Upload de Imagens */}
                             <div className="form-group form-image-group">
                                 <div className="image-upload-area column-layout">
                                     <div className="image-preview-gallery">
                                         {produtoModal.previews && produtoModal.previews.length > 0 ? (
                                             produtoModal.previews.map((url, index) => (
                                                 <div key={index} className="preview-item">
-                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" />
-                                                    <button 
-                                                        type="button" 
-                                                        className="btn-remove-preview" 
-                                                        onClick={() => removerImagem(index)}
-                                                    >
-                                                        &times;
-                                                    </button>
+                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" style={{ objectFit: 'contain', objectPosition: 'center', backgroundColor: '#f9f9f9' }} />
+                                                    <button type="button" className="btn-remove-preview" onClick={() => removerImagem(index)}>&times;</button>
                                                 </div>
                                             ))
                                         ) : (
@@ -353,21 +328,13 @@ const ListarCategorias = () => {
                                             </div>
                                         )}
                                     </div>
-                                    
                                     <div className="image-upload-actions">
                                         <div className="image-upload-text" style={{textAlign: 'center'}}>
                                             <label>Fotos da Joia</label>
                                             <p>Selecione várias fotos de uma vez.</p>
                                         </div>
                                         <div className="image-upload-btn" style={{textAlign: 'center', marginTop: '10px'}}>
-                                            <input
-                                                id="imagemModal"
-                                                type="file"
-                                                accept="image/*"
-                                                multiple
-                                                onChange={handleImageChangeProduto}
-                                                className="input-file-hidden"
-                                            />
+                                            <input id="imagemModal" type="file" accept="image/*" multiple onChange={handleImageChangeProduto} className="input-file-hidden" />
                                             <label htmlFor="imagemModal" className="label-file-custom">
                                                 {produtoModal.previews?.length > 0 ? 'Adicionar mais fotos' : 'Procurar Fotos'}
                                             </label>
@@ -377,37 +344,34 @@ const ListarCategorias = () => {
                             </div>
 
                             <div className="form-grid">
+                                <div className="form-group flex-1">
+                                    <label htmlFor="codigo">Código</label>
+                                    <input id="codigo" type="text" name="codigo" value={produtoModal.codigo || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="Ex: REF-001" />
+                                </div>
+                                
                                 <div className="form-group flex-2">
                                     <label htmlFor="nome">Nome da Peça</label>
-                                    <input
-                                        id="nome" type="text" name="nome"
-                                        value={produtoModal.nome || ''}
-                                        onChange={handleChangeProduto}
-                                        required className="input-estilizado"
-                                        placeholder="Ex: Anel Ouro 18k"
-                                    />
+                                    <input id="nome" type="text" name="nome" value={produtoModal.nome || ''} onChange={handleChangeProduto} required className="input-estilizado" placeholder="Ex: Anel Ouro 18k" />
                                 </div>
+
                                 <div className="form-group flex-1">
-                                    <label htmlFor="preco">Preço (R$)</label>
-                                    <input
-                                        id="preco" type="number" name="preco" step="0.01" min="0"
-                                        value={produtoModal.preco || ''}
-                                        onChange={handleChangeProduto}
-                                        required className="input-estilizado"
-                                        placeholder="0.00"
-                                    />
+                                    <label htmlFor="precoCusto">Custo (R$)</label>
+                                    <input id="precoCusto" type="number" name="precoCusto" step="0.01" value={produtoModal.precoCusto || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="0,00" />
+                                </div>
+
+                                <div className="form-group flex-1">
+                                    <label htmlFor="preco">Venda (R$)</label>
+                                    <input id="preco" type="number" name="preco" step="0.01" value={produtoModal.preco || ''} onChange={handleChangeProduto} required className="input-estilizado" placeholder="0,00" />
+                                </div>
+
+                                <div className="form-group flex-1">
+                                    <label htmlFor="estoque">Estoque Qtd</label>
+                                    <input id="estoque" type="number" name="estoque" min="0" value={produtoModal.estoque || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="0" />
                                 </div>
 
                                 <div className="form-group flex-full">
                                     <label htmlFor="descricao">Descrição Detalhada (Opcional)</label>
-                                    <textarea
-                                        id="descricao" name="descricao"
-                                        value={produtoModal.descricao || ''}
-                                        onChange={handleChangeProduto}
-                                        className="form-textarea"
-                                        placeholder="Descreva materiais, pedras, etc..."
-                                        rows="2"
-                                    />
+                                    <textarea id="descricao" name="descricao" value={produtoModal.descricao || ''} onChange={handleChangeProduto} className="form-textarea" placeholder="Materiais, pedras, etc..." rows="2" />
                                 </div>
                             </div>
 
