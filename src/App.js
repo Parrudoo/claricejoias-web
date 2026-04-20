@@ -58,13 +58,19 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               
               {/* Se o usuário digitar apenas "/admin", redireciona para a tela de produtos */}
-              <Route index element={<Navigate to="/admin/produtos" replace />} />
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+
+              {/* Rota da Visão Geral (Criei um HTML básico provisório para você ver funcionando) */}
+              <Route path="dashboard" element={
+                <div style={{ padding: '20px' }}>
+                  <h1>Visão Geral</h1>
+                  <p>Bem-vindo ao painel administrativo da Clarice Joias!</p>
+                </div>
+              } />
               
               {/* As rotas filhas não precisam da barra inicial, o React já entende que é /admin/alguma-coisa */}
               <Route path="cadastrar" element={<CadastroCategoria />} />
-              <Route path="listar" element={<ListarCategorias />} />
-              <Route path="produtos" element={<ListaProdutos />} />
-              <Route path="prod" element={<CadastroProduto />} />
+              <Route path="listar" element={<ListarCategorias />} />             
 
             </Route>
 
