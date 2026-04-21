@@ -44,10 +44,17 @@ export function CardItem({ joia, adicionarItem }) {
         <img src={fotos[imgAtiva]} alt={joia.nome} className="img-principal" />
       </div>
 
+    
+
       <div className="info-joia">
+        {/* Adicionamos uma classe exclusiva para o código */}
+        <span className="codigo-joia">REF: {joia.codigo}</span>
+        
         <h4>{joia.nome}</h4>
-        <p>{joia.material}</p>
+        <p className="material-joia">{joia.material}</p>
+        
         <span className="preco">R$ {joia.preco?.toFixed(2).replace('.', ',')}</span>
+        
         <button className="btn-add" onClick={() => adicionarItem(joia)}>
           Adicionar à Maleta
         </button>

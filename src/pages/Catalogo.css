@@ -295,3 +295,42 @@
     background-color: #333;
     transform: translateY(-2px);
 }
+
+.catalogo-container {
+  /* Aumentamos de 60px para 100px para garantir que nada fique atrás do menu */
+  padding-top: 100px; 
+  background-color: #fafafa; /* Um fundo levemente cinza destaca o branco dos cards */
+  min-height: 100vh;
+}
+
+/* --- CABEÇALHO DA VITRINE --- */
+.header-vitrine {
+  text-align: center;
+  padding: 20px 20px 60px 20px; /* Mais espaço embaixo antes de começar as joias */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-vitrine h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  color: #1a1a1a;
+  margin: 0 0 10px 0;
+  letter-spacing: 2px;
+}
+
+.header-vitrine p {
+  color: #666;
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Opcional: Se você quiser manter a div espacador-topo, pode estilizá-la, 
+   mas com o padding-top no container, ela não é mais estritamente necessária. */
+.espacador-topo {
+  height: 20px; 
+}

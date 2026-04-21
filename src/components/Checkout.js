@@ -78,11 +78,11 @@ export default function Checkout() {
           {itens.map(item => (
             <div key={item.id} className="checkout-item">
               <img 
-                /* 👇 ALTERAÇÃO FEITA AQUI 👇 */
+      
                 src={
-                  /* 1. Primeiro, definimos qual nome de arquivo usar (prioridade para a foto do modal) */
+                  
                   (item.imagemSelecionada || (item.imagens && item.imagens[0]) || item.pathImg) 
-                  /* 2. Se achou um nome, coloca a URL do backend na frente. Se não, placeholder */
+                  
                   ? `http://localhost:8080/arquivos/view/${(item.imagemSelecionada || (item.imagens && item.imagens[0]) || item.pathImg)}`
                   : 'https://via.placeholder.com/70x90?text=Sem+Foto'
                 } 

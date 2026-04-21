@@ -120,3 +120,41 @@
      natural da foto sem cortar 1 único pixel. */
   object-fit: unset; 
 }
+
+/* --- NOVOS ESTILOS PARA A INFORMAÇÃO DA JOIA --- */
+
+.info-joia {
+  padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* Cria um espaçamento uniforme entre os elementos */
+}
+
+.codigo-joia {
+  font-size: 0.75rem;
+  color: #999999;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+}
+
+.info-joia h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1A1A1A;
+  font-weight: 600;
+}
+
+.material-joia {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666666;
+}
+
+.preco {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #D4AF37; /* Mantendo um tom dourado caso queira destacar o preço */
+  margin-top: 5px;
+}
