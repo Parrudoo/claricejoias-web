@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
-import './Menu.css';
+import { useKeycloak } from '@react-keycloak/web'; // 👇 Importação Oficial do Keycloak
 import { authService } from '../services/authService';
+import './Menu.css';
 
 export function Menu({ categorias, aoClicarCategoria }) {
-  // Controle do Modal
-  const [modalAberto, setModalAberto] = useState(false);
-  const [modoCadastro, setModoCadastro] = useState(false); // false = Login, true = Cadastro
+  // 👇 Puxa a instância oficial do Keycloak que gerencia a sessão global
+  const { keycloak } = useKeycloak(); 
 
-  // Dados do formulário
+  // Controle do Modal (Agora focado apenas no Cadastro)
+  const [modalAberto, setModalAberto] = useState(false);
+
+  // Dados do formulário de cadastro
   const [formData, setFormData] = useState({
     nome: '',
     whatsapp: '',
@@ -16,12 +19,16 @@ export function Menu({ categorias, aoClicarCategoria }) {
     senha: ''
   });
 
+  // 👇 DADOS EM TEMPO REAL: Lê diretamente do Keycloak (sem usar localStorage)
+  const usuarioEstaLogado = keycloak.authenticated;
+  const nomeCompleto = keycloak.tokenParsed?.name || keycloak.tokenParsed?.given_name || 'Cliente';
+  const primeiroNome = nomeCompleto.split(' ')[0];
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const abrirModal = (ehCadastro) => {
-    setModoCadastro(ehCadastro);
+  const abrirModalCadastro = () => {
     setModalAberto(true);
   };
 
@@ -29,39 +36,40 @@ export function Menu({ categorias, aoClicarCategoria }) {
     setModalAberto(false);
   };
 
-  const handleSubmit = async (e) => {
+  // Decide pra onde o botão "Minha Conta" vai levar usando a role do Keycloak
+  const handleMinhaConta = () => {
+    if (keycloak.hasRealmRole('ADMIN')) {
+      window.location.href = '/admin'; // Joga pro painel administrativo
+    } else {
+      alert("A área de perfil do cliente estará disponível em breve!"); 
+    }
+  };
+
+  const handleSair = () => {
+    // Encerra a sessão direto no servidor do Keycloak e volta pra página inicial
+    keycloak.logout({ redirectUri: window.location.origin });
+  };
+
+  const handleCadastroSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      if (modoCadastro) {
-        // --- FLUXO DE CADASTRO ---
+      // Manda os dados para o Spring Boot criar o usuário
+      await authService.cadastrar({
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha
+      });
 
-        // Passamos o objeto com nome, email e senha para o serviço
-        await authService.cadastrar({
-          nome: formData.nome,
-          email: formData.email,
-          senha: formData.senha
-        });
+      alert("Conta criada com sucesso! Você será redirecionado para o login.");
 
-        alert("Conta criada com sucesso! Faça login para continuar.");
+      // Limpa o formulário, fecha o modal e joga pra tela de login do Keycloak
+      setFormData({ nome: '', whatsapp: '', email: '', senha: '' });
+      fecharModal();
+      
+      keycloak.login(); 
 
-        // Limpa a senha por segurança e muda para a aba de login
-        setFormData({ ...formData, senha: '' });
-        setModoCadastro(false);
-
-      } else {
-        // --- FLUXO DE LOGIN ---
-
-        await authService.login(formData.email, formData.senha);
-
-        alert("Bem-vindo(a) de volta!");
-        fecharModal();
-
-        // Recarrega a página para que o sistema inteiro perceba o novo usuário logado
-        window.location.reload();
-      }
     } catch (error) {
-      // Como o nosso serviço lança um Error, o Catch pega a mensagem exata aqui
       alert(error.message);
     }
   };
@@ -69,13 +77,29 @@ export function Menu({ categorias, aoClicarCategoria }) {
   return (
     <>
       <header className="topo-fixo">
-        {/* 1ª BARRA: LOGIN */}
+        {/* 1ª BARRA: LOGIN OU NOME DO USUÁRIO */}
         <div className="secao-login">
           <div className="login-container">
             <FiUser size={14} />
-            <button className="btn-texto-login" onClick={() => abrirModal(false)}>Login</button>
-            <span className="divisor">|</span>
-            <button className="btn-texto-login" onClick={() => abrirModal(true)}>Cadastre-se</button>
+            
+            {usuarioEstaLogado ? (
+              <>
+                <span className="btn-texto-login" style={{ cursor: 'default', textTransform: 'none' }}>
+                  Olá, <strong>{primeiroNome}</strong>
+                </span>
+                <span className="divisor">|</span>
+                <button className="btn-texto-login" onClick={handleMinhaConta} title="Ir para o seu painel">Minha Conta</button>
+                <span className="divisor">|</span>
+                <button className="btn-texto-login" onClick={handleSair} style={{ color: '#ff4d4d' }}>Sair</button>
+              </>
+            ) : (
+              <>
+                {/* 👇 Login agora chama o Keycloak direto! */}
+                <button className="btn-texto-login" onClick={() => keycloak.login()}>Login</button>
+                <span className="divisor">|</span>
+                <button className="btn-texto-login" onClick={abrirModalCadastro}>Cadastre-se</button>
+              </>
+            )}
           </div>
         </div>
 
@@ -111,7 +135,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
       </header>
 
       {/* =========================================
-          MODAL DE LOGIN E CADASTRO
+          MODAL DE CADASTRO (Simplificado para apenas cadastro)
           ========================================= */}
       {modalAberto && (
         <div className="modal-auth-overlay" onClick={fecharModal}>
@@ -121,41 +145,36 @@ export function Menu({ categorias, aoClicarCategoria }) {
             </button>
 
             <div className="modal-auth-header">
-              <h2>{modoCadastro ? 'Criar Conta' : 'Bem-vindo de volta'}</h2>
-              <p>{modoCadastro ? 'Cadastre-se para acompanhar seus pedidos.' : 'Acesse sua conta para continuar.'}</p>
+              <h2>Criar Conta</h2>
+              <p>Cadastre-se para acompanhar seus pedidos na Clarice Joias.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="modal-auth-form">
+            <form onSubmit={handleCadastroSubmit} className="modal-auth-form">
 
-              {/* Campos que só aparecem no Cadastro */}
-              {modoCadastro && (
-                <>
-                  <div className="auth-form-group">
-                    <label>Nome Completo</label>
-                    <input
-                      type="text"
-                      name="nome"
-                      value={formData.nome}
-                      onChange={handleChange}
-                      required={modoCadastro}
-                      placeholder="Ex: Maria Silva"
-                    />
-                  </div>
-                  <div className="auth-form-group">
-                    <label>WhatsApp</label>
-                    <input
-                      type="tel"
-                      name="whatsapp"
-                      value={formData.whatsapp}
-                      onChange={handleChange}
-                      required={modoCadastro}
-                      placeholder="(00) 90000-0000"
-                    />
-                  </div>
-                </>
-              )}
+              <div className="auth-form-group">
+                <label>Nome Completo</label>
+                <input
+                  type="text"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  required
+                  placeholder="Ex: Maria Silva"
+                />
+              </div>
 
-              {/* Campos que aparecem em ambos (Login e Cadastro) */}
+              <div className="auth-form-group">
+                <label>WhatsApp</label>
+                <input
+                  type="tel"
+                  name="whatsapp"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                  required
+                  placeholder="(00) 90000-0000"
+                />
+              </div>
+
               <div className="auth-form-group">
                 <label>E-mail</label>
                 <input
@@ -180,23 +199,24 @@ export function Menu({ categorias, aoClicarCategoria }) {
                 />
               </div>
 
-              {!modoCadastro && (
-                <div className="auth-esqueceu-senha">
-                  <button type="button">Esqueceu a senha?</button>
-                </div>
-              )}
-
               <button type="submit" className="btn-auth-submit">
-                {modoCadastro ? 'Cadastrar' : 'Entrar'}
+                Cadastrar
               </button>
             </form>
 
             <div className="modal-auth-footer">
-              {modoCadastro ? (
-                <p>Já tem uma conta? <button type="button" onClick={() => setModoCadastro(false)}>Faça Login</button></p>
-              ) : (
-                <p>Novo por aqui? <button type="button" onClick={() => setModoCadastro(true)}>Cadastre-se</button></p>
-              )}
+              <p>
+                Já tem uma conta?{' '}
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    fecharModal();
+                    keycloak.login(); // Fecha o modal e abre o login do Keycloak
+                  }}
+                >
+                  Faça Login
+                </button>
+              </p>
             </div>
           </div>
         </div>

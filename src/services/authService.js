@@ -1,4 +1,3 @@
-// Importe a sua configuração de API (Axios)
 import api from './api';
 
 export const authService = {
@@ -11,12 +10,9 @@ export const authService = {
       // Faz o POST para a rota do Spring Boot
       const resposta = await api.post('/auth/login', { email, senha });
 
-      // Se a requisição deu certo, o Keycloak devolveu os tokens.
-      // Vamos salvar no Local Storage para o navegador não esquecer quem está logado.
       if (resposta.data && resposta.data.access_token) {
         localStorage.setItem('@ClariceJoias_Token', resposta.data.access_token);
         
-        // Opcional: Salvar o refresh_token se quiser renovar a sessão depois
         if (resposta.data.refresh_token) {
           localStorage.setItem('@ClariceJoias_RefreshToken', resposta.data.refresh_token);
         }
@@ -27,12 +23,9 @@ export const authService = {
     } catch (erro) {
       console.error("Erro no authService.login:", erro);
       
-      // O Axios é inteligente e guarda a mensagem de erro do Spring Boot dentro de erro.response.data
-      if (erro.response && erro.response.data) {
-        // Se for uma string de erro (ex: "E-mail ou senha incorretos")
-        if (typeof erro.response.data === 'string') {
-          throw new Error(erro.response.data);
-        }
+      //  AJUSTE AQUI: Lê o JSON de erro que criamos lá no Spring Boot
+      if (erro.response && erro.response.data && erro.response.data.erro) {
+         throw new Error(erro.response.data.erro);
       }
       throw new Error("Erro de comunicação com o servidor de autenticação.");
     }
@@ -44,14 +37,13 @@ export const authService = {
   cadastrar: async (dadosCadastro) => {
     try {
       const resposta = await api.post('/auth/cadastro', dadosCadastro);
-      return resposta.data; // Retorna a mensagem de sucesso do backend
+      return resposta.data; 
     } catch (erro) {
       console.error("Erro no authService.cadastrar:", erro);
       
-      if (erro.response && erro.response.data) {
-        if (typeof erro.response.data === 'string') {
-          throw new Error(erro.response.data);
-        }
+      //  AJUSTE AQUI TAMBÉM: Captura o erro do Java
+      if (erro.response && erro.response.data && erro.response.data.erro) {
+         throw new Error(erro.response.data.erro);
       }
       throw new Error("Não foi possível criar a conta no momento.");
     }
@@ -60,15 +52,56 @@ export const authService = {
   // ==========================================
   // FUNÇÕES AUXILIARES DE SESSÃO
   // ==========================================
-  
-  // Limpa os tokens do navegador (Sair)
   logoutLocal: () => {
     localStorage.removeItem('@ClariceJoias_Token');
     localStorage.removeItem('@ClariceJoias_RefreshToken');
   },
 
-  // Retorna true se existir um token salvo
   estaLogado: () => {
     return !!localStorage.getItem('@ClariceJoias_Token');
+  },
+
+  // ==========================================
+  // LER O TOKEN PARA PEGAR NOME E EMAIL
+  // ==========================================
+  obterUsuarioLogado: () => {
+    const token = localStorage.getItem('@ClariceJoias_Token');
+    if (!token) return null;
+
+    try {
+      // O Token JWT tem 3 partes separadas por ponto. A parte do meio [1] é o "Payload" (os dados).
+      const payloadBase64 = token.split('.')[1];
+      // Decodifica a base64 para texto normal legível
+      const payloadDecoded = JSON.parse(window.atob(payloadBase64));
+
+      return {
+        nome: payloadDecoded.name || payloadDecoded.given_name || 'Cliente',
+        email: payloadDecoded.email
+      };
+    } catch (erro) {
+      console.error("Erro ao decodificar o token do usuário:", erro);
+      return null;
+    }
+  },
+
+  temPermissaoAdmin: () => {
+    const token = localStorage.getItem('@ClariceJoias_Token');
+    if (!token) return false;
+
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadDecoded = JSON.parse(window.atob(payloadBase64));
+
+      // O Keycloak guarda as roles dentro do objeto realm_access.roles
+      const roles = payloadDecoded.realm_access?.roles || [];
+      
+      // Retorna true se a palavra 'admin' estiver na lista de roles
+      return roles.includes('admin');
+    } catch (erro) {
+      console.error("Erro ao ler as permissões do token:", erro);
+      return false;
+    }
   }
+
+  
 };

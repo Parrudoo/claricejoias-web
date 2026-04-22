@@ -32,6 +32,16 @@ const AdminLayout = () => {
     setSubmenuAberto(submenuAberto === menu ? '' : menu);
   };
 
+  // 👇 NOVA FUNÇÃO DE LOGOUT SEGURO
+  const handleSair = () => {
+    // 1. Limpa os dados do LocalStorage para não deixar rastros na loja
+    localStorage.removeItem('@ClariceJoias_Token');
+    localStorage.removeItem('@ClariceJoias_RefreshToken');
+    
+    // 2. Desloga do Keycloak e manda de volta pra página inicial da loja
+    keycloak.logout({ redirectUri: window.location.origin });
+  };
+
   return (
     <div className={`admin-container ${isExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
       
@@ -103,8 +113,8 @@ const AdminLayout = () => {
         </nav>
 
         <div className="sidebar-footer">
-          {/* Adicionado o onClick com a função de logout do Keycloak */}
-          <button className="btn-sair" title="Sair do Sistema" onClick={() => keycloak.logout()}>
+          {/* 👇 Botão ajustado com a função que limpa os dados antes de sair */}
+          <button className="btn-sair" title="Sair do Sistema" onClick={handleSair}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             <span className="nav-text">Sair</span>
           </button>
@@ -126,7 +136,6 @@ const AdminLayout = () => {
           </div>
 
           <div className="topbar-perfil">
-            {/* Agora renderiza dinamicamente a letra e o nome vindos do Keycloak */}
             <div className="avatar">{inicialUsuario}</div>
             <span>{nomeUsuario}</span>
           </div>
