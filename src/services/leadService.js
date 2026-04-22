@@ -3,16 +3,14 @@ import api from './api';
 
 export const leadService = {
   
-  // Função para enviar os dados do cliente para o banco de dados
-  salvar: async (nome, whatsapp, carrinho) => {
+  // Função atualizada para receber o objeto completo do Checkout
+  // Esse objeto (dadosCheckout) agora contém: nome, whatsapp, email, criarConta, senha e itens
+  salvar: async (dadosCheckout) => {
     try {
       // Usando a sua classe de API (exemplo com padrão Axios)
-      // Ele vai concatenar a Base URL automaticamente com o '/leads'
-      const resposta = await api.post('/leads', {
-        nome,
-        whatsapp,
-        carrinho
-      });
+      // DICA: Se você for usar a rota que combinamos no Spring Security, 
+      // talvez precise mudar de '/leads' para '/pedidos/checkout' dependendo de como criou no backend.
+      const resposta = await api.post('/leads', dadosCheckout);
 
       return resposta.data; 
     } catch (erro) {

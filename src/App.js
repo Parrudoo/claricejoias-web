@@ -57,7 +57,6 @@ function App() {
             <Route 
               path="/admin" 
               element={
-                // 👇 Aqui está a mágica: Envelopamos o AdminLayout com a RotaProtegida
                 <RotaProtegida>
                   <AdminLayout />
                 </RotaProtegida>

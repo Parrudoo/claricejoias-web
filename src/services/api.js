@@ -3,7 +3,7 @@ import keycloak from '../config/keycloak'; // Importe a instância do Keycloak q
 
 const api = axios.create({
     // Ajustado para a porta 8082 conforme sua configuração do Docker
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8082',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
     headers: {
         'Content-Type': 'application/json',
     }

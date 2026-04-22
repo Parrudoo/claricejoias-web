@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus, FiX } from 'react-icons/fi';
 import { CategoriaService } from '../../../services/CategoriaService';
 import { ProdutoService } from '../../../services/ProdutoService';
 
@@ -60,7 +60,8 @@ const ListarCategorias = () => {
     const salvarEdicaoCategoria = async (e) => {
         e.preventDefault();
         if (!categoriaEditando.nome.trim()) {
-            mostrarMensagem('O nome não pode ficar vazio.', 'erro'); return;
+            mostrarMensagem('O nome não pode ficar vazio.', 'erro'); 
+            return;
         }
         try {
             const atualizada = await CategoriaService.atualizar(categoriaEditando.id, { nome: categoriaEditando.nome });
@@ -74,9 +75,8 @@ const ListarCategorias = () => {
     };
 
     // ==========================================
-    // AÇÕES DE PRODUTO (MODAL RICO COM GALERIA)
+    // AÇÕES DE PRODUTO
     // ==========================================
-
     const abrirModalNovoProduto = (subcategoriaId) => {
         setProdutoModal({
             id: null,
@@ -84,7 +84,7 @@ const ListarCategorias = () => {
             nome: '',
             precoCusto: '',
             preco: '',
-            estoque: '', // Novo campo adicionado
+            estoque: '', 
             descricao: '',
             subcategoriaId: subcategoriaId,
             imagens: [],
@@ -100,9 +100,7 @@ const ListarCategorias = () => {
             precoCusto: produto.precoCusto || '',
             preco: produto.preco || '',
             estoque: produto.estoque || '',
-            // Mapeia o 'material' que vem do backend para o campo 'descricao' do formulário
             descricao: produto.material || produto.descricao || '', 
-            // Pega o ID da subcategoria, verificando se vem aninhado do backend
             subcategoriaId: produto.subcategoria ? produto.subcategoria.id : '',
             imagens: [],
             previews: produto.img ? [produto.img] : [] 
@@ -150,7 +148,7 @@ const ListarCategorias = () => {
                 nome: produtoModal.nome,
                 precoCusto: parseFloat(produtoModal.precoCusto) || 0,
                 preco: parseFloat(produtoModal.preco),
-                estoque: parseInt(produtoModal.estoque) || 0, // Enviando estoque para o backend
+                estoque: parseInt(produtoModal.estoque) || 0,
                 material: produtoModal.descricao,
                 subcategoria: { id: parseInt(produtoModal.subcategoriaId) }
             };
@@ -266,15 +264,15 @@ const ListarCategorias = () => {
                                                                             (sub.produtos || sub.itens || []).map(prod => (
                                                                                 <div key={prod.id} className="card-produto-mini">
                                                                                     <div className="prod-mini-icone">
-                                                                                        {prod.img ? <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', borderRadius: '6px' }} /> : <FiPackage />}
+                                                                                        {prod.img ? <img src={prod.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} /> : <FiPackage />}
                                                                                     </div>
                                                                                     <div className="prod-mini-info">
                                                                                         <span className="prod-mini-nome">{prod.nome}</span>
                                                                                         <span className="prod-mini-preco">R$ {prod.preco ? prod.preco.toFixed(2).replace('.', ',') : '0,00'}</span>
                                                                                     </div>
                                                                                     <div className="prod-mini-acoes">
-                                                                                        <button className="btn-mini-acao edit" onClick={() => abrirModalEditarProduto(prod)}><FiEdit2 size={12} /></button>
-                                                                                        <button className="btn-mini-acao delete" onClick={() => handleDeletarProduto(prod.id, prod.nome)}><FiTrash2 size={12} /></button>
+                                                                                        <button className="btn-mini-acao edit" onClick={() => abrirModalEditarProduto(prod)}><FiEdit2 size={14} /></button>
+                                                                                        <button className="btn-mini-acao delete" onClick={() => handleDeletarProduto(prod.id, prod.nome)}><FiTrash2 size={14} /></button>
                                                                                     </div>
                                                                                 </div>
                                                                             ))
@@ -299,26 +297,63 @@ const ListarCategorias = () => {
                 )}
             </div>
 
-            {/* MODAL RICO DE PRODUTO */}
+            {/* =========================================
+                MODAL DE EDITAR CATEGORIA
+                ========================================= */}
+            {categoriaEditando && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <div className="modal-header">
+                            <h3>✏️ Editar Categoria #{categoriaEditando.id}</h3>
+                            <button className="btn-close-modal" onClick={() => setCategoriaEditando(null)}><FiX size={24} /></button>
+                        </div>
+
+                        <form onSubmit={salvarEdicaoCategoria} className="cadastro-form-modal">
+                            <div className="form-grid">
+                                <div className="form-group flex-full">
+                                    <label htmlFor="nomeCategoria">Nome da Categoria</label>
+                                    <input 
+                                        id="nomeCategoria" 
+                                        type="text" 
+                                        value={categoriaEditando.nome || ''} 
+                                        onChange={(e) => setCategoriaEditando({ ...categoriaEditando, nome: e.target.value })} 
+                                        required 
+                                        className="input-estilizado" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button type="button" className="btn-cancelar" onClick={() => setCategoriaEditando(null)}>Cancelar</button>
+                                <button type="submit" className="btn-salvar">
+                                    Salvar Alterações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* =========================================
+                MODAL RICO DE PRODUTO
+                ========================================= */}
             {produtoModal && (
                 <div className="modal-overlay">
                     <div className="modal-card modal-largo">
                         <div className="modal-header">
                             <h3>{produtoModal.id ? `Editar Peça #${produtoModal.id}` : '💎 Cadastrar Nova Peça'}</h3>
-                            <button className="btn-close-modal" onClick={() => setProdutoModal(null)}>&times;</button>
+                            <button className="btn-close-modal" onClick={() => setProdutoModal(null)}><FiX size={24} /></button>
                         </div>
 
                         <form onSubmit={salvarProduto} className="cadastro-form-modal">
-
-                            {/* Área de Upload de Imagens */}
                             <div className="form-group form-image-group">
                                 <div className="image-upload-area column-layout">
                                     <div className="image-preview-gallery">
                                         {produtoModal.previews && produtoModal.previews.length > 0 ? (
                                             produtoModal.previews.map((url, index) => (
                                                 <div key={index} className="preview-item">
-                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" style={{ objectFit: 'contain', objectPosition: 'center', backgroundColor: '#f9f9f9' }} />
-                                                    <button type="button" className="btn-remove-preview" onClick={() => removerImagem(index)}>&times;</button>
+                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" />
+                                                    <button type="button" className="btn-remove-preview" onClick={() => removerImagem(index)}><FiX /></button>
                                                 </div>
                                             ))
                                         ) : (

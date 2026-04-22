@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+// Importe o keycloak (ajuste a quantidade de '../' dependendo de onde este arquivo está na sua pasta)
+import keycloak from '../../../config/keycloak'; 
 import './AdminLayout.css';
 
 const AdminLayout = () => {
@@ -8,6 +10,10 @@ const AdminLayout = () => {
   
   // Controle de qual submenu está aberto (ex: 'produtos', 'categorias')
   const [submenuAberto, setSubmenuAberto] = useState('');
+
+  // Captura os dados do usuário logado pelo Keycloak
+  const nomeUsuario = keycloak.tokenParsed?.preferred_username || 'Usuário';
+  const inicialUsuario = nomeUsuario.charAt(0).toUpperCase();
 
   const toggleSidebar = () => {
     setIsExpanded(!isExpanded);
@@ -51,6 +57,7 @@ const AdminLayout = () => {
 
           {/* === GRUPO: PRODUTOS === */}
           <div className="nav-group">
+            {/* Omitido no seu código original, deixado comentado se quiser usar depois */}
             {/* <button 
               className={`nav-group-btn ${submenuAberto === 'produtos' ? 'open' : ''}`} 
               onClick={() => toggleSubmenu('produtos')}
@@ -63,7 +70,6 @@ const AdminLayout = () => {
               <svg className={`chevron ${submenuAberto === 'produtos' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button> */}
             
-            {/* O conteúdo do submenu só renderiza se estiver aberto e a barra expandida */}
             {submenuAberto === 'produtos' && isExpanded && (
               <div className="submenu-items">
                 <NavLink to="/admin/produtos" className="submenu-link">Listar Produtos</NavLink>
@@ -97,7 +103,8 @@ const AdminLayout = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="btn-sair" title="Sair do Sistema">
+          {/* Adicionado o onClick com a função de logout do Keycloak */}
+          <button className="btn-sair" title="Sair do Sistema" onClick={() => keycloak.logout()}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             <span className="nav-text">Sair</span>
           </button>
@@ -119,8 +126,9 @@ const AdminLayout = () => {
           </div>
 
           <div className="topbar-perfil">
-            <div className="avatar">A</div>
-            <span>Admin</span>
+            {/* Agora renderiza dinamicamente a letra e o nome vindos do Keycloak */}
+            <div className="avatar">{inicialUsuario}</div>
+            <span>{nomeUsuario}</span>
           </div>
         </header>
         

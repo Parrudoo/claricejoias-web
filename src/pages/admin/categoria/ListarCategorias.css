@@ -1353,3 +1353,579 @@
     border-color: #D4AF37;
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
+
+/* =========================================
+   VARIAVEIS E CONTAINER PRINCIPAL
+   ========================================= */
+:root {
+  --cor-primaria: #1A1A1A;
+  --cor-dourada: #D4AF37; /* Dourado Clarice Joias */
+  --cor-dourada-hover: #b8962c;
+  --cor-fundo: #F9FAFB;
+  --cor-borda: #E5E7EB;
+  --cor-texto: #374151;
+  --cor-texto-claro: #6B7280;
+  --cor-erro: #EF4444;
+  --cor-sucesso: #10B981;
+  --sombra-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.lista-container {
+  padding: 2rem;
+  background-color: var(--cor-fundo);
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.lista-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--sombra-card);
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lista-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--cor-borda);
+  padding-bottom: 1rem;
+}
+
+.lista-header h2 {
+  color: var(--cor-primaria);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Playfair Display', serif; /* Fonte elegante para títulos */
+}
+
+.lista-header p {
+  color: var(--cor-texto-claro);
+  font-size: 0.95rem;
+}
+
+/* =========================================
+   MENSAGENS E LOADING
+   ========================================= */
+.mensagem-feedback {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.mensagem-feedback.sucesso {
+  background-color: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #34D399;
+}
+
+.mensagem-feedback.erro {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #F87171;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--cor-dourada);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* =========================================
+   TABELA DE CATEGORIAS
+   ========================================= */
+.tabela-responsiva {
+  overflow-x: auto;
+}
+
+.tabela-categorias {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela-categorias th {
+  background-color: #F3F4F6;
+  color: var(--cor-texto);
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--cor-borda);
+}
+
+.linha-categoria {
+  border-bottom: 1px solid var(--cor-borda);
+  transition: background-color 0.2s;
+}
+
+.linha-categoria:hover {
+  background-color: #F9FAFB;
+}
+
+.linha-categoria td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.col-nome strong {
+  color: var(--cor-primaria);
+  font-size: 1.05rem;
+}
+
+.col-id {
+  color: var(--cor-texto-claro);
+  font-family: monospace;
+}
+
+.tag-sub {
+  background-color: #E0E7FF;
+  color: #3730A3;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.acoes-botoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =========================================
+   BOTÕES E ÍCONES
+   ========================================= */
+.btn-toggle-row {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cor-texto-claro);
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-toggle-row:hover {
+  background-color: var(--cor-borda);
+  color: var(--cor-primaria);
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-icon.azul { color: #3B82F6; }
+.btn-icon.azul:hover { background-color: #EFF6FF; }
+.btn-icon.vermelho { color: var(--cor-erro); }
+.btn-icon.vermelho:hover { background-color: #FEF2F2; }
+
+/* =========================================
+   ÁREA DE SUBCATEGORIAS E PRODUTOS EXPANDIDA
+   ========================================= */
+.linha-detalhes td {
+  padding: 0;
+  background-color: #FAFAFA;
+}
+
+.container-detalhes-hierarquia {
+  padding: 2rem;
+  border-bottom: 2px solid var(--cor-borda);
+}
+
+.bloco-subcategoria {
+  background: white;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.bloco-subcategoria:last-child {
+  margin-bottom: 0;
+}
+
+.header-subcategoria {
+  background-color: #F3F4F6;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.header-subcategoria h4 {
+  margin: 0;
+  color: var(--cor-primaria);
+  font-size: 1.1rem;
+}
+
+.acoes-header-sub {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badge-qtd-produtos {
+  color: var(--cor-texto-claro);
+  font-size: 0.85rem;
+}
+
+.btn-add-produto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--cor-dourada);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-add-produto:hover {
+  background-color: var(--cor-dourada-hover);
+}
+
+/* =========================================
+   GRID DE MINI PRODUTOS (ADMIN)
+   ========================================= */
+.grid-produtos-admin {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card-produto-mini {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  background-color: white;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.card-produto-mini:hover {
+  border-color: var(--cor-dourada);
+  box-shadow: 0 2px 4px rgba(212, 175, 55, 0.15);
+}
+
+.prod-mini-icone {
+  width: 50px;
+  height: 50px;
+  background-color: #F3F4F6;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.prod-mini-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.prod-mini-nome {
+  font-weight: 600;
+  color: var(--cor-primaria);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.prod-mini-preco {
+  color: var(--cor-dourada);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.prod-mini-acoes {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-mini-acao {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: var(--cor-texto-claro);
+  transition: all 0.2s;
+}
+
+.btn-mini-acao.edit:hover { background-color: #EFF6FF; color: #3B82F6; border-color: #3B82F6; }
+.btn-mini-acao.delete:hover { background-color: #FEF2F2; color: var(--cor-erro); border-color: var(--cor-erro); }
+
+/* =========================================
+   MODAIS COMUNS E FORMULÁRIOS
+   ========================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalIn 0.3s ease-out;
+}
+
+.modal-card.modal-largo {
+  max-width: 700px;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--cor-borda);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--cor-primaria);
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  color: var(--cor-texto-claro);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  transition: color 0.2s;
+}
+
+.btn-close-modal:hover { color: var(--cor-erro); }
+
+.cadastro-form-modal {
+  padding: 1.5rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.flex-1 { flex: 1 1 150px; }
+.flex-2 { flex: 2 1 250px; }
+.flex-full { flex: 1 1 100%; }
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin-bottom: 0.5rem;
+}
+
+.input-estilizado, .form-textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #F9FAFB;
+}
+
+.input-estilizado:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--cor-dourada);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* =========================================
+   UPLOAD DE IMAGENS (MODAL DE PRODUTO)
+   ========================================= */
+.form-image-group {
+  margin-bottom: 1.5rem;
+}
+
+.image-upload-area {
+  border: 2px dashed var(--cor-borda);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: #F9FAFB;
+}
+
+.image-preview-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+.preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  overflow: hidden;
+  background-color: white;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-remove-preview {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  height: 80px;
+}
+
+.input-file-hidden {
+  display: none;
+}
+
+.label-file-custom {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background-color: white;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.label-file-custom:hover {
+  background-color: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+/* =========================================
+   RODAPÉ DOS MODAIS (BOTÕES)
+   ========================================= */
+.modal-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cor-borda);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn-cancelar {
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar:hover {
+  background-color: #F3F4F6;
+}
+
+.btn-salvar {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--cor-primaria);
+  color: var(--cor-dourada);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-salvar:hover:not(:disabled) {
+  background-color: #000000;
+  transform: translateY(-1px);
+}
+
+.btn-salvar:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
