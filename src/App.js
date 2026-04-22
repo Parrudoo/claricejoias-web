@@ -12,6 +12,7 @@ import ListarCategorias from './pages/admin/categoria/ListarCategorias';
 import AdminLayout from './pages/admin/adminLayout/AdminLayout';
 import { RotaProtegida } from './components/RotaProtegida';
 import './App.css';
+import LeadsDashboard from './pages/admin/leads/LeadsDashboard';
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -53,7 +54,8 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 
                 <Route path="cadastrar" element={<CadastroCategoria />} />
-                <Route path="listar" element={<ListarCategorias />} />             
+                <Route path="listar" element={<ListarCategorias />} />   
+                <Route path="leads" element={<LeadsDashboard />} />            
               </Route>
             </Routes>
           </div>
