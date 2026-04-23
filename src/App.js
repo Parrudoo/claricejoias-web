@@ -13,6 +13,7 @@ import AdminLayout from './pages/admin/adminLayout/AdminLayout';
 import { RotaProtegida } from './components/RotaProtegida';
 import './App.css';
 import LeadsDashboard from './pages/admin/leads/LeadsDashboard';
+import { ToastContainer } from 'react-toastify';
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -38,6 +39,7 @@ function App() {
       LoadingComponent={<Loading />}
     >
       <MaletaProvider>
+      <ToastContainer position="top-right" autoClose={4000} />
         <Router>
           <div className="App">
             <Maleta />

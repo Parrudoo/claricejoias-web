@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useMaleta } from '../context/MaletaContext';
 import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 import { leadService } from '../services/leadService';
-import { useAuth } from '../hooks/useAuth'; // 👇 Importação do seu hook personalizado
+import { useAuth } from '../hooks/useAuth';
 import './Checkout.css';
 
 export default function Checkout() {
   const { itens, total } = useMaleta();
   const navigate = useNavigate();
-
-  // 👇 Olha como fica limpo! Puxamos apenas o que precisamos do hook
   const { logado, nomeCompleto, email: emailUsuario } = useAuth(); 
 
   const [nome, setNome] = useState('');
@@ -19,7 +17,7 @@ export default function Checkout() {
   const [criarConta, setCriarConta] = useState(false);
   const [senha, setSenha] = useState('');
 
-  // 👇 EFEITO: Se estiver logado, preenche os states com os dados vindos do useAuth
+  // Preenche os dados automaticamente se estiver logado
   useEffect(() => {
     if (logado) {
       setNome(nomeCompleto || '');
@@ -27,26 +25,9 @@ export default function Checkout() {
     }
   }, [logado, nomeCompleto, emailUsuario]);
 
-  const enviarWhatsApp = async (e) => { 
-    e.preventDefault();
-
-    try {
-      await leadService.salvar({ 
-        nome, 
-        whatsapp, 
-        email, 
-        // Se logado, forçamos 'criarConta' como false para não dar erro no backend
-        criarConta: logado ? false : criarConta, 
-        senha: (criarConta && !logado) ? senha : null, 
-        itens 
-      });
-      console.log("Lead salvo no banco de dados com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar o lead no backend", error);
-    }
-
+  // Função auxiliar isolada apenas para montar o texto do WhatsApp (Clean Code)
+  const gerarLinkWhatsApp = () => {
     const MINIO_URL = "http://localhost:9000/claricejoias/";
-
     let mensagem = `Olá! Meu nome é *${nome}* e tenho interesse nestas joias do catálogo:\n\n`;
 
     itens.forEach(item => {
@@ -64,9 +45,29 @@ export default function Checkout() {
     if (email) mensagem += `\n*Meu E-mail:* ${email}`;
 
     const numeroLoja = "5586995646615"; 
-    const link = `https://wa.me/${numeroLoja}?text=${encodeURIComponent(mensagem)}`;
+    return `https://wa.me/${numeroLoja}?text=${encodeURIComponent(mensagem)}`;
+  };
 
-    window.open(link, '_blank');
+  const enviarWhatsApp = async (e) => { 
+    e.preventDefault();
+
+    try {
+      await leadService.salvar({ 
+        nome, 
+        whatsapp, 
+        email, 
+        criarConta: logado ? false : criarConta, 
+        senha: (criarConta && !logado) ? senha : null, 
+        itens 
+      });
+    } catch (error) {
+      // O interceptador global (Toastify) já avisa o usuário do erro.
+      // O "return" aqui impede que o WhatsApp abra se o cadastro falhar!
+      return; 
+    }
+
+    // Se salvou com sucesso, gera o link e abre o WhatsApp
+    window.open(gerarLinkWhatsApp(), '_blank');
   };
 
   return (
@@ -80,7 +81,6 @@ export default function Checkout() {
 
       <form onSubmit={enviarWhatsApp}>
         
-        {/* 👇 CONDICIONAL: Usa a variável 'logado' direto do useAuth */}
         {logado ? (
           <div style={{ backgroundColor: '#f0fdf4', padding: '15px', borderRadius: '8px', marginBottom: '25px', border: '1px solid #bbf7d0' }}>
             <p style={{ margin: 0, color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -102,7 +102,6 @@ export default function Checkout() {
           </div>
         ) : (
           <>
-            {/* Lado a lado em telas grandes */}
             <div className="linha-inputs">
               <div className="campo-form" style={{ flex: 2 }}>
                  <label>Como podemos lhe chamar?</label>
@@ -127,7 +126,6 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* E-mail sempre visível para envio do recibo/contato */}
             <div className="campo-form" style={{ marginBottom: '20px' }}>
                <label>E-mail</label>
                <input 
@@ -139,7 +137,6 @@ export default function Checkout() {
               />
             </div>
 
-            {/* MÓDULO DE CRIAÇÃO DE CONTA */}
             <div className="modulo-criacao-conta">
               <label className="checkbox-conta">
                 <input 

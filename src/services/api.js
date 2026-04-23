@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import keycloak from '../config/keycloak'; // Importe a instância do Keycloak que configuramos
 
 const api = axios.create({
@@ -19,7 +20,7 @@ api.interceptors.request.use(
             try {
                 // Atualiza o token se ele expirar nos próximos 30 segundos
                 await keycloak.updateToken(30);
-                
+
                 // Injeta o token no cabeçalho Authorization
                 config.headers.Authorization = `Bearer ${keycloak.token}`;
             } catch (error) {
@@ -40,16 +41,22 @@ api.interceptors.request.use(
  * Útil para capturar erros globais (como 401 ou 403)
  */
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Se deu Status 200 ou 201 (Sucesso), apenas deixa passar
+        return response;
+    },
     (error) => {
-        if (error.response) {
-            // Se o backend retornar 401 (Não autorizado), o token pode ter invalidado
-            if (error.response.status === 401) {
-                console.warn("Sessão expirada ou não autorizada. Redirecionando...");
-                keycloak.login();
-            }
+        // Se deu ERRO (400, 401, 500...), o axios cai aqui ANTES de chegar na sua tela
+
+        if (error.response && error.response.data && error.response.data.erro) {
+            // Pega a mensagem lá do nosso 'StandardError' do Spring e mostra um Toast Vermelho!
+            toast.error(error.response.data.erro);
+        } else {
+            // Se a API estiver fora do ar ou der um erro desconhecido
+            toast.error("Ocorreu um erro de comunicação com o servidor.");
         }
-        console.error("Erro na comunicação com a API:", error.message);
+
+        // Repassa o erro para frente apenas para a tela saber que tem que interromper o fluxo
         return Promise.reject(error);
     }
 );

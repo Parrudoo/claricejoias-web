@@ -22,6 +22,7 @@
 
 .leads-table {
   width: 100%;
+  min-width: max-content; /* 👇 A MÁGICA: A tabela vai esticar o quanto for necessário */
   text-align: left;
   border-collapse: collapse;
 }
@@ -32,6 +33,7 @@
   color: #4b5563;
   background-color: #f3f4f6;
   border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap; /* Evita quebra de linha no cabeçalho */
 }
 
 .leads-table td {
@@ -39,6 +41,13 @@
   border-bottom: 1px solid #e5e7eb;
   font-size: 0.875rem;
   color: #374151;
+  vertical-align: middle; /* Centraliza o conteúdo verticalmente */
+}
+
+/* Evita que as colunas de Status e Ações quebrem em várias linhas */
+.leads-table td:nth-child(3),
+.leads-table td:nth-child(4) {
+  white-space: nowrap; 
 }
 
 .leads-table tr {
@@ -122,8 +131,11 @@
 .acoes-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important; /* 👇 Proíbe expressamente a quebra de linha */
+  width: max-content !important;
+  margin: 0 auto;
 }
 
 .btn-acao {
@@ -135,6 +147,10 @@
   cursor: pointer;
   transition: background-color 0.2s;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  
+  /* 👇 BLINDAGEM MÁXIMA PARA OS BOTÕES: */
+  white-space: nowrap !important; /* O texto "Disparar Whatsapp" não quebra de jeito nenhum */
+  flex-shrink: 0 !important; /* Impede que o flexbox esmague o botão quando a tela diminuir */
 }
 
 .btn-acao:disabled {

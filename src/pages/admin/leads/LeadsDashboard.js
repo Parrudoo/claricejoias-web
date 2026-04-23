@@ -1,23 +1,48 @@
 import React, { useState, useEffect } from 'react';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import Paginacao from '../../../components/paginacao/Paginacao';
 import { leadService } from '../../../services/leadService';
-import './LeadsDashboard.css'; // Importando o CSS que criamos
+import './LeadsDashboard.css';
 
 const LeadsDashboard = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
+  // 👇 NOVOS ESTADOS PARA PAGINAÇÃO
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchLeads = async () => {
+  // O useEffect agora escuta a variável currentPage. 
+  // Se ela mudar, ele busca a nova página no backend.
+  useEffect(() => {
+    fetchLeads(currentPage);
+  }, [currentPage]);
+
+  const fetchLeads = async (pageIndex) => {
     try {
       setLoading(true);
-      const data = await leadService.listarTodos();
-      setLeads(data);
+      const data = await leadService.listarTodos(pageIndex, 10);
+
+      // Verifica se o backend enviou o objeto com paginação
+      if (data && data.content) {
+        // 👇 A MÁGICA AQUI: setLeads precisa do '.content' para receber o Array [ {...}, {...} ]
+        setLeads(data.content);
+        setTotalPages(data.totalPages);
+      }
+      // Fallback caso a API mande a lista antiga direta
+      else if (Array.isArray(data)) {
+        setLeads(data);
+        setTotalPages(1);
+      }
+      // Prevenção de falhas para não quebrar a tela
+      else {
+        setLeads([]);
+      }
+
     } catch (error) {
       console.error("Erro ao buscar leads", error);
       alert("Não foi possível carregar os leads.");
+      setLeads([]); // 👇 Garante que o leads seja um array vazio em caso de erro
     } finally {
       setLoading(false);
     }
@@ -50,12 +75,21 @@ const LeadsDashboard = () => {
     alert(`Ação de disparo iniciada para ${whatsapp}!`);
   };
 
+  // 👇 FUNÇÕES PARA NAVEGAR ENTRE AS PÁGINAS
+  const irParaPaginaAnterior = () => {
+    if (currentPage > 0) setCurrentPage(currentPage - 1);
+  };
+
+  const irParaProximaPagina = () => {
+    if (currentPage < totalPages - 1) setCurrentPage(currentPage + 1);
+  };
+
   if (loading) return <div className="mensagem-sistema">Carregando leads do sistema...</div>;
 
   return (
     <div className="leads-container">
       <h1 className="leads-title">Gerenciamento de Leads</h1>
-      
+
       <div className="leads-table-wrapper">
         <table className="leads-table">
           <thead>
@@ -79,13 +113,13 @@ const LeadsDashboard = () => {
                     <p className="lead-contato">{lead.whatsapp}</p>
                     <p className="lead-contato">{lead.email}</p>
                   </td>
-                  
+
                   <td>
                     {lead.itens && lead.itens.length > 0 ? (
                       <ul className="lead-itens-lista">
                         {lead.itens.map((item, index) => (
                           <li key={index}>
-                            <span className="item-qtd">{item.quantidade}x</span> {item.produto?.nome} 
+                            <span className="item-qtd">{item.quantidade}x</span> {item.produto?.nome}
                             <span className="item-preco">(R$ {item.precoMomento?.toFixed(2)})</span>
                           </li>
                         ))}
@@ -105,31 +139,33 @@ const LeadsDashboard = () => {
                       <span className="badge badge-inativo">Inativo</span>
                     )}
                   </td>
-                  
-                  <td className="acoes-container">
-                    <button 
-                      onClick={() => dispararCampanha(lead.whatsapp)}
-                      className="btn-acao btn-azul"
-                      disabled={!lead.ativo}
-                    >
-                      Disparar Whatsapp
-                    </button>
-                    
-                    {!lead.comprou && lead.ativo && (
-                      <button 
-                        onClick={() => marcarComoComprado(lead.id)}
-                        className="btn-acao btn-verde"
-                      >
-                        Marcar Compra
-                      </button>
-                    )}
 
-                    <button 
-                      onClick={() => alternarStatus(lead.id)}
-                      className={`btn-acao ${lead.ativo ? 'btn-vermelho' : 'btn-cinza'}`}
-                    >
-                      {lead.ativo ? 'Desativar' : 'Reativar'}
-                    </button>
+                  <td >
+                    <div className="acoes-container">
+                      <button
+                        onClick={() => dispararCampanha(lead.whatsapp)}
+                        className="btn-acao btn-azul"
+                        disabled={!lead.ativo}
+                      >
+                        Disparar Whatsapp
+                      </button>
+
+                      {!lead.comprou && lead.ativo && (
+                        <button
+                          onClick={() => marcarComoComprado(lead.id)}
+                          className="btn-acao btn-verde"
+                        >
+                          Marcar Compra
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => alternarStatus(lead.id)}
+                        className={`btn-acao ${lead.ativo ? 'btn-vermelho' : 'btn-cinza'}`}
+                      >
+                        {lead.ativo ? 'Desativar' : 'Reativar'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -137,6 +173,13 @@ const LeadsDashboard = () => {
           </tbody>
         </table>
       </div>
+
+      {/* 👇 CONTROLES DE PAGINAÇÃO MINIMALISTAS NO FINAL DO ARQUIVO */}
+      <Paginacao
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

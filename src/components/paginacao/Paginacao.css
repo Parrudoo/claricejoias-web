@@ -1,0 +1,40 @@
+.paginacao-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.5rem;
+    gap: 1rem;
+  }
+  
+  .btn-paginacao-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    background-color: transparent;
+    border: 1px solid #d1d5db;
+    border-radius: 50%;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-paginacao-icon:hover:not(:disabled) {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border-color: #9ca3af;
+  }
+  
+  .btn-paginacao-icon:disabled {
+    color: #d1d5db;
+    border-color: #f3f4f6;
+    cursor: not-allowed;
+    background-color: transparent;
+  }
+  
+  .paginacao-info {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
