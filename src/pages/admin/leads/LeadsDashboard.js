@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiClock, FiX } from 'react-icons/fi'; // Adicionei ícones novos aqui
 import Paginacao from '../../../components/paginacao/Paginacao';
 import { leadService } from '../../../services/leadService';
 import './LeadsDashboard.css';
@@ -8,12 +8,15 @@ const LeadsDashboard = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 👇 NOVOS ESTADOS PARA PAGINAÇÃO
+  // Estados da Paginação
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // O useEffect agora escuta a variável currentPage. 
-  // Se ela mudar, ele busca a nova página no backend.
+  // 👇 NOVOS ESTADOS PARA O MODAL DE HISTÓRICO
+  const [isModalAberto, setIsModalAberto] = useState(false);
+  const [leadSelecionadoParaHistorico, setLeadSelecionadoParaHistorico] = useState(null);
+  const [enviandoMensagemId, setEnviandoMensagemId] = useState(null); // Trava de botão da resposta anterior
+
   useEffect(() => {
     fetchLeads(currentPage);
   }, [currentPage]);
@@ -22,27 +25,19 @@ const LeadsDashboard = () => {
     try {
       setLoading(true);
       const data = await leadService.listarTodos(pageIndex, 10);
-
-      // Verifica se o backend enviou o objeto com paginação
       if (data && data.content) {
-        // 👇 A MÁGICA AQUI: setLeads precisa do '.content' para receber o Array [ {...}, {...} ]
         setLeads(data.content);
         setTotalPages(data.totalPages);
-      }
-      // Fallback caso a API mande a lista antiga direta
-      else if (Array.isArray(data)) {
+      } else if (Array.isArray(data)) {
         setLeads(data);
         setTotalPages(1);
-      }
-      // Prevenção de falhas para não quebrar a tela
-      else {
+      } else {
         setLeads([]);
       }
-
     } catch (error) {
       console.error("Erro ao buscar leads", error);
       alert("Não foi possível carregar os leads.");
-      setLeads([]); // 👇 Garante que o leads seja um array vazio em caso de erro
+      setLeads([]); 
     } finally {
       setLoading(false);
     }
@@ -66,22 +61,32 @@ const LeadsDashboard = () => {
     }
   };
 
-  const dispararCampanha = (whatsapp) => {
-    const payload = {
-      number: whatsapp,
-      textMessage: { text: "Olá! Vimos que você se interessou por nossas joias. Temos uma oferta especial hoje!" }
-    };
-    console.log("Enviando via Evolution API para:", payload);
-    alert(`Ação de disparo iniciada para ${whatsapp}!`);
+  const dispararWhatsapp = async (lead) => {
+    if (enviandoMensagemId === lead.id) return;
+    const texto = `Olá ${lead.nome}! Aqui é da Clarice Joias. Vimos que você se interessou por nossas joias. Temos uma oferta especial liberada para você hoje! Gostaria de conferir?`;
+
+    try {
+      setEnviandoMensagemId(lead.id);
+      // 🔥 Dica: Passe também o login/email do operador logado aqui se precisar enviar pro backend!
+      await leadService.dispararWhatsapp(lead.id, texto);
+      // alert(`Mensagem disparada com sucesso para ${lead.nome}!`);
+    } catch (error) {
+      // Como o backend agora devolve o erro da regra de negócio (ex: "Aguarde 24h..."), você pode exibir ele aqui:
+      alert(error.response?.data || `Falha ao enviar mensagem para ${lead.nome}.`);
+    } finally {
+      setEnviandoMensagemId(null);
+    }
   };
 
-  // 👇 FUNÇÕES PARA NAVEGAR ENTRE AS PÁGINAS
-  const irParaPaginaAnterior = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
+  // 👇 FUNÇÕES DO MODAL
+  const abrirModalHistorico = (lead) => {
+    setLeadSelecionadoParaHistorico(lead);
+    setIsModalAberto(true);
   };
 
-  const irParaProximaPagina = () => {
-    if (currentPage < totalPages - 1) setCurrentPage(currentPage + 1);
+  const fecharModal = () => {
+    setIsModalAberto(false);
+    setLeadSelecionadoParaHistorico(null);
   };
 
   if (loading) return <div className="mensagem-sistema">Carregando leads do sistema...</div>;
@@ -112,6 +117,13 @@ const LeadsDashboard = () => {
                     <p className="lead-nome">{lead.nome}</p>
                     <p className="lead-contato">{lead.whatsapp}</p>
                     <p className="lead-contato">{lead.email}</p>
+                    {/* 👇 RESUMO DO ÚLTIMO DISPARO (Se o backend mandar essa info) */}
+                    {lead.historicoDisparos && lead.historicoDisparos.length > 0 && (
+                      <p className="lead-ultimo-disparo" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
+                        <FiClock style={{ marginRight: '4px' }}/>
+                        Último envio: {new Date(lead.historicoDisparos[lead.historicoDisparos.length - 1].dataHoraDisparo).toLocaleDateString()}
+                      </p>
+                    )}
                   </td>
 
                   <td>
@@ -125,7 +137,7 @@ const LeadsDashboard = () => {
                         ))}
                       </ul>
                     ) : (
-                      <span className="carrinho-vazio">Carrinho vazio / Sem itens registrados</span>
+                      <span className="carrinho-vazio">Carrinho vazio / Sem itens</span>
                     )}
                   </td>
 
@@ -140,14 +152,23 @@ const LeadsDashboard = () => {
                     )}
                   </td>
 
-                  <td >
+                  <td>
                     <div className="acoes-container">
                       <button
-                        onClick={() => dispararCampanha(lead.whatsapp)}
+                        onClick={() => dispararWhatsapp(lead)}
                         className="btn-acao btn-azul"
-                        disabled={!lead.ativo}
+                        disabled={!lead.ativo || enviandoMensagemId === lead.id}
                       >
-                        Disparar Whatsapp
+                        {enviandoMensagemId === lead.id ? 'Enviando...' : 'Disparar Whatsapp'}
+                      </button>
+
+                      {/* 👇 NOVO BOTÃO DE HISTÓRICO */}
+                      <button
+                        onClick={() => abrirModalHistorico(lead)}
+                        className="btn-acao btn-cinza"
+                        title="Ver histórico de mensagens"
+                      >
+                        <FiClock /> Histórico
                       </button>
 
                       {!lead.comprou && lead.ativo && (
@@ -174,12 +195,49 @@ const LeadsDashboard = () => {
         </table>
       </div>
 
-      {/* 👇 CONTROLES DE PAGINAÇÃO MINIMALISTAS NO FINAL DO ARQUIVO */}
       <Paginacao
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
       />
+
+      {/* 👇 ESTRUTURA DO MODAL DE HISTÓRICO */}
+      {isModalAberto && leadSelecionadoParaHistorico && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Histórico de Disparos - {leadSelecionadoParaHistorico.nome}</h2>
+              <button onClick={fecharModal} className="btn-fechar-modal"><FiX size={24} /></button>
+            </div>
+            
+            <div className="modal-body">
+              {/* Verifica se tem histórico mockado ou real vindo do backend */}
+              {!leadSelecionadoParaHistorico.historicoDisparos || leadSelecionadoParaHistorico.historicoDisparos.length === 0 ? (
+                <p className="mensagem-sistema">Nenhum disparo registrado para este lead ainda.</p>
+              ) : (
+                <table className="historico-table">
+                  <thead>
+                    <tr>
+                      <th>Data e Hora</th>
+                      <th>Operador</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Exemplo de iteração caso o backend devolva a lista dentro do Lead */}
+                    {leadSelecionadoParaHistorico.historicoDisparos.map((hist, idx) => (
+                      <tr key={idx}>
+                        <td>{new Date(hist.dataHoraDisparo).toLocaleString('pt-BR')}</td>
+                        {/* Se for automático pelo Spring Batch, exibe "Sistema" */}
+                        <td>{hist.operador || 'Sistema / Batch'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
