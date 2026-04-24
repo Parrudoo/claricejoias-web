@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight, FiClock, FiX } from 'react-icons/fi'; // Adicionei ícones novos aqui
+import { FiChevronLeft, FiChevronRight, FiClock, FiX } from 'react-icons/fi';
 import Paginacao from '../../../components/paginacao/Paginacao';
 import { leadService } from '../../../services/leadService';
 import './LeadsDashboard.css';
@@ -12,10 +12,13 @@ const LeadsDashboard = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // 👇 NOVOS ESTADOS PARA O MODAL DE HISTÓRICO
+  // Estados para o Modal de Histórico
   const [isModalAberto, setIsModalAberto] = useState(false);
   const [leadSelecionadoParaHistorico, setLeadSelecionadoParaHistorico] = useState(null);
-  const [enviandoMensagemId, setEnviandoMensagemId] = useState(null); // Trava de botão da resposta anterior
+  
+  // 👇 Controle de bloqueio dos botões
+  const [enviandoMensagemId, setEnviandoMensagemId] = useState(null);
+  const [leadsNaFila, setLeadsNaFila] = useState([]); // Guarda quem já foi pra fila na sessão atual
 
   useEffect(() => {
     fetchLeads(currentPage);
@@ -62,23 +65,37 @@ const LeadsDashboard = () => {
   };
 
   const dispararWhatsapp = async (lead) => {
-    if (enviandoMensagemId === lead.id) return;
+    // Evita clique duplo acidental se já estiver enviando ou na fila
+    if (enviandoMensagemId === lead.id || leadsNaFila.includes(lead.id)) return;
+    
     const texto = `Olá ${lead.nome}! Aqui é da Clarice Joias. Vimos que você se interessou por nossas joias. Temos uma oferta especial liberada para você hoje! Gostaria de conferir?`;
 
     try {
       setEnviandoMensagemId(lead.id);
-      // 🔥 Dica: Passe também o login/email do operador logado aqui se precisar enviar pro backend!
+      
+      // Chamada para o backend agendar na fila
       await leadService.dispararWhatsapp(lead.id, texto);
-      // alert(`Mensagem disparada com sucesso para ${lead.nome}!`);
+      
+      // Se deu sucesso, marca visualmente como agendado
+      setLeadsNaFila(prev => [...prev, lead.id]);
+      
     } catch (error) {
-      // Como o backend agora devolve o erro da regra de negócio (ex: "Aguarde 24h..."), você pode exibir ele aqui:
-      alert(error.response?.data || `Falha ao enviar mensagem para ${lead.nome}.`);
+      let mensagemErro = `Falha ao agendar mensagem para ${lead.nome}.`;
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === 'string') {
+          mensagemErro = error.response.data;
+        } else if (error.response.data.message) {
+          mensagemErro = error.response.data.message;
+        } else if (error.response.data.error) {
+          mensagemErro = error.response.data.error;
+        }
+      }
+      // alert(mensagemErro);
     } finally {
       setEnviandoMensagemId(null);
     }
   };
 
-  // 👇 FUNÇÕES DO MODAL
   const abrirModalHistorico = (lead) => {
     setLeadSelecionadoParaHistorico(lead);
     setIsModalAberto(true);
@@ -117,7 +134,6 @@ const LeadsDashboard = () => {
                     <p className="lead-nome">{lead.nome}</p>
                     <p className="lead-contato">{lead.whatsapp}</p>
                     <p className="lead-contato">{lead.email}</p>
-                    {/* 👇 RESUMO DO ÚLTIMO DISPARO (Se o backend mandar essa info) */}
                     {lead.historicoDisparos && lead.historicoDisparos.length > 0 && (
                       <p className="lead-ultimo-disparo" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
                         <FiClock style={{ marginRight: '4px' }}/>
@@ -154,15 +170,20 @@ const LeadsDashboard = () => {
 
                   <td>
                     <div className="acoes-container">
+                      
+                      {/* 👇 BOTÃO DE DISPARO ATUALIZADO */}
                       <button
                         onClick={() => dispararWhatsapp(lead)}
-                        className="btn-acao btn-azul"
-                        disabled={!lead.ativo || enviandoMensagemId === lead.id}
+                        className={`btn-acao ${leadsNaFila.includes(lead.id) ? 'btn-cinza' : 'btn-azul'}`}
+                        disabled={!lead.ativo || enviandoMensagemId === lead.id || leadsNaFila.includes(lead.id)}
                       >
-                        {enviandoMensagemId === lead.id ? 'Enviando...' : 'Disparar Whatsapp'}
+                        {enviandoMensagemId === lead.id 
+                          ? 'Agendando...' 
+                          : leadsNaFila.includes(lead.id) 
+                            ? 'Na Fila ⏳' 
+                            : 'Disparar Whatsapp'}
                       </button>
 
-                      {/* 👇 NOVO BOTÃO DE HISTÓRICO */}
                       <button
                         onClick={() => abrirModalHistorico(lead)}
                         className="btn-acao btn-cinza"
@@ -201,7 +222,7 @@ const LeadsDashboard = () => {
         onPageChange={setCurrentPage}
       />
 
-      {/* 👇 ESTRUTURA DO MODAL DE HISTÓRICO */}
+      {/* MODAL DE HISTÓRICO MANTIDO IGUAL */}
       {isModalAberto && leadSelecionadoParaHistorico && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -211,7 +232,6 @@ const LeadsDashboard = () => {
             </div>
             
             <div className="modal-body">
-              {/* Verifica se tem histórico mockado ou real vindo do backend */}
               {!leadSelecionadoParaHistorico.historicoDisparos || leadSelecionadoParaHistorico.historicoDisparos.length === 0 ? (
                 <p className="mensagem-sistema">Nenhum disparo registrado para este lead ainda.</p>
               ) : (
@@ -223,11 +243,9 @@ const LeadsDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Exemplo de iteração caso o backend devolva a lista dentro do Lead */}
                     {leadSelecionadoParaHistorico.historicoDisparos.map((hist, idx) => (
                       <tr key={idx}>
                         <td>{new Date(hist.dataHoraDisparo).toLocaleString('pt-BR')}</td>
-                        {/* Se for automático pelo Spring Batch, exibe "Sistema" */}
                         <td>{hist.operador || 'Sistema / Batch'}</td>
                       </tr>
                     ))}
