@@ -1,0 +1,354 @@
+/* TelaPDV.css */
+
+/* --- Container Principal --- */
+.pdv-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f9fafb;
+  color: #1f2937;
+  font-family: sans-serif;
+}
+
+/* --- SEÇÃO ESQUERDA (Inserção) --- */
+.pdv-left-section {
+  width: 66.666667%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdv-header {
+  margin-bottom: 2rem;
+}
+
+.pdv-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.pdv-subtitle {
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+/* Formulário e Input */
+.pdv-search-form {
+  margin-bottom: 2rem;
+}
+
+.pdv-input-wrapper {
+  position: relative;
+}
+
+.pdv-search-input {
+  width: 100%;
+  font-size: 1.5rem;
+  padding: 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.pdv-search-input:focus {
+  border-color: #2563eb;
+}
+
+.pdv-btn-inserir {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 0 1.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pdv-btn-inserir:hover {
+  background-color: #1d4ed8;
+}
+
+/* Visualização do Produto */
+.pdv-product-view {
+  display: flex;
+  flex: 1;
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdv-product-center {
+  text-align: center;
+}
+
+.pdv-product-img {
+  width: 12rem;
+  height: 12rem;
+  margin: 0 auto 1.5rem auto;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+.pdv-product-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.pdv-product-price {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #16a34a;
+  margin: 0;
+}
+
+.pdv-product-empty {
+  color: #9ca3af;
+  font-size: 1.25rem;
+}
+
+
+/* --- SEÇÃO DIREITA (Carrinho e Pagamento) --- */
+.pdv-right-section {
+  width: 33.333333%;
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+}
+
+/* Lista do Carrinho */
+.pdv-cart-list {
+  padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.pdv-cart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.pdv-cart-empty-msg {
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 2.5rem;
+}
+
+.pdv-cart-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pdv-cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #f3f4f6;
+}
+
+.pdv-item-info {
+  flex: 1;
+}
+
+.pdv-item-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0;
+  /* Line clamp para não quebrar layout */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pdv-item-qty {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+}
+
+.pdv-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pdv-item-price {
+  font-weight: 700;
+}
+
+.pdv-btn-remove {
+  color: #ef4444;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pdv-btn-remove:hover {
+  color: #b91c1c;
+}
+
+
+/* Resumo e Pagamento */
+.pdv-summary {
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pdv-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.pdv-total-label {
+  color: #4b5563;
+  font-size: 1.125rem;
+}
+
+.pdv-total-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.pdv-payment-section {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pdv-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.pdv-label-small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.pdv-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.pdv-method-btn {
+  padding: 0.5rem 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pdv-method-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.pdv-method-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* Condicionais de Pagamento */
+.pdv-conditional-block {
+  margin-top: 1rem;
+}
+
+.pdv-flex-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.pdv-flex-1 {
+  flex: 1;
+}
+
+.pdv-input, .pdv-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.pdv-troco-display {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: #f3f4f6;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.text-red { color: #ef4444; }
+.text-green { color: #16a34a; }
+
+/* Botão Finalizar */
+.pdv-btn-finalizar {
+  width: 100%;
+  padding: 1rem 0;
+  background-color: #16a34a;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.pdv-btn-finalizar:hover:not(:disabled) {
+  background-color: #15803d;
+}
+
+.pdv-btn-finalizar:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
