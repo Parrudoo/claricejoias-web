@@ -15,6 +15,7 @@ import './App.css';
 import LeadsDashboard from './pages/admin/leads/LeadsDashboard';
 import { ToastContainer } from 'react-toastify';
 import TelaPDV from './pages/admin/telaPdv/telaPdv';
+import ClientesDashboard from './pages/admin/cliente/ClientesDashboard';
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -60,6 +61,7 @@ function App() {
                 <Route path="listar" element={<ListarCategorias />} />   
                 <Route path="leads" element={<LeadsDashboard />} />   
                 <Route path="telaPdv" element={<TelaPDV />} />                
+                <Route path="telaCliente" element={<ClientesDashboard />} /> 
               </Route>
             </Routes>
           </div>

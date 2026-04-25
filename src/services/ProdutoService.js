@@ -13,6 +13,11 @@ export const ProdutoService = {
         return response.data;
     },
 
+    buscarPorCodigo: async (codigo) => {
+        const response = await api.get(`/produtos/codigo/${codigo}`);
+        return response.data;
+    },
+
     // Cria um novo produto (POST /api/produtos)
     // Atenção: Agora recebe formData em vez de um objeto produto simples
     cadastrar: async (formData) => {

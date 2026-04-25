@@ -153,7 +153,7 @@ const AdminLayout = () => {
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
-                <span className="nav-text">Leads</span>
+                <span className="nav-text">PDV</span>
               </div>
               <svg className={`chevron ${submenuAberto === 'pdv' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </button>
@@ -162,6 +162,34 @@ const AdminLayout = () => {
               <div className="submenu-items">
                 {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/telaPdv" className="submenu-link">PDV</NavLink>
+              </div>
+            )}
+          </div>
+
+           {/* === GRUPO: CLIENTES === */}
+          <div className="nav-group">
+            <button 
+              className={`nav-group-btn ${submenuAberto === 'Cliente' ? 'open' : ''}`} 
+              onClick={() => toggleSubmenu('Cliente')}
+              title="Cliente"
+            >
+              <div className="nav-group-icon-text">
+                {/* Ícone de Usuários/Clientes */}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span className="nav-text">Cliente</span>
+              </div>
+              <svg className={`chevron ${submenuAberto === 'Cliente' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            
+            {submenuAberto === 'Cliente' && isExpanded && (
+              <div className="submenu-items">
+                {/* Rota apontando para a tela LeadsDashboard que criamos */}
+                <NavLink to="/admin/telaCliente" className="submenu-link">Clientes</NavLink>
               </div>
             )}
           </div>
