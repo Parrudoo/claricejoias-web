@@ -19,5 +19,17 @@ export const ClienteService = {
             funcionario: nomeFuncionario
         });
         return response.data;
+    },
+
+    // Busca os detalhes das compras de um cliente específico
+    buscarComprasPorCliente: async (clienteId) => {
+        try {
+            // Usando a instância 'api' (axios) para manter o padrão e pegar sua URL base automaticamente
+            const response = await api.get(`/clientes/${clienteId}/compras`);
+            return response.data;
+        } catch (error) {
+            console.error("Erro na API ao buscar detalhes das compras:", error);
+            throw error;
+        }
     }
 };

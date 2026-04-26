@@ -68,59 +68,61 @@ const TelaPDV = () => {
     const troco = formaPagamento === 'especie' && valorRecebido ? (parseFloat(valorRecebido) - total) : 0;
 
     const handleFinalizarVenda = async () => {
-        if (carrinho.length === 0) return alert('O carrinho está vazio.');
+    if (carrinho.length === 0) return alert('O carrinho está vazio.');
 
-        // Validação extra: Se for fiado, OBRIGA ter nome e telefone para o robô cobrar
-        if (formaPagamento === 'fiado') {
-            if (!clienteNome.trim() || !clienteTelefone.trim()) {
-                return alert('Para vendas no FIADO, é obrigatório preencher o Nome e o WhatsApp do cliente!');
-            }
-        }
+    if (formaPagamento === 'fiado' && (!clienteNome.trim() || !clienteTelefone.trim())) {
+        return alert('Para vendas no FIADO, é obrigatório preencher o Nome e o WhatsApp do cliente!');
+    }
 
-        const payloadVenda = {
-            itens: carrinho.map(item => ({
-                id: item.id,
-                nome: item.nome,
-                preco: item.preco,
-                quantidade: item.quantidade
-            })),
-            total: total,
-            pagamento: {
-                metodo: formaPagamento,
-                parcelas: (formaPagamento === 'cartao' || formaPagamento === 'fiado') ? parcelas : 1,
-                valorRecebido: formaPagamento === 'especie' ? parseFloat(valorRecebido) : total,
-                valorEntrada: parseFloat(valorEntrada || 0) // <-- NOVO CAMPO
-            },
-            // Envia os dados do cliente (nulo se não for preenchido)
-            cliente: clienteNome.trim() ? {
-                nome: clienteNome,
-                telefone: clienteTelefone
-            } : null
-        };
-
-        try {
-            setIsLoading(true);
-            const response = await VendaService.registrar(payloadVenda);
-
-            alert(`Venda finalizada com sucesso! (ID: ${response.id})`);
-
-            // Resetar PDV
-            setCarrinho([]);
-            setProdutoAtual(null);
-            setCodigoBusca('');
-            setFormaPagamento('pix');
-            setValorRecebido('');
-            setClienteNome('');
-            setClienteTelefone('');
-
-        } catch (error) {
-            console.error('Erro ao enviar venda para API:', error);
-            alert('Erro ao finalizar venda. Verifique a conexão com o servidor.');
-        } finally {
-            setIsLoading(false);
-            inputRef.current?.focus();
-        }
+    // Usando Number() para garantir que os valores numéricos não quebrem o JSON
+    const payloadVenda = {
+        itens: carrinho.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            preco: item.preco,
+            quantidade: item.quantidade
+        })),
+        total: total,
+        pagamento: {
+            metodo: formaPagamento,
+            parcelas: parcelas || 1, 
+            valorRecebido: formaPagamento === 'especie' ? Number(valorRecebido || 0) : total,
+            valorEntrada: Number(valorEntrada || 0) 
+        },
+        cliente: clienteNome.trim() ? {
+            nome: clienteNome,
+            telefone: clienteTelefone
+        } : null
     };
+
+    console.log("Enviando para o Spring Boot:", payloadVenda); // <-- OLHE O CONSOLE DO NAVEGADOR
+
+    try {
+        setIsLoading(true);
+        const response = await VendaService.registrar(payloadVenda);
+        alert(`Venda finalizada com sucesso! (ID: ${response.id})`);
+        
+        // Resetar estados
+        setCarrinho([]);
+        setProdutoAtual(null);
+        setCodigoBusca('');
+        setFormaPagamento('pix');
+        setValorRecebido('');
+        setClienteNome('');
+        setClienteTelefone('');
+        setValorEntrada('');
+        setParcelas(1);
+    } catch (error) {
+        // Log detalhado para capturar o que o backend reclamou
+        const erroBackend = error.response?.data || error.message;
+        console.error('Erro detalhado do Backend:', erroBackend);
+        
+        alert('Erro ao finalizar venda. Verifique o console (F12) para ver o motivo exato.');
+    } finally {
+        setIsLoading(false);
+        inputRef.current?.focus();
+    }
+};
 
     return (
         <div className="pdv-container">
