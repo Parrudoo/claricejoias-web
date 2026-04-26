@@ -3,8 +3,8 @@ import { toast } from 'react-toastify';
 import keycloak from '../config/keycloak'; // Importe a instância do Keycloak que configuramos
 
 const api = axios.create({
-    // Ajustado para a porta 8082 conforme sua configuração do Docker
     baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     }
@@ -43,16 +43,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => {
         // Se deu Status 200 ou 201 (Sucesso), apenas deixa passar
+        console.log(response.data)
         return response;
     },
     (error) => {
-        // Se deu ERRO (400, 401, 500...), o axios cai aqui ANTES de chegar na sua tela
-
-        if (error.response && error.response.data && error.response.data.erro) {
-            // Pega a mensagem lá do nosso 'StandardError' do Spring e mostra um Toast Vermelho!
-            toast.error(error.response.data.erro);
+        // 1. Tenta extrair a mensagem de vários lugares possíveis que o Spring Boot pode mandar
+        const mensagemBackend = error.response?.data?.message
+            || error.response?.data?.erro
+            || (typeof error.response?.data === 'string' ? error.response.data : null);
+        if (mensagemBackend) {
+            // Se achou a mensagem do Java, mostra ela!
+            toast.error(mensagemBackend);
         } else {
-            // Se a API estiver fora do ar ou der um erro desconhecido
+            // Se não achou nada (ex: API caiu, erro 500 sem tratamento), mostra a genérica
             toast.error("Ocorreu um erro de comunicação com o servidor.");
         }
 

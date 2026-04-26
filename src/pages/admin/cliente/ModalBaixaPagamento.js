@@ -1,115 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClienteService } from '../../../services/ClienteService';
-import './ModalBaixaPagamento.css'; // Importando o novo CSS
+import './ModalBaixaPagamento.css'; // Ajuste o caminho se necessário
 
-const ModalBaixaPagamento = ({ cliente, onClose, onSucesso }) => {
-    const [valorPago, setValorPago] = useState(cliente?.valorDevido || '');
-    const [formaPagamento, setFormaPagamento] = useState('PIX');
-    const [dataPagamento, setDataPagamento] = useState(new Date().toISOString().split('T')[0]);
-    const [observacao, setObservacao] = useState('');
-    
-    const [isLoading, setIsLoading] = useState(false);
-    const [erro, setErro] = useState(null);
+export default function ModalBaixaPagamento({ cliente, parcela, onClose, onSucesso }) {
+  // Se vier uma parcela específica, trava o valor e formata. Se não, começa zerado.
+  const [valorPago, setValorPago] = useState(parcela ? parcela.valor : '');
+  const [formaPagamento, setFormaPagamento] = useState('pix');
+  const [observacao, setObservacao] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErro(null);
-        setIsLoading(true);
+  useEffect(() => {
+    // Caso a prop parcela mude de repente
+    if (parcela) {
+      setValorPago(parcela.valor);
+    }
+  }, [parcela]);
 
-        const payload = {
-            valorPago: parseFloat(valorPago),
-            formaPagamento,
-            dataPagamento,
-            observacao
-        };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!valorPago || valorPago <= 0) {
+      alert('Informe um valor válido.');
+      return;
+    }
 
-        try {
-            await ClienteService.registrarPagamento(cliente.id, payload);
-            onSucesso(); 
-        } catch (error) {
-            setErro('Erro ao registrar o pagamento. Verifique os dados e tente novamente.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        valorPago: parseFloat(valorPago),
+        formaPagamento: formaPagamento,
+        observacao: observacao,
+        parcelaId: parcela ? parcela.id : null, // Envia o ID da parcela se existir
+        dataPagamento: new Date().toISOString().split('T')[0]
+      };
 
-    if (!cliente) return null;
+      await ClienteService.registrarPagamento(cliente.id, payload);
+      onSucesso();
+    } catch (error) {
+      console.error('Erro ao registrar pagamento:', error);
+      alert(error.response?.data?.message || 'Erro ao processar o pagamento.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>Registrar Recebimento</h2>
-                <p>Cliente: <strong>{cliente.nome}</strong></p>
-                <p>Saldo Devedor Atual: <strong style={{ color: '#d32f2f' }}>R$ {cliente.valorDevido?.toFixed(2).replace('.', ',')}</strong></p>
-                
-                {erro && <div className="error-message">{erro}</div>}
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>{parcela ? `Pagar ${parcela.numeroParcela}ª Parcela` : 'Registrar Recebimento'}</h2>
+        <p>Cliente: <strong>{cliente?.nome}</strong></p>
 
-                <form onSubmit={handleSubmit} className="modal-form">
-                    <div className="form-group">
-                        <label>Valor a Receber (R$):</label>
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            max={cliente.valorDevido}
-                            value={valorPago} 
-                            onChange={(e) => setValorPago(e.target.value)} 
-                            required 
-                        />
-                    </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Valor a Receber (R$)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              value={valorPago} 
+              onChange={(e) => setValorPago(e.target.value)} 
+              required 
+              disabled={parcela != null} // Bloqueia a edição do valor se for pagamento de parcela
+            />
+            {parcela && <small style={{color: '#6b7280'}}>O valor da parcela não pode ser alterado.</small>}
+          </div>
 
-                    <div className="form-group">
-                        <label>Forma de Pagamento:</label>
-                        <select 
-                            value={formaPagamento} 
-                            onChange={(e) => setFormaPagamento(e.target.value)}
-                        >
-                            <option value="PIX">PIX</option>
-                            <option value="DINHEIRO">Dinheiro</option>
-                            <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                            <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                        </select>
-                    </div>
+          <div className="form-group">
+            <label>Forma de Pagamento</label>
+            <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+              <option value="pix">PIX</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao_credito">Cartão de Crédito</option>
+              <option value="cartao_debito">Cartão de Débito</option>
+              <option value="transferencia">Transferência Bancária</option>
+            </select>
+          </div>
 
-                    <div className="form-group">
-                        <label>Data do Pagamento:</label>
-                        <input 
-                            type="date" 
-                            value={dataPagamento} 
-                            onChange={(e) => setDataPagamento(e.target.value)} 
-                            required 
-                        />
-                    </div>
+          <div className="form-group">
+            <label>Observação (Opcional)</label>
+            <textarea 
+              value={observacao} 
+              onChange={(e) => setObservacao(e.target.value)} 
+              placeholder="Ex: Pago pelo marido da cliente..."
+            />
+          </div>
 
-                    <div className="form-group">
-                        <label>Observação (opcional):</label>
-                        <textarea 
-                            value={observacao} 
-                            onChange={(e) => setObservacao(e.target.value)} 
-                            placeholder="Ex: Abatimento referente à pulseira de ouro..."
-                        />
-                    </div>
-
-                    <div className="modal-actions">
-                        <button 
-                            type="button" 
-                            className="btn-cancelar" 
-                            onClick={onClose} 
-                            disabled={isLoading}
-                        >
-                            Cancelar
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="btn-confirmar" 
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Salvando...' : 'Confirmar Baixa'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-};
-
-export default ModalBaixaPagamento;
+          <div className="modal-actions">
+            <button type="button" onClick={onClose} className="btn-cancelar" disabled={isSubmitting}>Cancelar</button>
+            <button type="submit" className="btn-confirmar" disabled={isSubmitting}>
+              {isSubmitting ? 'Processando...' : 'Confirmar Pagamento'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

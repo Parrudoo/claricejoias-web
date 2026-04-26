@@ -15,6 +15,7 @@ const ClientesDashboard = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clienteParaPagamento, setClienteParaPagamento] = useState(null);
+  const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
 
   const usuarioLogado = "Diego Oliveira"; 
 
@@ -41,15 +42,12 @@ const ClientesDashboard = () => {
 
   const handleCobrarWhatsApp = async (cliente) => {
     try {
-      await ClienteService.registrarCobranca(cliente.id, usuarioLogado);
-      
-      const mensagem = `Olá ${cliente.nome}, tudo bem? Aqui é da Clarice Joias. Consta em nosso sistema um saldo pendente de R$ ${cliente.valorDevido?.toFixed(2).replace('.', ',')}. Gostaria de verificar uma previsão de pagamento?`;
-      const url = `https://wa.me/55${cliente.telefone}?text=${encodeURIComponent(mensagem)}`;
-      
-      window.open(url, '_blank');
+      await ClienteService.registrarCobranca(cliente.id, usuarioLogado);      
       carregarClientes();
+      alert("Cobrança enviada com sucesso!");
     } catch (error) {
-      alert("Erro ao registrar histórico de cobrança.");
+      console.error("Erro ao cobrar cliente", error);
+      alert("Erro ao enviar cobrança.");
     }
   };
 
@@ -73,21 +71,63 @@ const ClientesDashboard = () => {
     }
   };
 
-  const handleAbrirModal = (cliente) => {
+  const handleAbrirModal = (cliente, parcela = null) => {
     setClienteParaPagamento(cliente);
+    setParcelaSelecionada(parcela);
     setIsModalOpen(true);
   };
 
   const handleSucessoPagamento = () => {
     setIsModalOpen(false);
     setClienteParaPagamento(null);
+    setParcelaSelecionada(null);
     carregarClientes(); 
+    setDetalhesCompras({}); 
     alert("Pagamento registrado com sucesso!");
+  };
+
+  const calcularStatusReal = (cliente) => {
+    let valorVencido = 0;
+    let valorTotalPendente = 0;
+    let temAtraso = false;
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    if (cliente.vendas && Array.isArray(cliente.vendas)) {
+      cliente.vendas.forEach(venda => {
+        if (venda.parcelas && Array.isArray(venda.parcelas)) {
+          venda.parcelas.forEach(parcela => {
+            if (parcela.status === 'PENDENTE') {
+              valorTotalPendente += parcela.valor;
+
+              if (parcela.dataVencimento) {
+                const [ano, mes, dia] = parcela.dataVencimento.split('-');
+                const dataVencimento = new Date(ano, mes - 1, dia);
+
+                if (dataVencimento < hoje) {
+                  temAtraso = true;
+                  valorVencido += parcela.valor;
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+
+    if (temAtraso) {
+      return { situacao: 'ATRASADO', texto: 'Em Atraso', valorPrincipal: valorVencido, valorTotal: valorTotalPendente, classeCss: 'badge-red' };
+    } else if (valorTotalPendente > 0) {
+      return { situacao: 'A_VENCER', texto: 'A Vencer', valorPrincipal: valorTotalPendente, valorTotal: valorTotalPendente, classeCss: 'badge-orange' };
+    } else {
+      return { situacao: 'EM_DIA', texto: 'Em dia', valorPrincipal: 0, valorTotal: 0, classeCss: 'badge-green' };
+    }
   };
 
   const clientesFiltrados = clientes.filter(c => 
     c.nome.toLowerCase().includes(busca.toLowerCase()) || 
-    c.telefone.includes(busca)
+    (c.telefone && c.telefone.includes(busca))
   );
 
   return (
@@ -107,11 +147,7 @@ const ClientesDashboard = () => {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
-        <select 
-          className="dashboard-select" 
-          value={filtro} 
-          onChange={(e) => setFiltro(e.target.value)}
-        >
+        <select className="dashboard-select" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
           <option value="todos">Todos os Clientes</option>
           <option value="pendentes">Somente Inadimplentes (Devendo)</option>
         </select>
@@ -135,115 +171,134 @@ const ClientesDashboard = () => {
               {clientesFiltrados.length === 0 ? (
                 <tr><td colSpan="5" className="empty-text">Nenhum cliente encontrado.</td></tr>
               ) : (
-                clientesFiltrados.map(cliente => (
-                  <React.Fragment key={cliente.id}>
-                    <tr>
-                      <td className="font-semibold">{cliente.nome}</td>
-                      <td>{cliente.telefone}</td>
-                      <td>
-                        {cliente.valorDevido > 0 ? (
-                          <span className="badge badge-red">
-                            Deve R$ {cliente.valorDevido.toFixed(2).replace('.', ',')}
+                clientesFiltrados.map(cliente => {
+                  const statusReal = calcularStatusReal(cliente);
+
+                  return (
+                    <React.Fragment key={cliente.id}>
+                      <tr>
+                        <td className="font-semibold">{cliente.nome}</td>
+                        <td>{cliente.telefone}</td>
+                        
+                        <td>
+                          <span className={`badge ${statusReal.classeCss}`} title={`Dívida total: R$ ${statusReal.valorTotal.toFixed(2).replace('.', ',')}`}>
+                            {statusReal.texto} 
+                            {statusReal.valorPrincipal > 0 && ` (R$ ${statusReal.valorPrincipal.toFixed(2).replace('.', ',')})`}
                           </span>
-                        ) : (
-                          <span className="badge badge-green">Em dia</span>
-                        )}
-                      </td>
-                      <td className="history-cell">
-                        {cliente.ultimaCobranca ? (
-                          <>
-                            <span className="date-text">{new Date(cliente.ultimaCobranca.dataHora).toLocaleDateString()}</span>
-                            <span className="user-text">por {cliente.ultimaCobranca.funcionario}</span>
-                          </>
-                        ) : (
-                          <span className="no-history">Nunca cobrado</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="action-buttons-group">
-                          <button 
-                            onClick={() => toggleDetalhes(cliente.id)}
-                            className="btn btn-outline"
-                          >
-                            {clienteExpandido === cliente.id ? '▴ Ocultar' : '▾ Detalhes'}
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleCobrarWhatsApp(cliente)}
-                            disabled={cliente.valorDevido <= 0}
-                            className="btn btn-whatsapp"
-                          >
-                            Cobrar
-                          </button>
+                          {statusReal.situacao === 'ATRASADO' && statusReal.valorTotal > statusReal.valorPrincipal && (
+                            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                              Total devido: R$ {statusReal.valorTotal.toFixed(2).replace('.', ',')}
+                            </div>
+                          )}
+                        </td>
 
-                          <button 
-                            onClick={() => handleAbrirModal(cliente)}
-                            disabled={cliente.valorDevido <= 0}
-                            className="btn btn-receber"
-                          >
-                            Receber
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Linha Expansível de Detalhes Unificada */}
-                    {clienteExpandido === cliente.id && (
-                      <tr className="details-expanded-row">
-                        <td colSpan="5" className="details-cell">
-                          <div className="details-content-box">
-                            <h4 className="details-title">Extrato de Movimentações</h4>
-                            
-                            {loadingDetalhes[cliente.id] ? (
-                              <p className="loading-text">Buscando histórico...</p>
-                            ) : (
-                              detalhesCompras[cliente.id] && detalhesCompras[cliente.id].length > 0 ? (
-                                <ul className="details-purchase-list">
-                                  {detalhesCompras[cliente.id].map((item, index) => (
-                                    <li key={index} className={`details-purchase-item ${item.tipo === 'PAGAMENTO' ? 'item-pagamento' : 'item-compra'}`}>
-                                      
-                                      <div className="purchase-header">
-                                        <span className={`badge-tipo ${item.tipo === 'PAGAMENTO' ? 'badge-tipo-green' : 'badge-tipo-orange'}`}>
-                                          {item.tipo === 'PAGAMENTO' ? '💰 PAGAMENTO' : '🛒 COMPRA'}
-                                        </span>
-                                        <strong>Data:</strong> {new Date(item.data).toLocaleDateString()} | 
-                                        <strong> Valor:</strong> R$ {item.valor?.toFixed(2).replace('.', ',')}
-                                      </div>
-
-                                      <div className="purchase-body">
-                                        {item.tipo === 'COMPRA' ? (
-                                          <>
-                                            <p><strong>Método:</strong> {item.metodo?.toUpperCase()}</p>
-                                            {item.metodo === 'fiado' && (
-                                              <div className="resumo-fiado">
-                                                <p><strong>Entrada:</strong> R$ {(item.valorEntrada || 0).toFixed(2).replace('.', ',')}</p>
-                                                <p><strong>Restante a Pagar:</strong> R$ {(item.valor - (item.valorEntrada || 0)).toFixed(2).replace('.', ',')}</p>
-                                                <p><strong>Parcelamento:</strong> {item.parcelas}x de R$ {((item.valor - (item.valorEntrada || 0)) / (item.parcelas || 1)).toFixed(2).replace('.', ',')}</p>
-                                              </div>
-                                            )}
-                                            {item.metodo === 'cartao' && <p><strong>Parcelas:</strong> {item.parcelas}x</p>}
-                                          </>
-                                        ) : (
-                                          <div className="resumo-pagamento">
-                                            <p><strong>Forma de Recebimento:</strong> {item.metodo?.toUpperCase()}</p>
-                                            {item.observacao && <p><strong>Observação:</strong> {item.observacao}</p>}
-                                            <p className="status-baixa">✅ Pagamento abatido do saldo devedor.</p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="no-data-text">Nenhuma movimentação registrada.</p>
-                              )
-                            )}
+                        <td className="history-cell">
+                          {cliente.ultimaCobranca ? (
+                            <><span className="date-text">{new Date(cliente.ultimaCobranca.dataHora).toLocaleDateString()}</span><span className="user-text">por {cliente.ultimaCobranca.funcionario}</span></>
+                          ) : (
+                            <span className="no-history">Nunca cobrado</span>
+                          )}
+                        </td>
+                        
+                        <td>
+                          <div className="action-buttons-group">
+                            <button onClick={() => toggleDetalhes(cliente.id)} className="btn btn-outline">
+                              {clienteExpandido === cliente.id ? '▴ Ocultar' : '▾ Detalhes'}
+                            </button>
+                            <button onClick={() => handleCobrarWhatsApp(cliente)} disabled={statusReal.valorTotal <= 0} className="btn btn-whatsapp">Cobrar</button>
+                            <button onClick={() => handleAbrirModal(cliente, null)} disabled={statusReal.valorTotal <= 0} className="btn btn-receber">Receber</button>
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                ))
+
+                      {clienteExpandido === cliente.id && (
+                        <tr className="details-expanded-row">
+                          <td colSpan="5" className="details-cell">
+                            <div className="details-content-box">
+                              <h4 className="details-title">Extrato de Movimentações</h4>
+                              
+                              {loadingDetalhes[cliente.id] ? (
+                                <p className="loading-text">Buscando histórico...</p>
+                              ) : (
+                                detalhesCompras[cliente.id] && detalhesCompras[cliente.id].length > 0 ? (
+                                  <ul className="details-purchase-list">
+                                    {detalhesCompras[cliente.id].map((compra, index) => {
+                                      const dataCompra = compra.dataVenda || compra.data;
+                                      const valorTotalCompra = compra.total || compra.valor;
+                                      const metodoPagamento = compra.metodoPagamento || compra.metodo;
+
+                                      return (
+                                        <li key={index} className="details-purchase-item item-compra">
+                                          <div className="purchase-header">
+                                            <span className="badge-tipo badge-tipo-orange">🛒 COMPRA</span>
+                                            <strong>Data:</strong> {new Date(dataCompra).toLocaleDateString()} | <strong> Valor:</strong> R$ {valorTotalCompra?.toFixed(2).replace('.', ',')}
+                                          </div>
+
+                                          <div className="purchase-body">
+                                            <p><strong>Método:</strong> {metodoPagamento?.toUpperCase()}</p>
+                                            
+                                            {metodoPagamento === 'fiado' && (
+                                              <div className="resumo-fiado">
+                                                <p><strong>Entrada:</strong> R$ {(compra.valorEntrada || 0).toFixed(2).replace('.', ',')}</p>
+                                                {compra.valorDevido > 0 ? (
+                                                  <p><strong>Ainda deve nesta compra:</strong> R$ {(compra.valorDevido).toFixed(2).replace('.', ',')}</p>
+                                                ) : (
+                                                  <p><strong style={{ color: '#059669' }}>Compra totalmente quitada! ✅</strong></p>
+                                                )}
+                                                
+                                                {Array.isArray(compra.parcelas) && compra.parcelas.length > 0 && (
+                                                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                                                    <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#374151' }}>Status do Carnê:</h5>
+                                                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                                      {compra.parcelas.map(parcela => (
+                                                        <li key={parcela.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f3f4f6', fontSize: '13px' }}>
+                                                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <span><strong>{parcela.numeroParcela}ª Parcela</strong> - R$ {parcela.valor?.toFixed(2).replace('.', ',')}</span>
+                                                            <span style={{ color: '#6b7280', fontSize: '11px' }}>
+                                                              {parcela.status === 'PAGA' ? (
+                                                                <>Pago em: {parcela.dataPagamento ? new Date(parcela.dataPagamento).toLocaleDateString() : '--'}</>
+                                                              ) : (
+                                                                <>Venc: {parcela.dataVencimento ? new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString() : '--'}</>
+                                                              )}
+                                                            </span>
+                                                          </div>
+                                                          <div>
+                                                            {parcela.status === 'PAGA' ? (
+                                                              <span className="badge badge-green" style={{ fontSize: '11px', padding: '4px 8px' }}>PAGA ✅</span>
+                                                            ) : (
+                                                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                <span className="badge badge-orange" style={{ fontSize: '11px', padding: '4px 8px' }}>PENDENTE</span>
+                                                                <button onClick={() => handleAbrirModal(cliente, parcela)} className="btn btn-receber" style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}>
+                                                                  Pagar 💲
+                                                                </button>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </li>
+                                                      ))}
+                                                    </ul>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                            
+                                            {metodoPagamento === 'cartao' && <p><strong>Parcelas:</strong> {Array.isArray(compra.parcelas) ? compra.parcelas.length : compra.parcelas}x</p>}
+                                          </div>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : (
+                                  <p className="no-data-text">Nenhuma movimentação registrada.</p>
+                                )
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -253,11 +308,14 @@ const ClientesDashboard = () => {
       {isModalOpen && (
         <ModalBaixaPagamento 
           cliente={clienteParaPagamento}
-          onClose={() => setIsModalOpen(false)}
+          parcela={parcelaSelecionada}
+          onClose={() => {
+            setIsModalOpen(false);
+            setParcelaSelecionada(null);
+          }}
           onSucesso={handleSucessoPagamento}
         />
       )}
-
     </div>
   );
 };

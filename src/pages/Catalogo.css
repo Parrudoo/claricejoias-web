@@ -335,3 +335,145 @@
   height: 20px; 
 }
 
+/* =========================================================
+   BOTÃO FLUTUANTE DO GUIA (CAPTURA DE LEADS)
+   ========================================================= */
+.botao-guia-flutuante {
+    position: fixed;
+    bottom: 20px;
+    left: 20px; /* Fica na esquerda para não brigar com o carrinho */
+    background-color: #fff;
+    border: 2px solid #D4AF37; /* Dourado */
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 6px 16px 6px 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 900;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUpFadeIn 0.8s ease-out;
+}
+
+.botao-guia-flutuante:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+}
+
+.guia-icone-container {
+    background-color: #D4AF37;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.guia-texto {
+    color: #333;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Animação do botão subindo depois de 15 segundos */
+@keyframes slideUpFadeIn {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* =========================================================
+   MODAL DE CAPTURA (FORMULÁRIO)
+   ========================================================= */
+.modal-lead-card {
+    background-color: white;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 12px;
+    position: relative;
+    padding: 30px 24px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.lead-titulo {
+    font-family: 'Playfair Display', serif;
+    color: #D4AF37;
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.lead-subtitulo {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.form-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.input-group {
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #D4AF37;
+}
+
+.btn-baixar-guia {
+    background-color: #D4AF37;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-baixar-guia:hover:not(:disabled) {
+    background-color: #b8962e;
+}
+
+.btn-baixar-guia:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.lead-spam-aviso {
+    display: block;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: #999;
+}
+
