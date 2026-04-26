@@ -31,5 +31,15 @@ export const ClienteService = {
             console.error("Erro na API ao buscar detalhes das compras:", error);
             throw error;
         }
+    },
+
+    registrarPagamento: async (clienteId, dadosPagamento) => {
+        try {
+            const response = await api.post(`/clientes/${clienteId}/pagamentos`, dadosPagamento);
+            return response.data;
+        } catch (error) {
+            console.error("Erro na API ao registrar pagamento:", error);
+            throw error;
+        }
     }
 };

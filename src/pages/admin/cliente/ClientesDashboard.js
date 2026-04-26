@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './ClientesDashboard.css';
 import { ClienteService } from '../../../services/ClienteService';
+import ModalBaixaPagamento from './ModalBaixaPagamento';
 
 const ClientesDashboard = () => {
   const [clientes, setClientes] = useState([]);
-  const [filtro, setFiltro] = useState('todos'); // 'todos' ou 'pendentes'
+  const [filtro, setFiltro] = useState('todos'); 
   const [busca, setBusca] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Controle de interface da linha expansível
   const [clienteExpandido, setClienteExpandido] = useState(null);
-  
-  // NOVOS ESTADOS: Guardam as compras buscadas na API e o status de loading específico
   const [detalhesCompras, setDetalhesCompras] = useState({});
   const [loadingDetalhes, setLoadingDetalhes] = useState({});
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clienteParaPagamento, setClienteParaPagamento] = useState(null);
 
   const usuarioLogado = "Diego Oliveira"; 
 
@@ -52,20 +53,16 @@ const ClientesDashboard = () => {
     }
   };
 
-  // FUNÇÃO ATUALIZADA: Agora ela bate na API se os dados ainda não existirem
   const toggleDetalhes = async (clienteId) => {
     if (clienteExpandido === clienteId) {
-      setClienteExpandido(null); // Se já está aberto, só fecha
+      setClienteExpandido(null); 
     } else {
-      setClienteExpandido(clienteId); // Abre a aba
+      setClienteExpandido(clienteId); 
       
-      // Se não temos os dados das compras desse cliente salvas no estado, faz a requisição
       if (!detalhesCompras[clienteId]) {
         setLoadingDetalhes(prev => ({ ...prev, [clienteId]: true }));
         try {
           const comprasDaApi = await ClienteService.buscarComprasPorCliente(clienteId);
-          
-          // Salva os dados retornados usando o ID do cliente como chave
           setDetalhesCompras(prev => ({ ...prev, [clienteId]: comprasDaApi }));
         } catch (error) {
           console.error("Erro ao carregar detalhes de compras:", error);
@@ -74,6 +71,18 @@ const ClientesDashboard = () => {
         }
       }
     }
+  };
+
+  const handleAbrirModal = (cliente) => {
+    setClienteParaPagamento(cliente);
+    setIsModalOpen(true);
+  };
+
+  const handleSucessoPagamento = () => {
+    setIsModalOpen(false);
+    setClienteParaPagamento(null);
+    carregarClientes(); 
+    alert("Pagamento registrado com sucesso!");
   };
 
   const clientesFiltrados = clientes.filter(c => 
@@ -86,7 +95,7 @@ const ClientesDashboard = () => {
       <header className="dashboard-header">
         <div>
           <h1 className="dashboard-title">Gestão de Clientes</h1>
-          <p className="dashboard-subtitle">Acompanhe seus clientes, saldos devedores e histórico de compras.</p>
+          <p className="dashboard-subtitle">Acompanhe seus clientes, saldos devedores e histórico financeiro.</p>
         </div>
       </header>
 
@@ -128,7 +137,6 @@ const ClientesDashboard = () => {
               ) : (
                 clientesFiltrados.map(cliente => (
                   <React.Fragment key={cliente.id}>
-                    {/* Linha Principal do Cliente */}
                     <tr>
                       <td className="font-semibold">{cliente.nome}</td>
                       <td>{cliente.telefone}</td>
@@ -152,64 +160,82 @@ const ClientesDashboard = () => {
                         )}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <div className="action-buttons-group">
                           <button 
                             onClick={() => toggleDetalhes(cliente.id)}
-                            className="btn-details"
+                            className="btn btn-outline"
                           >
-                            {clienteExpandido === cliente.id ? 'Ocultar Detalhes ▴' : 'Ver Detalhes ▾'}
+                            {clienteExpandido === cliente.id ? '▴ Ocultar' : '▾ Detalhes'}
                           </button>
                           
                           <button 
                             onClick={() => handleCobrarWhatsApp(cliente)}
                             disabled={cliente.valorDevido <= 0}
-                            className="btn-whatsapp"
+                            className="btn btn-whatsapp"
                           >
                             Cobrar
+                          </button>
+
+                          <button 
+                            onClick={() => handleAbrirModal(cliente)}
+                            disabled={cliente.valorDevido <= 0}
+                            className="btn btn-receber"
+                          >
+                            Receber
                           </button>
                         </div>
                       </td>
                     </tr>
 
-                    {/* Linha Expansível de Detalhes */}
+                    {/* Linha Expansível de Detalhes Unificada */}
                     {clienteExpandido === cliente.id && (
                       <tr className="details-expanded-row">
                         <td colSpan="5" className="details-cell">
                           <div className="details-content-box">
-                            <h4 className="details-title">Histórico Recente de Compras</h4>
+                            <h4 className="details-title">Extrato de Movimentações</h4>
                             
-                            {/* Verifica se a API ainda está carregando esses dados específicos */}
                             {loadingDetalhes[cliente.id] ? (
-                              <p className="loading-text">Buscando informações da compra...</p>
+                              <p className="loading-text">Buscando histórico...</p>
                             ) : (
-                              // Se já carregou, verifica se tem dados no estado `detalhesCompras`
                               detalhesCompras[cliente.id] && detalhesCompras[cliente.id].length > 0 ? (
                                 <ul className="details-purchase-list">
-                                  {detalhesCompras[cliente.id].map((compra, index) => (
-                                    <li key={index} className="details-purchase-item">
+                                  {detalhesCompras[cliente.id].map((item, index) => (
+                                    <li key={index} className={`details-purchase-item ${item.tipo === 'PAGAMENTO' ? 'item-pagamento' : 'item-compra'}`}>
+                                      
                                       <div className="purchase-header">
-                                        <strong>Data:</strong> {new Date(compra.data).toLocaleDateString()} | <strong>Total:</strong> R$ {compra.total?.toFixed(2).replace('.', ',')}
+                                        <span className={`badge-tipo ${item.tipo === 'PAGAMENTO' ? 'badge-tipo-green' : 'badge-tipo-orange'}`}>
+                                          {item.tipo === 'PAGAMENTO' ? '💰 PAGAMENTO' : '🛒 COMPRA'}
+                                        </span>
+                                        <strong>Data:</strong> {new Date(item.data).toLocaleDateString()} | 
+                                        <strong> Valor:</strong> R$ {item.valor?.toFixed(2).replace('.', ',')}
                                       </div>
-                                      <div className="purchase-body">
-                                        <p><strong>Método:</strong> {compra.metodoPagamento?.toUpperCase()}</p>
-                                        
-                                        {compra.metodoPagamento === 'fiado' && (
-                                          <>
-                                            <p><strong>Entrada (PIX/Espécie):</strong> R$ {(compra.valorEntrada || 0).toFixed(2).replace('.', ',')}</p>
-                                            <p><strong>Restante a Pagar:</strong> R$ {(compra.total - (compra.valorEntrada || 0)).toFixed(2).replace('.', ',')}</p>
-                                            <p><strong>Parcelamento:</strong> {compra.parcelas}x de R$ {((compra.total - (compra.valorEntrada || 0)) / (compra.parcelas || 1)).toFixed(2).replace('.', ',')}</p>
-                                          </>
-                                        )}
 
-                                        {compra.metodoPagamento === 'cartao' && (
-                                          <p><strong>Parcelamento:</strong> {compra.parcelas}x no Cartão</p>
+                                      <div className="purchase-body">
+                                        {item.tipo === 'COMPRA' ? (
+                                          <>
+                                            <p><strong>Método:</strong> {item.metodo?.toUpperCase()}</p>
+                                            {item.metodo === 'fiado' && (
+                                              <div className="resumo-fiado">
+                                                <p><strong>Entrada:</strong> R$ {(item.valorEntrada || 0).toFixed(2).replace('.', ',')}</p>
+                                                <p><strong>Restante a Pagar:</strong> R$ {(item.valor - (item.valorEntrada || 0)).toFixed(2).replace('.', ',')}</p>
+                                                <p><strong>Parcelamento:</strong> {item.parcelas}x de R$ {((item.valor - (item.valorEntrada || 0)) / (item.parcelas || 1)).toFixed(2).replace('.', ',')}</p>
+                                              </div>
+                                            )}
+                                            {item.metodo === 'cartao' && <p><strong>Parcelas:</strong> {item.parcelas}x</p>}
+                                          </>
+                                        ) : (
+                                          <div className="resumo-pagamento">
+                                            <p><strong>Forma de Recebimento:</strong> {item.metodo?.toUpperCase()}</p>
+                                            {item.observacao && <p><strong>Observação:</strong> {item.observacao}</p>}
+                                            <p className="status-baixa">✅ Pagamento abatido do saldo devedor.</p>
+                                          </div>
                                         )}
                                       </div>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="no-data-text">Nenhum detalhe de compra registrado ou disponível.</p>
+                                <p className="no-data-text">Nenhuma movimentação registrada.</p>
                               )
                             )}
                           </div>
@@ -223,6 +249,15 @@ const ClientesDashboard = () => {
           </table>
         )}
       </div>
+
+      {isModalOpen && (
+        <ModalBaixaPagamento 
+          cliente={clienteParaPagamento}
+          onClose={() => setIsModalOpen(false)}
+          onSucesso={handleSucessoPagamento}
+        />
+      )}
+
     </div>
   );
 };
