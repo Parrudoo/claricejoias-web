@@ -1,8 +1,9 @@
 import React from 'react';
 import { useMaleta } from '../context/MaletaContext';
 import { FiX, FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
-import './Maleta.css';
+import { ImagemService } from '../services/ImagemService'; // 👈 Importa o Serviço
 import { useNavigate } from 'react-router-dom';
+import './Maleta.css';
 
 export default function Maleta() {
   const { itens, total, removerItem, alterarQuantidade, carrinhoAberto, setCarrinhoAberto } = useMaleta();
@@ -14,13 +15,6 @@ export default function Maleta() {
     navigate('/checkout');
     setCarrinhoAberto(false);
   }
-
-  // MÁGICA AQUI: A mesma função do CardItem para montar a URL do seu backend
-  const getUrlImagem = (caminho) => {
-    if (!caminho) return 'https://via.placeholder.com/70x90?text=Sem+Foto'; 
-    if (caminho.startsWith('http')) return caminho; 
-    return `http://localhost:8080/arquivos/view/${caminho}`;
-  };
 
   return (
     <div className="maleta-overlay" onClick={() => setCarrinhoAberto(false)}>
@@ -35,22 +29,21 @@ export default function Maleta() {
             <p className="vazio">Sua maleta está vazia...</p>
           ) : (
             itens.map(item => {
-              // Verifica onde o nome da foto veio (do Modal ou direto do CardItem)
-              const caminhoDaFoto = item.imagemSelecionada || (item.imagens && item.imagens[0]) || item.pathImg;
+              // Pega a primeira foto do array, se existir
+              const foto = item.imagens && item.imagens.length > 0 ? item.imagens[0] : null;
 
               return (
                 <div key={item.id} className="item-carrinho">
                   
-                  {/* Passamos o caminho na função para colocar o localhost:8080 na frente */}
+                  {/* 👇 Usando o serviço de imagens profissional 👇 */}
                   <img 
-                    src={getUrlImagem(caminhoDaFoto)} 
+                    src={ImagemService.getUrl(foto)} 
                     alt={item.nome} 
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/70x90?text=Erro'; }}
                   />
                   
                   <div className="item-detalhes">
                     <h4>{item.nome}</h4>
-                    <p>R$ {item.preco ? item.preco.toFixed(2) : '0.00'}</p>
+                    <p>R$ {item.preco ? item.preco.toFixed(2).replace('.', ',') : '0,00'}</p>
                     <div className="controles">
                       <button onClick={() => alterarQuantidade(item.id, -1)}><FiMinus /></button>
                       <span>{item.quantidade}</span>
@@ -68,7 +61,7 @@ export default function Maleta() {
           <footer className="maleta-footer">
             <div className="total">
               <span>Total:</span>
-              <span>R$ {total.toFixed(2)}</span>
+              <span>R$ {total.toFixed(2).replace('.', ',')}</span>
             </div>
             <button className="btn-finalizar" onClick={finalizar}>Pedir Visita / Comprar</button>
           </footer>

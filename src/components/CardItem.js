@@ -1,21 +1,15 @@
 import React, { useState } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { ImagemService } from '../services/ImagemService';
 import './CardItem.css';
 
 export function CardItem({ joia, adicionarItem }) {
   const [imgAtiva, setImgAtiva] = useState(0);
-  
-  // Função que monta a URL correta apontando para o seu backend
-  const getUrlImagem = (caminho) => {
-    if (!caminho) return 'https://via.placeholder.com/300x300?text=Sem+Foto'; // Placeholder caso não tenha foto
-    if (caminho.startsWith('http')) return caminho; // Prevenção caso já venha um link completo
-    return `http://localhost:8080/arquivos/view/${caminho}`;
-  };
 
-  // Normaliza para sempre ter um array. Agora usamos o pathImg que vem da API
-  const fotos = joia.imagens 
-    ? joia.imagens.map(getUrlImagem) 
-    : [getUrlImagem(joia.pathImg)];
+  
+  const fotos = joia.imagens && joia.imagens.length > 0
+    ? joia.imagens.map(ImagemService.getUrl) 
+    : [ImagemService.getUrl(joia.pathImg)];
 
   const proxima = (e) => {
     e.stopPropagation(); // Não abre o detalhe do card ao clicar na seta
@@ -44,11 +38,8 @@ export function CardItem({ joia, adicionarItem }) {
         <img src={fotos[imgAtiva]} alt={joia.nome} className="img-principal" />
       </div>
 
-    
-
       <div className="info-joia">
-        {/* Adicionamos uma classe exclusiva para o código */}
-        <span className="codigo-joia">REF: {joia.codigo}</span>
+        <span className="codigo-joia">Codigo: {joia.codigo}</span>
         
         <h4>{joia.nome}</h4>
         <p className="material-joia">{joia.material}</p>

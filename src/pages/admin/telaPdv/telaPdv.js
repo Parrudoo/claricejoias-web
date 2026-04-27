@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './TelaPDV.css';
 import { ProdutoService } from '../../../services/ProdutoService';
 import { VendaService } from '../../../services/VendaService';
+import { ImagemService } from '../../../services/ImagemService';
 
 const TelaPDV = () => {
     const [codigoBusca, setCodigoBusca] = useState('');
@@ -14,7 +15,6 @@ const TelaPDV = () => {
     const [parcelas, setParcelas] = useState(1);
     const [valorRecebido, setValorRecebido] = useState('');
 
-    // Novos estados para o Cliente
     const [clienteNome, setClienteNome] = useState('');
     const [clienteTelefone, setClienteTelefone] = useState('');
     const [valorEntrada, setValorEntrada] = useState('');
@@ -56,8 +56,32 @@ const TelaPDV = () => {
         });
     };
 
+    // 👇 ATUALIZADO: Remove do carrinho e limpa a imagem principal se for o mesmo produto
     const removerDoCarrinho = (id) => {
         setCarrinho((prev) => prev.filter(item => item.id !== id));
+        if (produtoAtual && produtoAtual.id === id) {
+            setProdutoAtual(null);
+        }
+    };
+
+    // 👇 NOVO: Função para incrementar ou decrementar a quantidade
+    const alterarQuantidade = (id, delta) => {
+        setCarrinho((prev) => {
+            const novoCarrinho = prev.map(item => {
+                if (item.id === id) {
+                    return { ...item, quantidade: item.quantidade + delta };
+                }
+                return item;
+            }).filter(item => item.quantidade > 0); // Se chegar a 0, remove o item
+
+            // Se o item foi removido (chegou a 0) e estava na tela principal, limpa a tela
+            const itemAindaExiste = novoCarrinho.find(item => item.id === id);
+            if (!itemAindaExiste && produtoAtual?.id === id) {
+                setProdutoAtual(null);
+            }
+
+            return novoCarrinho;
+        });
     };
 
     const calcularTotal = () => {
@@ -68,65 +92,57 @@ const TelaPDV = () => {
     const troco = formaPagamento === 'especie' && valorRecebido ? (parseFloat(valorRecebido) - total) : 0;
 
     const handleFinalizarVenda = async () => {
-    if (carrinho.length === 0) return alert('O carrinho está vazio.');
+        if (carrinho.length === 0) return alert('O carrinho está vazio.');
 
-    if (formaPagamento === 'fiado' && (!clienteNome.trim() || !clienteTelefone.trim())) {
-        return alert('Para vendas no FIADO, é obrigatório preencher o Nome e o WhatsApp do cliente!');
-    }
+        if (formaPagamento === 'fiado' && (!clienteNome.trim() || !clienteTelefone.trim())) {
+            return alert('Para vendas no FIADO, é obrigatório preencher o Nome e o WhatsApp do cliente!');
+        }
 
-    // Usando Number() para garantir que os valores numéricos não quebrem o JSON
-    const payloadVenda = {
-        itens: carrinho.map(item => ({
-            id: item.id,
-            nome: item.nome,
-            preco: item.preco,
-            quantidade: item.quantidade
-        })),
-        total: total,
-        pagamento: {
-            metodo: formaPagamento,
-            parcelas: parcelas || 1, 
-            valorRecebido: formaPagamento === 'especie' ? Number(valorRecebido || 0) : total,
-            valorEntrada: Number(valorEntrada || 0) 
-        },
-        cliente: clienteNome.trim() ? {
-            nome: clienteNome,
-            telefone: clienteTelefone
-        } : null
+        const payloadVenda = {
+            itens: carrinho.map(item => ({
+                id: item.id,
+                nome: item.nome,
+                preco: item.preco,
+                quantidade: item.quantidade
+            })),
+            total: total,
+            pagamento: {
+                metodo: formaPagamento,
+                parcelas: parcelas || 1, 
+                valorRecebido: formaPagamento === 'especie' ? Number(valorRecebido || 0) : total,
+                valorEntrada: Number(valorEntrada || 0) 
+            },
+            cliente: clienteNome.trim() ? {
+                nome: clienteNome,
+                telefone: clienteTelefone
+            } : null
+        };
+
+        try {
+            setIsLoading(true);
+            const response = await VendaService.registrar(payloadVenda);
+            alert(`Venda finalizada com sucesso! (ID: ${response.id})`);
+            
+            setCarrinho([]);
+            setProdutoAtual(null);
+            setCodigoBusca('');
+            setFormaPagamento('pix');
+            setValorRecebido('');
+            setClienteNome('');
+            setClienteTelefone('');
+            setValorEntrada('');
+            setParcelas(1);
+        } catch (error) {
+            console.error('Erro detalhado do Backend:', error.response?.data || error.message);
+            alert('Erro ao finalizar venda. Verifique o console (F12) para ver o motivo exato.');
+        } finally {
+            setIsLoading(false);
+            inputRef.current?.focus();
+        }
     };
-
-    console.log("Enviando para o Spring Boot:", payloadVenda); // <-- OLHE O CONSOLE DO NAVEGADOR
-
-    try {
-        setIsLoading(true);
-        const response = await VendaService.registrar(payloadVenda);
-        alert(`Venda finalizada com sucesso! (ID: ${response.id})`);
-        
-        // Resetar estados
-        setCarrinho([]);
-        setProdutoAtual(null);
-        setCodigoBusca('');
-        setFormaPagamento('pix');
-        setValorRecebido('');
-        setClienteNome('');
-        setClienteTelefone('');
-        setValorEntrada('');
-        setParcelas(1);
-    } catch (error) {
-        // Log detalhado para capturar o que o backend reclamou
-        const erroBackend = error.response?.data || error.message;
-        console.error('Erro detalhado do Backend:', erroBackend);
-        
-        alert('Erro ao finalizar venda. Verifique o console (F12) para ver o motivo exato.');
-    } finally {
-        setIsLoading(false);
-        inputRef.current?.focus();
-    }
-};
 
     return (
         <div className="pdv-container">
-
             {/* SEÇÃO ESQUERDA - Inserção de Produtos */}
             <div className="pdv-left-section">
                 <header className="pdv-header">
@@ -155,7 +171,15 @@ const TelaPDV = () => {
                 {produtoAtual ? (
                     <div className="pdv-product-view">
                         <div className="pdv-product-center">
-                            <img src={produtoAtual.img || '/api/placeholder/150/150'} alt={produtoAtual.nome} className="pdv-product-img" />
+                            <img 
+                                src={ImagemService.getUrl(
+                                    produtoAtual.imagens && produtoAtual.imagens.length > 0 
+                                        ? produtoAtual.imagens[0] 
+                                        : produtoAtual.pathImg
+                                )} 
+                                alt={produtoAtual.nome} 
+                                className="pdv-product-img" 
+                            />
                             <h2 className="pdv-product-name">{produtoAtual.nome}</h2>
                             <p className="pdv-product-price">
                                 R$ {produtoAtual.preco?.toFixed(2).replace('.', ',')}
@@ -180,16 +204,42 @@ const TelaPDV = () => {
                     ) : (
                         <ul className="pdv-cart-items">
                             {carrinho.map((item) => (
-                                <li key={item.id} className="pdv-cart-item">
-                                    <div className="pdv-item-info">
-                                        <p className="pdv-item-name">{item.nome}</p>
-                                        <p className="pdv-item-qty">{item.quantidade}x R$ {item.preco?.toFixed(2).replace('.', ',')}</p>
+                                // 👇 ATUALIZADO: Layout do item no carrinho com imagem e botões de qtd
+                                <li key={item.id} className="pdv-cart-item" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    
+                                    <img 
+                                        src={ImagemService.getUrl(item.imagens && item.imagens.length > 0 ? item.imagens[0] : item.pathImg)} 
+                                        alt={item.nome} 
+                                        style={{ width: '45px', height: '45px', objectFit: 'contain', borderRadius: '4px', border: '1px solid #ddd', backgroundColor: '#fff' }} 
+                                    />
+
+                                    <div className="pdv-item-info" style={{ flex: 1 }}>
+                                        <p className="pdv-item-name" style={{ margin: '0 0 5px 0', fontSize: '0.9rem', fontWeight: 'bold' }}>{item.nome}</p>
+                                        
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => alterarQuantidade(item.id, -1)}
+                                                style={{ width: '24px', height: '24px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer', background: '#f5f5f5', fontWeight: 'bold' }}
+                                            >-</button>
+                                            
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 'bold', minWidth: '15px', textAlign: 'center' }}>{item.quantidade}</span>
+                                            
+                                            <button 
+                                                type="button" 
+                                                onClick={() => alterarQuantidade(item.id, 1)}
+                                                style={{ width: '24px', height: '24px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer', background: '#f5f5f5', fontWeight: 'bold' }}
+                                            >+</button>
+                                            
+                                            <span style={{ fontSize: '0.8rem', color: '#666', marginLeft: '5px' }}>x R$ {item.preco?.toFixed(2).replace('.', ',')}</span>
+                                        </div>
                                     </div>
-                                    <div className="pdv-item-actions">
-                                        <span className="pdv-item-price">
+
+                                    <div className="pdv-item-actions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                        <button onClick={() => removerDoCarrinho(item.id)} className="pdv-btn-remove" title="Remover Produto" style={{ color: '#ff4d4d', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
+                                        <span className="pdv-item-price" style={{ fontWeight: 'bold', color: '#D4AF37' }}>
                                             R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
                                         </span>
-                                        <button onClick={() => removerDoCarrinho(item.id)} className="pdv-btn-remove" title="Remover">X</button>
                                     </div>
                                 </li>
                             ))}
@@ -197,14 +247,13 @@ const TelaPDV = () => {
                     )}
                 </div>
 
-                {/* Resumo e Pagamento */}
+                {/* Resumo e Pagamento (Sem alterações na parte de baixo) */}
                 <div className="pdv-summary">
                     <div className="pdv-total-row">
                         <span className="pdv-total-label">Total a Pagar:</span>
                         <span className="pdv-total-value">R$ {total.toFixed(2).replace('.', ',')}</span>
                     </div>
 
-                    {/* DADOS DO CLIENTE */}
                     <div className="pdv-conditional-block" style={{ marginBottom: '1.5rem' }}>
                         <label className="pdv-label">Dados do Cliente {formaPagamento === 'fiado' ? <span className="text-red">*</span> : '(Opcional)'}</label>
                         <div className="pdv-flex-row" style={{ marginTop: '0.5rem' }}>
@@ -228,7 +277,6 @@ const TelaPDV = () => {
                     <div className="pdv-payment-section">
                         <label className="pdv-label">Forma de Pagamento</label>
 
-                        {/* Grid atualizado para 4 botões */}
                         <div className="pdv-method-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                             {['pix', 'cartao', 'especie', 'fiado'].map((metodo) => (
                                 <button
@@ -242,7 +290,6 @@ const TelaPDV = () => {
                             ))}
                         </div>
 
-                        {/* Condicionais de Pagamento: Cartão ou Fiado exibem as parcelas */}
                         {(formaPagamento === 'cartao' || formaPagamento === 'fiado') && (
                             <div className="pdv-conditional-block">
                                 <label className="pdv-label-small">Parcelamento ({formaPagamento === 'fiado' ? 'Fiado/Promissória' : 'Cartão'})</label>
@@ -295,7 +342,6 @@ const TelaPDV = () => {
                             </div>
                         )}
 
-                        {/* Condicionais de Pagamento: Espécie exibe troco */}
                         {formaPagamento === 'especie' && (
                             <div className="pdv-conditional-block pdv-flex-row">
                                 <div className="pdv-flex-1">
@@ -327,7 +373,6 @@ const TelaPDV = () => {
                     </button>
                 </div>
             </div>
-
         </div>
     );
 };

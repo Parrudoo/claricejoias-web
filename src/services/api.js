@@ -1,31 +1,42 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import keycloak from '../config/keycloak'; // Importe a instância do Keycloak que configuramos
+import keycloak from '../config/keycloak';
+
+// =======================================================================
+// 1. GERA OU RECUPERA O ID DO VISITANTE (CARRINHO ANÔNIMO)
+// =======================================================================
+let visitorId = localStorage.getItem('visitor_id');
+if (!visitorId) {
+    // Se for a primeira vez da pessoa no site, gera um código único pra ela
+    visitorId = crypto.randomUUID(); 
+    localStorage.setItem('visitor_id', visitorId);
+}
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     }
 });
 
-/**
- * INTERCEPTOR DE REQUISIÇÃO
- * Garante que toda chamada para o backend leve o token mais recente.
- */
+// =======================================================================
+// INTERCEPTOR DE REQUISIÇÃO (Envia o ID do Visitante e o Token de Login)
+// =======================================================================
 api.interceptors.request.use(
     async (config) => {
+        // 👇 INJETA O ID DO VISITANTE EM TODAS AS REQUISIÇÕES
+        config.headers['X-Visitor-ID'] = visitorId;
+
+        // Se o usuário já tiver feito login, envia o Token do Keycloak também
         if (keycloak.authenticated) {
             try {
-                // Atualiza o token se ele expirar nos próximos 30 segundos
+                // Atualiza o token se ele for expirar nos próximos 30 segundos
                 await keycloak.updateToken(30);
-
-                // Injeta o token no cabeçalho Authorization
                 config.headers.Authorization = `Bearer ${keycloak.token}`;
             } catch (error) {
                 console.error("Falha ao atualizar o token do Keycloak:", error);
-                // Opcional: Forçar logout ou redirecionar para login se o refresh falhar
+                // Opcional: Forçar logout se o refresh falhar
                 keycloak.login();
             }
         }
@@ -36,30 +47,29 @@ api.interceptors.request.use(
     }
 );
 
-/**
- * INTERCEPTOR DE RESPOSTA
- * Útil para capturar erros globais (como 401 ou 403)
- */
+// =======================================================================
+// INTERCEPTOR DE RESPOSTA (Trata os erros que vêm do Spring Boot)
+// =======================================================================
 api.interceptors.response.use(
     (response) => {
         // Se deu Status 200 ou 201 (Sucesso), apenas deixa passar
-        console.log(response.data)
         return response;
     },
     (error) => {
-        // 1. Tenta extrair a mensagem de vários lugares possíveis que o Spring Boot pode mandar
+        // Tenta extrair a mensagem de vários lugares possíveis que o Spring Boot pode mandar
         const mensagemBackend = error.response?.data?.message
             || error.response?.data?.erro
             || (typeof error.response?.data === 'string' ? error.response.data : null);
+            
         if (mensagemBackend) {
-            // Se achou a mensagem do Java, mostra ela!
+            // Se achou a mensagem do Java, mostra ela num Toast!
             toast.error(mensagemBackend);
         } else {
-            // Se não achou nada (ex: API caiu, erro 500 sem tratamento), mostra a genérica
+            // Se não achou nada (ex: API caiu, banco offline), mostra a genérica
             toast.error("Ocorreu um erro de comunicação com o servidor.");
         }
 
-        // Repassa o erro para frente apenas para a tela saber que tem que interromper o fluxo
+        // Repassa o erro para frente apenas para a tela saber que tem que interromper o fluxo (como parar um botão de 'Carregando')
         return Promise.reject(error);
     }
 );

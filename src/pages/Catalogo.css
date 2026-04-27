@@ -477,3 +477,106 @@
     color: #999;
 }
 
+/* =========================================================
+   NOVO BANNER DE DESTAQUE
+   ========================================================= */
+   .banner-destaque {
+    width: 100%;
+    height: 350px; /* Altura do banner no desktop */
+    /* Substitua a URL abaixo por uma foto real de uma modelo usando as joias ou um banner editado */
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.banner-conteudo h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    color: #D4AF37;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.banner-conteudo p {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+
+.btn-banner {
+    background-color: transparent;
+    color: #D4AF37;
+    border: 2px solid #D4AF37;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-banner:hover {
+    background-color: #D4AF37;
+    color: #1a1a1a;
+}
+
+/* Ajuste do banner para celular */
+@media (max-width: 768px) {
+    .banner-destaque { height: 250px; }
+    .banner-conteudo h2 { font-size: 28px; }
+    .banner-conteudo p { font-size: 14px; }
+}
+
+/* =========================================================
+   PADRONIZAÇÃO DAS IMAGENS E GRID (RESOLVENDO O TAMANHO)
+   ========================================================= */
+.vitrine-conteudo {
+    /* Centraliza a vitrine e impede que ela ocupe monitores ultrawide inteiros */
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.grid-produtos {
+    display: grid;
+    /* Usando auto-fill com um tamanho mínimo razoável. 
+       Isso evita que, em telas gigantes, o card estique infinitamente. */
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+/* 🚨 ATENÇÃO: Como não vi o código do seu componente <CardItem />, 
+  você precisa garantir que a imagem DELE tenha o estilo abaixo.
+  Você pode colocar essa classe direto na tag <img> dentro do CardItem.js 
+*/
+.imagem-padrao-card {
+    width: 100%;
+    height: 280px; /* Trava a altura para todos os produtos */
+    object-fit: cover; /* A mágica acontece aqui: corta a foto sem amassar! */
+    object-position: center; /* Centraliza o corte da foto */
+    border-radius: 8px 8px 0 0;
+}
+
+/* Padronizando a foto principal dentro do Modal de Detalhes */
+.foto-principal {
+    width: 100%;
+    max-width: 400px; /* Limita a largura máxima da foto no modal */
+    height: 400px; /* Transforma num quadrado perfeito (1:1) */
+    margin: 0 auto 15px auto; /* Centraliza dentro do flex */
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.foto-principal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Impede a imagem de estourar no modal */
+}
+

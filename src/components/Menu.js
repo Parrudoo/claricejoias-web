@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
-import { useKeycloak } from '@react-keycloak/web'; // 👇 Importação Oficial do Keycloak
+import { useKeycloak } from '@react-keycloak/web'; 
 import { authService } from '../services/authService';
 import './Menu.css';
 
 export function Menu({ categorias, aoClicarCategoria }) {
-  // 👇 Puxa a instância oficial do Keycloak que gerencia a sessão global
   const { keycloak } = useKeycloak(); 
 
-  // Controle do Modal (Agora focado apenas no Cadastro)
   const [modalAberto, setModalAberto] = useState(false);
 
-  // Dados do formulário de cadastro
   const [formData, setFormData] = useState({
     nome: '',
     whatsapp: '',
@@ -19,7 +16,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
     senha: ''
   });
 
-  // 👇 DADOS EM TEMPO REAL: Lê diretamente do Keycloak (sem usar localStorage)
   const usuarioEstaLogado = keycloak.authenticated;
   const nomeCompleto = keycloak.tokenParsed?.name || keycloak.tokenParsed?.given_name || 'Cliente';
   const primeiroNome = nomeCompleto.split(' ')[0];
@@ -28,33 +24,24 @@ export function Menu({ categorias, aoClicarCategoria }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const abrirModalCadastro = () => {
-    setModalAberto(true);
-  };
+  const abrirModalCadastro = () => setModalAberto(true);
+  const fecharModal = () => setModalAberto(false);
 
-  const fecharModal = () => {
-    setModalAberto(false);
-  };
-
-  // Decide pra onde o botão "Minha Conta" vai levar usando a role do Keycloak
   const handleMinhaConta = () => {
     if (keycloak.hasRealmRole('ADMIN')) {
-      window.location.href = '/admin'; // Joga pro painel administrativo
+      window.location.href = '/admin'; 
     } else {
       alert("A área de perfil do cliente estará disponível em breve!"); 
     }
   };
 
   const handleSair = () => {
-    // Encerra a sessão direto no servidor do Keycloak e volta pra página inicial
     keycloak.logout({ redirectUri: window.location.origin });
   };
 
   const handleCadastroSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      // Manda os dados para o Spring Boot criar o usuário
       await authService.cadastrar({
         nome: formData.nome,
         email: formData.email,
@@ -63,7 +50,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
       alert("Conta criada com sucesso! Você será redirecionado para o login.");
 
-      // Limpa o formulário, fecha o modal e joga pra tela de login do Keycloak
       setFormData({ nome: '', whatsapp: '', email: '', senha: '' });
       fecharModal();
       
@@ -74,11 +60,22 @@ export function Menu({ categorias, aoClicarCategoria }) {
     }
   };
 
+  // Função para voltar ao topo
+  const voltarAoTopo = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <header className="topo-fixo">
-        {/* 1ª BARRA: LOGIN OU NOME DO USUÁRIO */}
+        {/* 1ª BARRA: LOGO PEQUENA E LOGIN */}
         <div className="secao-login">
+          
+          {/* 👇 LOGOTIPO NO TOPO, ESTILO ADMIN 👇 */}
+          <div className="topo-logo" onClick={voltarAoTopo} title="Voltar ao início">
+            <h2>Clarice<span>Joias</span></h2>
+          </div>
+
           <div className="login-container">
             <FiUser size={14} />
             
@@ -94,7 +91,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
               </>
             ) : (
               <>
-                {/* 👇 Login agora chama o Keycloak direto! */}
                 <button className="btn-texto-login" onClick={() => keycloak.login()}>Login</button>
                 <span className="divisor">|</span>
                 <button className="btn-texto-login" onClick={abrirModalCadastro}>Cadastre-se</button>
@@ -103,7 +99,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
           </div>
         </div>
 
-        {/* 2ª BARRA: NAVEGAÇÃO COM SUBMENU */}
+        {/* 2ª BARRA: APENAS NAVEGAÇÃO CENTRALIZADA */}
         <nav className="secao-categorias">
           <ul className="menu-lista">
             {categorias.map((cat) => (
@@ -116,7 +112,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   {cat.subitens && <FiChevronDown className="seta-menu" />}
                 </button>
 
-                {/* Renderiza o Submenu se existir subitens */}
                 {cat.subitens && (
                   <ul className="submenu">
                     {cat.subitens.map((sub) => (
@@ -135,7 +130,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
       </header>
 
       {/* =========================================
-          MODAL DE CADASTRO (Simplificado para apenas cadastro)
+          MODAL DE CADASTRO 
           ========================================= */}
       {modalAberto && (
         <div className="modal-auth-overlay" onClick={fecharModal}>
@@ -211,7 +206,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   type="button" 
                   onClick={() => {
                     fecharModal();
-                    keycloak.login(); // Fecha o modal e abre o login do Keycloak
+                    keycloak.login(); 
                   }}
                 >
                   Faça Login

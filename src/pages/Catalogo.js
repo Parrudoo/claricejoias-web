@@ -73,14 +73,14 @@ export default function Catalogo() {
     }));
 
     // Adicione esta função fora ou dentro do seu componente Catalogo
-const aplicarMascaraWhatsapp = (value) => {
-    if (!value) return "";
-    return value
-        .replace(/\D/g, "") // Remove tudo que não é número
-        .replace(/(\d{2})(\d)/, "($1) $2") // Coloca parênteses no DDD
-        .replace(/(\d{5})(\d)/, "$1-$2") // Coloca o hífen no número
-        .replace(/(-\d{4})\d+?$/, "$1"); // Limpa números extras
-};
+    const aplicarMascaraWhatsapp = (value) => {
+        if (!value) return "";
+        return value
+            .replace(/\D/g, "") // Remove tudo que não é número
+            .replace(/(\d{2})(\d)/, "($1) $2") // Coloca parênteses no DDD
+            .replace(/(\d{5})(\d)/, "$1-$2") // Coloca o hífen no número
+            .replace(/(-\d{4})\d+?$/, "$1"); // Limpa números extras
+    };
     const abrirDetalhes = (joia) => {
         setProdutoSelecionado(joia);
         setFotoDestaque(joia.imagens && joia.imagens.length > 0 ? joia.imagens[0] : null);
@@ -148,10 +148,19 @@ const aplicarMascaraWhatsapp = (value) => {
             <Menu categorias={dadosMenu} aoClicarCategoria={rolarPara} />
             <div className="espacador-topo"></div>
 
-            <header className="header-vitrine">
+            <section className="banner-destaque">
+                <div className="banner-conteudo">
+                    <h2>Nova Coleção Elegance</h2>
+                    <p>Descubra peças exclusivas com até 15% de desconto.</p>
+                    <button className="btn-banner" onClick={() => rolarPara(acervo[0]?.nome || acervo[0]?.categoria)}>
+                        Ver Novidades
+                    </button>
+                </div>
+            </section>
+            {/* <header className="header-vitrine">
                 <h1>Clarice Joias</h1>
                 <p>Acessórios de luxo para momentos inesquecíveis.</p>
-            </header>
+            </header> */}
 
             <main className="vitrine-conteudo">
                 {acervo.length === 0 ? (
@@ -220,22 +229,22 @@ const aplicarMascaraWhatsapp = (value) => {
                             <form onSubmit={handleBaixarGuia} className="form-lead">
                                 <div className="input-group">
                                     <label>Como podemos te chamar?</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Seu nome" 
-                                        required 
+                                    <input
+                                        type="text"
+                                        placeholder="Seu nome"
+                                        required
                                         value={dadosLead.nome}
-                                        onChange={e => setDadosLead({...dadosLead, nome: e.target.value})}
+                                        onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })}
                                     />
                                 </div>
                                 <div className="input-group">
                                     <label>Seu melhor WhatsApp</label>
-                                    <input 
-                                        type="tel" 
-                                        placeholder="(00) 00000-0000" 
-                                        required 
+                                    <input
+                                        type="tel"
+                                        placeholder="(00) 00000-0000"
+                                        required
                                         value={dadosLead.whatsapp}
-                                        onChange={e => setDadosLead({...dadosLead, whatsapp: aplicarMascaraWhatsapp(e.target.value)})}
+                                        onChange={e => setDadosLead({ ...dadosLead, whatsapp: aplicarMascaraWhatsapp(e.target.value) })}
                                     />
                                 </div>
                                 <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
