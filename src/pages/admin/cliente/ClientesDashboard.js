@@ -5,10 +5,10 @@ import ModalBaixaPagamento from './ModalBaixaPagamento';
 
 const ClientesDashboard = () => {
   const [clientes, setClientes] = useState([]);
-  const [filtro, setFiltro] = useState('todos'); 
+  const [filtro, setFiltro] = useState('todos');
   const [busca, setBusca] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [clienteExpandido, setClienteExpandido] = useState(null);
   const [detalhesCompras, setDetalhesCompras] = useState({});
   const [loadingDetalhes, setLoadingDetalhes] = useState({});
@@ -17,7 +17,7 @@ const ClientesDashboard = () => {
   const [clienteParaPagamento, setClienteParaPagamento] = useState(null);
   const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
 
-  const usuarioLogado = "Diego Oliveira"; 
+  const usuarioLogado = "Diego Oliveira";
 
   useEffect(() => {
     carregarClientes();
@@ -42,7 +42,7 @@ const ClientesDashboard = () => {
 
   const handleCobrarWhatsApp = async (cliente) => {
     try {
-      await ClienteService.registrarCobranca(cliente.id, usuarioLogado);      
+      await ClienteService.registrarCobranca(cliente.id, usuarioLogado);
       carregarClientes();
       alert("Cobrança enviada com sucesso!");
     } catch (error) {
@@ -53,10 +53,10 @@ const ClientesDashboard = () => {
 
   const toggleDetalhes = async (clienteId) => {
     if (clienteExpandido === clienteId) {
-      setClienteExpandido(null); 
+      setClienteExpandido(null);
     } else {
-      setClienteExpandido(clienteId); 
-      
+      setClienteExpandido(clienteId);
+
       if (!detalhesCompras[clienteId]) {
         setLoadingDetalhes(prev => ({ ...prev, [clienteId]: true }));
         try {
@@ -81,8 +81,8 @@ const ClientesDashboard = () => {
     setIsModalOpen(false);
     setClienteParaPagamento(null);
     setParcelaSelecionada(null);
-    carregarClientes(); 
-    setDetalhesCompras({}); 
+    carregarClientes();
+    setDetalhesCompras({});
     alert("Pagamento registrado com sucesso!");
   };
 
@@ -125,8 +125,8 @@ const ClientesDashboard = () => {
     }
   };
 
-  const clientesFiltrados = clientes.filter(c => 
-    c.nome.toLowerCase().includes(busca.toLowerCase()) || 
+  const clientesFiltrados = clientes.filter(c =>
+    c.nome.toLowerCase().includes(busca.toLowerCase()) ||
     (c.telefone && c.telefone.includes(busca))
   );
 
@@ -140,9 +140,9 @@ const ClientesDashboard = () => {
       </header>
 
       <div className="dashboard-filters">
-        <input 
-          type="text" 
-          placeholder="Buscar por nome ou telefone..." 
+        <input
+          type="text"
+          placeholder="Buscar por nome ou telefone..."
           className="dashboard-search"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
@@ -179,10 +179,10 @@ const ClientesDashboard = () => {
                       <tr>
                         <td className="font-semibold">{cliente.nome}</td>
                         <td>{cliente.telefone}</td>
-                        
+
                         <td>
                           <span className={`badge ${statusReal.classeCss}`} title={`Dívida total: R$ ${statusReal.valorTotal.toFixed(2).replace('.', ',')}`}>
-                            {statusReal.texto} 
+                            {statusReal.texto}
                             {statusReal.valorPrincipal > 0 && ` (R$ ${statusReal.valorPrincipal.toFixed(2).replace('.', ',')})`}
                           </span>
                           {statusReal.situacao === 'ATRASADO' && statusReal.valorTotal > statusReal.valorPrincipal && (
@@ -199,14 +199,14 @@ const ClientesDashboard = () => {
                             <span className="no-history">Nunca cobrado</span>
                           )}
                         </td>
-                        
+
                         <td>
                           <div className="action-buttons-group">
                             <button onClick={() => toggleDetalhes(cliente.id)} className="btn btn-outline">
                               {clienteExpandido === cliente.id ? '▴ Ocultar' : '▾ Detalhes'}
                             </button>
                             <button onClick={() => handleCobrarWhatsApp(cliente)} disabled={statusReal.valorTotal <= 0} className="btn btn-whatsapp">Cobrar</button>
-                            <button onClick={() => handleAbrirModal(cliente, null)} disabled={statusReal.valorTotal <= 0} className="btn btn-receber">Receber</button>
+                            {/* O botão "Receber" geral foi removido daqui! */}
                           </div>
                         </td>
                       </tr>
@@ -216,7 +216,7 @@ const ClientesDashboard = () => {
                           <td colSpan="5" className="details-cell">
                             <div className="details-content-box">
                               <h4 className="details-title">Extrato de Movimentações</h4>
-                              
+
                               {loadingDetalhes[cliente.id] ? (
                                 <p className="loading-text">Buscando histórico...</p>
                               ) : (
@@ -236,7 +236,7 @@ const ClientesDashboard = () => {
 
                                           <div className="purchase-body">
                                             <p><strong>Método:</strong> {metodoPagamento?.toUpperCase()}</p>
-                                            
+
                                             {metodoPagamento === 'fiado' && (
                                               <div className="resumo-fiado">
                                                 <p><strong>Entrada:</strong> R$ {(compra.valorEntrada || 0).toFixed(2).replace('.', ',')}</p>
@@ -245,7 +245,7 @@ const ClientesDashboard = () => {
                                                 ) : (
                                                   <p><strong style={{ color: '#059669' }}>Compra totalmente quitada! ✅</strong></p>
                                                 )}
-                                                
+
                                                 {Array.isArray(compra.parcelas) && compra.parcelas.length > 0 && (
                                                   <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                                                     <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#374151' }}>Status do Carnê:</h5>
@@ -281,8 +281,18 @@ const ClientesDashboard = () => {
                                                 )}
                                               </div>
                                             )}
-                                            
-                                            {metodoPagamento === 'cartao' && <p><strong>Parcelas:</strong> {Array.isArray(compra.parcelas) ? compra.parcelas.length : compra.parcelas}x</p>}
+
+                                            {(metodoPagamento === 'cartao' || metodoPagamento === 'pix' || metodoPagamento === 'especie') && (
+                                              <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                                                <p style={{ margin: 0 }}>
+                                                  <strong style={{ color: '#166534' }}>Compra quitada no ato da venda ✅</strong>
+                                                </p>
+                                                <p style={{ color: '#15803d', fontSize: '13px', marginTop: '4px', marginBottom: 0 }}>
+                                                  Pago via: <strong>{metodoPagamento.toUpperCase()}</strong>
+                                                  {metodoPagamento === 'cartao' && compra.qtdParcelas > 1 && ` em ${compra.qtdParcelas}x na maquininha.`}
+                                                </p>
+                                              </div>
+                                            )}
                                           </div>
                                         </li>
                                       );
@@ -306,7 +316,7 @@ const ClientesDashboard = () => {
       </div>
 
       {isModalOpen && (
-        <ModalBaixaPagamento 
+        <ModalBaixaPagamento
           cliente={clienteParaPagamento}
           parcela={parcelaSelecionada}
           onClose={() => {
