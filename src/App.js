@@ -42,7 +42,7 @@ function App() {
       initOptions={{ onLoad: 'check-sso', pkceMethod: 'S256' }}
       LoadingComponent={<Loading />}
     >
-      {/* 👇 3. O AuthProvider ABRAÇA a MaletaProvider e todo o resto do site! */}
+      {/* 3. O AuthProvider ABRAÇA a MaletaProvider e todo o resto do site! */}
       <AuthProvider>
         <MaletaProvider>
           <ToastContainer position="top-right" autoClose={4000} />

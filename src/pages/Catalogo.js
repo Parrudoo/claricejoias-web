@@ -5,8 +5,9 @@ import InputMask from 'react-input-mask';
 import { Menu } from '../components/Menu';
 import { useMaleta } from '../context/MaletaContext';
 import { CategoriaService } from '../services/CategoriaService';
-import { VisitanteService } from '../services/VisitanteService'; // 👈 Importamos o novo Service
 import './Catalogo.css';
+import { leadService } from '../services/leadService';
+import WhatsAppInput from '../components/WhatsAppInput';
 
 export default function Catalogo() {
     const { adicionarItem, itens, setCarrinhoAberto } = useMaleta();
@@ -30,7 +31,7 @@ export default function Catalogo() {
         const timer = setTimeout(async () => {
             try {
                 // Pergunta ao Java se este crachá (Cookie) já baixou o material
-                const deveMostrar = await VisitanteService.verificarStatusGuia();
+                const deveMostrar = await leadService.verificarStatusGuia();
 
                 if (deveMostrar) {
                     setMostrarBotaoGuia(true);
@@ -111,7 +112,7 @@ export default function Catalogo() {
 
         try {
             // Manda para o Java salvar no banco (O Java vai ler o cookie automaticamente)
-            await VisitanteService.registrarLead(dadosLead);
+            await leadService.registrarLead(dadosLead);
 
             // Inicia o download do PDF
             const link = document.createElement('a');
@@ -236,17 +237,11 @@ export default function Catalogo() {
                                         value={dadosLead.nome}
                                         onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })}
                                     />
-                                </div>
-                                <div className="input-group">
-                                    <label>Seu melhor WhatsApp</label>
-                                    <input
-                                        type="tel"
-                                        placeholder="(00) 00000-0000"
-                                        required
-                                        value={dadosLead.whatsapp}
-                                        onChange={e => setDadosLead({ ...dadosLead, whatsapp: aplicarMascaraWhatsapp(e.target.value) })}
-                                    />
-                                </div>
+                                </div>                                
+                                <WhatsAppInput
+                                value={dadosLead.whatsapp}
+                                onChange={(valorMascarado) => setDadosLead({ ...dadosLead, whatsapp: valorMascarado })}
+                                />
                                 <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
                                     {isSubmitting ? 'Processando...' : 'Baixar Guia Grátis'}
                                 </button>

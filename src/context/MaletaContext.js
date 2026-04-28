@@ -1,113 +1,112 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { CarrinhoService } from '../services/CarrinhoService';
-// Importe o hook do seu sistema de autenticação (ex: Keycloak)
-import { useKeycloak } from '@react-keycloak/web'; 
+import { useAuth } from './AuthProvider'; // 👈 IMPORTANTE: Integração com o Keycloak/Login
 
 const MaletaContext = createContext();
 
 export const MaletaProvider = ({ children }) => {
-  const { keycloak, initialized } = useKeycloak(); // Captura o estado do Keycloak
   const [itens, setItens] = useState([]);
   const [total, setTotal] = useState(0);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
+  
+  // Ref para controlar o disparo duplo do React Strict Mode
+  const carrinhoJaCarregado = useRef(false);
 
-  // =======================================================================
-  // 1. GESTÃO DO IDENTIFICADOR DE VISITANTE
-  // =======================================================================
-  const obterVisitorId = () => {
-    let id = localStorage.getItem('X-Visitor-ID');
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem('X-Visitor-ID', id);
-    }
-    return id;
-  };
+  // Puxamos os estados do sistema de autenticação
+  const { logado, sincronizando } = useAuth(); 
 
-  // =======================================================================
-  // 2. FUNÇÃO DE MAPEAMENTO (DTO -> React)
-  // =======================================================================
+  // =======================================================
+  // 1. PROCESSADOR DE DADOS (Transforma DTO do Java pro React)
+  // =======================================================
   const processarDadosCarrinho = (carrinhoDto) => {
     if (carrinhoDto && carrinhoDto.itens) {
-      const itensFormatados = carrinhoDto.itens.map(itemDb => ({
-        id: itemDb.produto.id,
-        nome: itemDb.produto.nome,
-        preco: Number(itemDb.produto.preco),
-        material: itemDb.produto.material,
-        codigo: itemDb.produto.codigo,
-        imagens: itemDb.produto.imagens || [],
-        quantidade: itemDb.quantidade
-      }));
-
-      setItens(itensFormatados);
-      setTotal(Number(carrinhoDto.valorTotal || 0));
+        const itensFormatados = carrinhoDto.itens.map(itemDb => ({
+          id: itemDb.produto.id,
+          nome: itemDb.produto.nome,
+          preco: Number(itemDb.produto.preco),
+          material: itemDb.produto.material,
+          codigo: itemDb.produto.codigo,
+          imagens: itemDb.produto.imagens || [],
+          quantidade: itemDb.quantidade
+        }));
+        
+        setItens(itensFormatados);
+        setTotal(Number(carrinhoDto.valorTotal || 0));
     } else {
-      setItens([]);
-      setTotal(0);
+        setItens([]);
+        setTotal(0);
     }
   };
 
-  // =======================================================================
-  // 3. BUSCA E SINCRONIZAÇÃO (Onde a mágica do Backend acontece)
-  // =======================================================================
+  // =======================================================
+  // 2. BUSCA INICIAL
+  // =======================================================
   const carregarCarrinho = async () => {
-    const visitorId = obterVisitorId();
-    const token = keycloak?.token; // Pega o token se estiver logado
-
     try {
-      // Passamos o visitorId e o token. 
-      // Se houver os dois, o Spring faz a fusão e converte o Lead em Cliente.
-      const dados = await CarrinhoService.obterCarrinho(visitorId, token);
+      const dados = await CarrinhoService.obterCarrinho();
       processarDadosCarrinho(dados);
     } catch (error) {
-      console.error("Erro ao sincronizar o carrinho", error);
+      console.error("Erro ao carregar o carrinho do servidor:", error);
     }
   };
 
-  // Dispara sempre que o site carrega ou quando o usuário LOGA/DESLOGA
+  // =======================================================
+  // 3. ORQUESTRAÇÃO DE CARREGAMENTO (Evita Race Condition)
+  // =======================================================
   useEffect(() => {
-    if (initialized) {
-      carregarCarrinho();
+    // Regra 1: Se o AuthProvider ainda está decidindo se o usuário 
+    // está logado ou criando o cliente no banco, a maleta ESPERA.
+    if (sincronizando) {
+        return; 
     }
-  }, [initialized, keycloak?.authenticated]); 
 
-  // =======================================================================
-  // 4. AÇÕES (Atualizadas para passar os identificadores)
-  // =======================================================================
+    // Regra 2: Só busca se ainda não buscou nesta renderização 
+    // (Impede o disparo duplo chato do React 18 no ambiente local)
+    if (!carrinhoJaCarregado.current) {
+        carregarCarrinho();
+        carrinhoJaCarregado.current = true;
+    }
+
+    // Limpeza: Se o usuário deslogar ou o status mudar drasticamente, 
+    // permitimos que a maleta busque os dados novamente na próxima rodada.
+    return () => {
+        carrinhoJaCarregado.current = false;
+    };
+
+  }, [sincronizando, logado]);
+
+  // =======================================================
+  // 4. AÇÕES DA MALETA (Usando retorno imediato da API)
+  // =======================================================
   
   const adicionarItem = async (joia) => {
-    const visitorId = obterVisitorId();
-    const token = keycloak?.token;
-
     try {
-      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1, visitorId, token);
+      // O Java já retorna o carrinho atualizado, então não precisamos chamar carregarCarrinho() de novo!
+      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1);
       processarDadosCarrinho(carrinhoAtualizado);
       setCarrinhoAberto(true);
     } catch (error) {
-      console.error("Erro ao adicionar produto", error);
+      console.error("Erro ao adicionar produto:", error);
+      alert("Não foi possível adicionar a joia à maleta.");
     }
   };
 
   const removerItem = async (id) => {
-    const visitorId = obterVisitorId();
-    const token = keycloak?.token;
-
     try {
-      const carrinhoAtualizado = await CarrinhoService.removerItem(id, visitorId, token);
+      const carrinhoAtualizado = await CarrinhoService.removerItem(id);
       processarDadosCarrinho(carrinhoAtualizado);
     } catch (error) {
-      console.error("Erro ao remover produto", error);
+      console.error("Erro ao remover produto:", error);
     }
   };
 
   const alterarQuantidade = async (id, delta) => {
-    const visitorId = obterVisitorId();
-    const token = keycloak?.token;
-
     try {
-      const carrinhoAtualizado = await CarrinhoService.adicionarItem(id, delta, visitorId, token);
+      // Delta pode ser +1 ou -1. O Java já tem a inteligência de excluir se chegar a zero.
+      const carrinhoAtualizado = await CarrinhoService.adicionarItem(id, delta);
       processarDadosCarrinho(carrinhoAtualizado);
     } catch (error) {
-      console.error("Erro ao alterar quantidade", error);
+      console.error("Erro ao alterar quantidade:", error);
     }
   };
 
@@ -118,8 +117,8 @@ export const MaletaProvider = ({ children }) => {
       removerItem, 
       alterarQuantidade, 
       total, 
-      carrinhoAberto,
-      setCarrinhoAberto,
+      carrinhoAberto, 
+      setCarrinhoAberto, 
       carregarCarrinho 
     }}>
       {children}

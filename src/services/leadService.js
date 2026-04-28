@@ -43,6 +43,17 @@ export const leadService = {
     }
   },
 
+  verificarStatusGuia: async () => {
+    const response = await api.get('/leads/status-guia');
+    return response.data; // Retorna true (deve mostrar) ou false (já baixou)
+  },
+
+  // Envia os dados do formulário para virar um Lead no banco
+  registrarLead: async (dadosLead) => {
+    const response = await api.post('/leads/registrar-lead', dadosLead);
+    return response.data;
+  },
+
   // NOVO: Endpoint para disparar mensagem no WhatsApp sob demanda
   dispararWhatsapp: async (id, texto) => {
     try {

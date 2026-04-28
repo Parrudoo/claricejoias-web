@@ -3,9 +3,10 @@ import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthProvider';
 import { authService } from '../services/authService';
 import './Menu.css';
+import WhatsAppInput from './WhatsAppInput';
 
 export function Menu({ categorias, aoClicarCategoria }) {
-  // 👇 Olha como fica limpo! Tudo vem pronto do contexto.
+  // Olha como fica limpo! Tudo vem pronto do contexto.
   const { logado, keycloakData, ehAdmin, login, logout } = useAuth()
 
   const [modalAberto, setModalAberto] = useState(false);
@@ -156,18 +157,11 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   placeholder="Ex: Maria Silva"
                 />
               </div>
-
-              <div className="auth-form-group">
-                <label>WhatsApp</label>
-                <input
-                  type="tel"
-                  name="whatsapp"
-                  value={formData.whatsapp}
-                  onChange={handleChange}
-                  required
-                  placeholder="(00) 90000-0000"
-                />
-              </div>
+              
+              <WhatsAppInput
+               value={formData.whatsapp}
+               onChange={(valorMascarado) => setFormData({...formData,whatsapp: valorMascarado})}
+              />
 
               <div className="auth-form-group">
                 <label>E-mail</label>
