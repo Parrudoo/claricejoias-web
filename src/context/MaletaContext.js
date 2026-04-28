@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { CarrinhoService } from '../services/CarrinhoService';
-import { useAuth } from './AuthProvider'; // 👈 IMPORTANTE: Integração com o Keycloak/Login
+import { useAuth } from './AuthProvider'; // Integração com o Keycloak/Login
 
 const MaletaContext = createContext();
 
@@ -19,69 +19,69 @@ export const MaletaProvider = ({ children }) => {
   // 1. PROCESSADOR DE DADOS (Transforma DTO do Java pro React)
   // =======================================================
   const processarDadosCarrinho = (carrinhoDto) => {
-    if (carrinhoDto && carrinhoDto.itens) {
-        const itensFormatados = carrinhoDto.itens.map(itemDb => ({
-          id: itemDb.produto.id,
-          nome: itemDb.produto.nome,
-          preco: Number(itemDb.produto.preco),
-          material: itemDb.produto.material,
-          codigo: itemDb.produto.codigo,
-          imagens: itemDb.produto.imagens || [],
-          quantidade: itemDb.quantidade
-        }));
-        
-        setItens(itensFormatados);
-        setTotal(Number(carrinhoDto.valorTotal || 0));
-    } else {
+    // Se o backend retornou null (204 No Content) ou vazio, limpamos a maleta
+    if (!carrinhoDto || !carrinhoDto.itens || carrinhoDto.itens.length === 0) {
         setItens([]);
         setTotal(0);
+        return;
     }
+
+    const itensFormatados = carrinhoDto.itens.map(itemDb => ({
+      id: itemDb.produto.id,
+      nome: itemDb.produto.nome,
+      preco: Number(itemDb.produto.preco),
+      material: itemDb.produto.material,
+      codigo: itemDb.produto.codigo,
+      imagens: itemDb.produto.imagens || [],
+      quantidade: itemDb.quantidade
+    }));
+    
+    setItens(itensFormatados);
+    setTotal(Number(carrinhoDto.valorTotal || 0));
   };
 
   // =======================================================
-  // 2. BUSCA INICIAL
+  // 2. BUSCA INICIAL (Apenas espiar, sem criar lixo no banco)
   // =======================================================
   const carregarCarrinho = async () => {
     try {
       const dados = await CarrinhoService.obterCarrinho();
       processarDadosCarrinho(dados);
     } catch (error) {
-      console.error("Erro ao carregar o carrinho do servidor:", error);
+      console.error("Erro ao consultar a maleta no servidor:", error);
+      // Opcional: setItens([]) em caso de erro para não travar a tela
     }
   };
 
   // =======================================================
-  // 3. ORQUESTRAÇÃO DE CARREGAMENTO (Evita Race Condition)
+  // 3. ORQUESTRAÇÃO DE CARREGAMENTO
   // =======================================================
   useEffect(() => {
-    // Regra 1: Se o AuthProvider ainda está decidindo se o usuário 
-    // está logado ou criando o cliente no banco, a maleta ESPERA.
+    // Regra 1: Se o AuthProvider ainda está decidindo o login, a maleta ESPERA.
     if (sincronizando) {
         return; 
     }
 
     // Regra 2: Só busca se ainda não buscou nesta renderização 
-    // (Impede o disparo duplo chato do React 18 no ambiente local)
     if (!carrinhoJaCarregado.current) {
         carregarCarrinho();
         carrinhoJaCarregado.current = true;
     }
 
-    // Limpeza: Se o usuário deslogar ou o status mudar drasticamente, 
-    // permitimos que a maleta busque os dados novamente na próxima rodada.
+    // Limpeza: Se o usuário logar/deslogar, resetamos o Ref para buscar o carrinho certo
     return () => {
         carrinhoJaCarregado.current = false;
     };
 
-  }, [sincronizando, logado]);
+  }, [sincronizando, logado]); // O gatilho de 'logado' garante que a maleta mescle sozinha!
 
   // =======================================================
-  // 4. AÇÕES DA MALETA (Usando retorno imediato da API)
+  // 4. AÇÕES DA MALETA (Aqui o banco de dados trabalha de verdade)
   // =======================================================
   
   const adicionarItem = async (joia) => {
     try {
-      // O Java já retorna o carrinho atualizado, então não precisamos chamar carregarCarrinho() de novo!
+      // É AQUI que o Java realmente dá o INSERT e cria o Carrinho se ele não existia!
       const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1);
       processarDadosCarrinho(carrinhoAtualizado);
       setCarrinhoAberto(true);
@@ -102,7 +102,6 @@ export const MaletaProvider = ({ children }) => {
 
   const alterarQuantidade = async (id, delta) => {
     try {
-      // Delta pode ser +1 ou -1. O Java já tem a inteligência de excluir se chegar a zero.
       const carrinhoAtualizado = await CarrinhoService.adicionarItem(id, delta);
       processarDadosCarrinho(carrinhoAtualizado);
     } catch (error) {

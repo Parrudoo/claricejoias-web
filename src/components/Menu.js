@@ -42,7 +42,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
       // Como a sua api.js tem o interceptor, o X-Visitor-ID já vai junto aqui por baixo dos panos!
       await authService.cadastrar({
         nome: formData.nome,
-        whatsapp: formData.whatsapp, 
+        whatsapp: formData.whatsapp,
         email: formData.email,
         senha: formData.senha
       });
@@ -157,10 +157,10 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   placeholder="Ex: Maria Silva"
                 />
               </div>
-              
+
               <WhatsAppInput
-               value={formData.whatsapp}
-               onChange={(valorMascarado) => setFormData({...formData,whatsapp: valorMascarado})}
+                value={formData.whatsapp}
+                onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })}
               />
 
               <div className="auth-form-group">
