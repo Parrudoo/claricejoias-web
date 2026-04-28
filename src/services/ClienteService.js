@@ -7,6 +7,11 @@ export const ClienteService = {
         return response.data;
     },
 
+    obterMeuPerfil: async () => {
+        const response = await api.get('/clientes/me');
+        return response.data;
+    },
+
     // Busca apenas clientes que estão devendo (fiado pendente)
     listarPendentes: async () => {
         const response = await api.get('/clientes/pendentes');

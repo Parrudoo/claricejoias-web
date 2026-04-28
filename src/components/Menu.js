@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
-import { useKeycloak } from '@react-keycloak/web'; 
+import { useAuth } from '../context/AuthProvider';
 import { authService } from '../services/authService';
 import './Menu.css';
 
 export function Menu({ categorias, aoClicarCategoria }) {
-  const { keycloak } = useKeycloak(); 
+  // 👇 Olha como fica limpo! Tudo vem pronto do contexto.
+  const { logado, keycloakData, ehAdmin, login, logout } = useAuth()
 
   const [modalAberto, setModalAberto] = useState(false);
 
@@ -16,9 +17,8 @@ export function Menu({ categorias, aoClicarCategoria }) {
     senha: ''
   });
 
-  const usuarioEstaLogado = keycloak.authenticated;
-  const nomeCompleto = keycloak.tokenParsed?.name || keycloak.tokenParsed?.given_name || 'Cliente';
-  const primeiroNome = nomeCompleto.split(' ')[0];
+  // Se não tiver nome, usa "Cliente" por padrão
+  const primeiroNome = keycloakData?.primeiroNome || 'Cliente';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,22 +28,20 @@ export function Menu({ categorias, aoClicarCategoria }) {
   const fecharModal = () => setModalAberto(false);
 
   const handleMinhaConta = () => {
-    if (keycloak.hasRealmRole('ADMIN')) {
-      window.location.href = '/admin'; 
+    if (ehAdmin) { // Usando a variável booleana que veio do contexto
+      window.location.href = '/admin';
     } else {
-      alert("A área de perfil do cliente estará disponível em breve!"); 
+      alert("A área de perfil do cliente estará disponível em breve!");
     }
-  };
-
-  const handleSair = () => {
-    keycloak.logout({ redirectUri: window.location.origin });
   };
 
   const handleCadastroSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Como a sua api.js tem o interceptor, o X-Visitor-ID já vai junto aqui por baixo dos panos!
       await authService.cadastrar({
         nome: formData.nome,
+        whatsapp: formData.whatsapp, 
         email: formData.email,
         senha: formData.senha
       });
@@ -52,15 +50,14 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
       setFormData({ nome: '', whatsapp: '', email: '', senha: '' });
       fecharModal();
-      
-      keycloak.login(); 
+
+      login(); // 👈 Usando a função do contexto para abrir a tela de login
 
     } catch (error) {
       alert(error.message);
     }
   };
 
-  // Função para voltar ao topo
   const voltarAoTopo = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -70,16 +67,16 @@ export function Menu({ categorias, aoClicarCategoria }) {
       <header className="topo-fixo">
         {/* 1ª BARRA: LOGO PEQUENA E LOGIN */}
         <div className="secao-login">
-          
-          {/* 👇 LOGOTIPO NO TOPO, ESTILO ADMIN 👇 */}
+
           <div className="topo-logo" onClick={voltarAoTopo} title="Voltar ao início">
             <h2>Clarice<span>Joias</span></h2>
           </div>
 
           <div className="login-container">
             <FiUser size={14} />
-            
-            {usuarioEstaLogado ? (
+
+            {/* 👇 Usando a variável 'logado' do contexto */}
+            {logado ? (
               <>
                 <span className="btn-texto-login" style={{ cursor: 'default', textTransform: 'none' }}>
                   Olá, <strong>{primeiroNome}</strong>
@@ -87,11 +84,13 @@ export function Menu({ categorias, aoClicarCategoria }) {
                 <span className="divisor">|</span>
                 <button className="btn-texto-login" onClick={handleMinhaConta} title="Ir para o seu painel">Minha Conta</button>
                 <span className="divisor">|</span>
-                <button className="btn-texto-login" onClick={handleSair} style={{ color: '#ff4d4d' }}>Sair</button>
+                {/* 👇 Usando a função 'logout' do contexto */}
+                <button className="btn-texto-login" onClick={logout} style={{ color: '#ff4d4d' }}>Sair</button>
               </>
             ) : (
               <>
-                <button className="btn-texto-login" onClick={() => keycloak.login()}>Login</button>
+                {/* 👇 Usando a função 'login' do contexto */}
+                <button className="btn-texto-login" onClick={login}>Login</button>
                 <span className="divisor">|</span>
                 <button className="btn-texto-login" onClick={abrirModalCadastro}>Cadastre-se</button>
               </>
@@ -202,11 +201,11 @@ export function Menu({ categorias, aoClicarCategoria }) {
             <div className="modal-auth-footer">
               <p>
                 Já tem uma conta?{' '}
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => {
                     fecharModal();
-                    keycloak.login(); 
+                    login(); // 👈 E aqui também!
                   }}
                 >
                   Faça Login

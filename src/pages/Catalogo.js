@@ -29,7 +29,7 @@ export default function Catalogo() {
         // Temporizador de 15 segundos para exibir o botão flutuante
         const timer = setTimeout(async () => {
             try {
-                // 👇 Pergunta ao Java se este crachá (Cookie) já baixou o material
+                // Pergunta ao Java se este crachá (Cookie) já baixou o material
                 const deveMostrar = await VisitanteService.verificarStatusGuia();
 
                 if (deveMostrar) {
@@ -110,7 +110,7 @@ export default function Catalogo() {
         setIsSubmitting(true);
 
         try {
-            // 👇 Manda para o Java salvar no banco (O Java vai ler o cookie automaticamente)
+            // Manda para o Java salvar no banco (O Java vai ler o cookie automaticamente)
             await VisitanteService.registrarLead(dadosLead);
 
             // Inicia o download do PDF
