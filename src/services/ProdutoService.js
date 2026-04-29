@@ -18,6 +18,22 @@ export const ProdutoService = {
         return response.data;
     },
 
+    importarXml: async (arquivoXml) => {
+        const formData = new FormData();
+        formData.append('file', arquivoXml);
+        const response = await api.post('/produtos/importar-xml', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data' 
+            }
+        });
+        return response.data;
+    },
+  
+    buscarRascunhoPorCodigo: async (codigo) => {
+        const response = await api.get(`/produtos/codigo/${codigo}`);
+        return response.data;
+    },
+
     // Cria um novo produto (POST /api/produtos)
     // Atenção: Agora recebe formData em vez de um objeto produto simples
     cadastrar: async (formData) => {
@@ -43,5 +59,10 @@ export const ProdutoService = {
     // Remove um produto do catálogo (DELETE /api/produtos/{id})
     deletar: async (id) => {
         await api.delete(`/produtos/${id}`);
+    },
+
+    listarPendentes: async () => {
+        const response = await api.get('/produtos/rascunhos');
+        return response.data;
     }
 };

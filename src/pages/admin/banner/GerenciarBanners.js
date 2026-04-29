@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { FiUploadCloud, FiCheckCircle } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiUploadCloud, FiCheckCircle, FiTrash2, FiEye, FiEyeOff } from 'react-icons/fi';
 
-// Certifique-se de que o nome do arquivo CSS aqui está correto (GerenciarBanners.css ou GerenciarImagens.css)
 import './GerenciarBanners.css';
 import { ArquivoService } from '../../../services/ArquivoService';
 import { BannerService } from '../../../services/BannerService';
+
+// Ajuste essa URL para o endereço do seu bucket MinIO onde as imagens são públicas
+const MINIO_BASE_URL = 'http://localhost:9000/claricejoias'; // Exemplo: ajuste para o seu bucket
 
 export function GerenciarBanners() {
   const [imagem, setImagem] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sucesso, setSucesso] = useState('');
+  
+  const [banners, setBanners] = useState([]);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -18,6 +22,20 @@ export function GerenciarBanners() {
     ordem: 1,
     ativo: true
   });
+
+  useEffect(() => {
+    carregarBanners();
+  }, []);
+
+  const carregarBanners = async () => {
+    try {
+      const data = await BannerService.listarTodos();
+      const bannersOrdenados = data.sort((a, b) => a.ordem - b.ordem);
+      setBanners(bannersOrdenados);
+    } catch (error) {
+      console.error("Erro ao carregar banners:", error);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -65,11 +83,33 @@ export function GerenciarBanners() {
       setPreview(null);
       setFormData({ titulo: '', linkAcao: '', ordem: 1, ativo: true });
 
+      carregarBanners();
+
     } catch (error) {
       console.error("Erro ao salvar banner:", error);
       alert("Erro ao salvar o banner. Verifique o console.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (id) => {
+    try {
+      await BannerService.alternarStatus(id);
+      carregarBanners(); 
+    } catch (error) {
+      alert("Erro ao alterar o status do banner.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Tem certeza que deseja excluir este banner? Essa ação não pode ser desfeita.")) {
+      try {
+        await BannerService.deletar(id);
+        carregarBanners(); 
+      } catch (error) {
+        alert("Erro ao excluir o banner.");
+      }
     }
   };
 
@@ -80,7 +120,8 @@ export function GerenciarBanners() {
         <p>Adicione novos banners para a página inicial da loja.</p>
       </div>
 
-      <div className="gerenciarimg-card">
+      <div className="gerenciarimg-card" style={{ marginBottom: '2rem' }}>
+        <h3>Novo Banner</h3>
         {sucesso && (
           <div className="gerenciarimg-alert-success">
             <FiCheckCircle size={20} /> {sucesso}
@@ -89,7 +130,6 @@ export function GerenciarBanners() {
 
         <form onSubmit={handleSubmit} className="gerenciarimg-form">
           
-          {/* ÁREA DE UPLOAD DE IMAGEM */}
           <div className="gerenciarimg-upload-section">
             <label className="gerenciarimg-upload-label">
               {preview ? (
@@ -113,7 +153,6 @@ export function GerenciarBanners() {
             </label>
           </div>
 
-          {/* CAMPOS DE CONFIGURAÇÃO */}
           <div className="gerenciarimg-form-grid">
             <div className="gerenciarimg-form-group">
               <label>Título da Campanha (Uso Interno)</label>
@@ -173,6 +212,72 @@ export function GerenciarBanners() {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="gerenciarimg-card">
+        <h3>Banners Cadastrados</h3>
+        
+        {banners.length === 0 ? (
+          <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>
+            Nenhum banner cadastrado ainda.
+          </p>
+        ) : (
+          <div className="banners-list">
+            <table className="banners-table">
+              <thead>
+                <tr>
+                  <th>Imagem</th>
+                  <th>Título</th>
+                  <th>Ordem</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {banners.map((banner) => (
+                  <tr key={banner.id} className={!banner.ativo ? 'banner-inativo' : ''}>
+                    <td>
+                      <img 
+                        src={`${MINIO_BASE_URL}/${banner.objectName}`} 
+                        alt={banner.titulo} 
+                        className="banner-thumbnail"
+                      />
+                    </td>
+                    <td>
+                      <strong>{banner.titulo}</strong>
+                      <br/>
+                      <small>{banner.linkAcao || 'Sem link'}</small>
+                    </td>
+                    <td>{banner.ordem}</td>
+                    <td>
+                      <span className={`status-badge ${banner.ativo ? 'ativo' : 'inativo'}`}>
+                        {banner.ativo ? 'Ativo' : 'Oculto'}
+                      </span>
+                    </td>
+                    <td className="banner-actions">
+                      <div>
+                      <button 
+                        onClick={() => handleToggleStatus(banner.id)} 
+                        title={banner.ativo ? "Ocultar Banner" : "Ativar Banner"}
+                        className="btn-action btn-toggle"
+                      >
+                        {banner.ativo ? <FiEyeOff /> : <FiEye />}
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(banner.id)} 
+                        title="Excluir"
+                        className="btn-action btn-delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

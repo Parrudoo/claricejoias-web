@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus, FiX } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus, FiX, FiUploadCloud, FiAlertCircle } from 'react-icons/fi';
 import { CategoriaService } from '../../../services/CategoriaService';
 import { ProdutoService } from '../../../services/ProdutoService';
 
@@ -7,7 +7,9 @@ import './ListarCategorias.css';
 
 const ListarCategorias = () => {
     const [categorias, setCategorias] = useState([]);
+    const [pendentes, setPendentes] = useState([]); 
     const [loading, setLoading] = useState(true);
+    const [xmlLoading, setXmlLoading] = useState(false);
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
 
     const [categoriaEditando, setCategoriaEditando] = useState(null);
@@ -16,17 +18,21 @@ const ListarCategorias = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        carregarCategorias();
+        carregarDados();
     }, []);
 
-    const carregarCategorias = async () => {
+    const carregarDados = async () => {
         try {
             setLoading(true);
-            const dados = await CategoriaService.listarTodas();
-            setCategorias(dados);
+            const [dadosCat, dadosPendentes] = await Promise.all([
+                CategoriaService.listarTodas(),
+                ProdutoService.listarPendentes()
+            ]);
+            setCategorias(dadosCat);
+            setPendentes(dadosPendentes);
         } catch (error) {
             console.error("Erro ao carregar:", error);
-            mostrarMensagem('Erro ao carregar categorias do servidor.', 'erro');
+            mostrarMensagem('Erro ao carregar os dados.', 'erro');
         } finally {
             setLoading(false);
         }
@@ -34,64 +40,64 @@ const ListarCategorias = () => {
 
     const mostrarMensagem = (texto, tipo) => {
         setMensagem({ texto, tipo });
-        setTimeout(() => setMensagem({ texto: '', tipo: '' }), 3000);
+        setTimeout(() => setMensagem({ texto: '', tipo: '' }), 4000);
     };
 
     const toggleExpandir = (id) => {
         setExpandidos(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    // ==========================================
-    // AÇÕES DE CATEGORIA
-    // ==========================================
-    const handleDeletarCategoria = async (id, nome) => {
-        const confirmar = window.confirm(`Tem certeza que deseja excluir a categoria "${nome}" e todas as suas joias?`);
-        if (!confirmar) return;
+    const handleUploadXML = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
+        setXmlLoading(true);
+        try {
+            await ProdutoService.importarXml(file);
+            mostrarMensagem('Nota Fiscal importada! Veja as pendências.', 'sucesso');
+            carregarDados(); 
+        } catch (error) {
+            mostrarMensagem('Erro ao processar o XML da nota fiscal.', 'erro');
+        } finally {
+            setXmlLoading(false);
+            e.target.value = null; 
+        }
+    };
+
+    const handleDeletarCategoria = async (id, nome) => {
+        const confirmar = window.confirm(`Deseja excluir a categoria "${nome}"?`);
+        if (!confirmar) return;
         try {
             await CategoriaService.deletar(id);
-            setCategorias(categorias.filter(cat => cat.id !== id));
-            mostrarMensagem('Categoria excluída com sucesso!', 'sucesso');
+            mostrarMensagem('Categoria excluída.', 'sucesso');
+            carregarDados();
         } catch (error) {
-            mostrarMensagem('Erro ao excluir a categoria.', 'erro');
+            mostrarMensagem('Erro ao excluir.', 'erro');
         }
     };
 
     const salvarEdicaoCategoria = async (e) => {
         e.preventDefault();
-        if (!categoriaEditando.nome.trim()) {
-            mostrarMensagem('O nome não pode ficar vazio.', 'erro'); 
-            return;
-        }
         try {
-            const atualizada = await CategoriaService.atualizar(categoriaEditando.id, { nome: categoriaEditando.nome });
-            setCategorias(categorias.map(cat => cat.id === categoriaEditando.id ? { ...cat, nome: atualizada.nome } : cat));
+            await CategoriaService.atualizar(categoriaEditando.id, { nome: categoriaEditando.nome });
             mostrarMensagem('Categoria atualizada!', 'sucesso');
             setCategoriaEditando(null);
-            carregarCategorias();
+            carregarDados();
         } catch (error) {
-            mostrarMensagem('Erro ao atualizar a categoria.', 'erro');
+            mostrarMensagem('Erro ao atualizar.', 'erro');
         }
     };
 
-    // ==========================================
-    // AÇÕES DE PRODUTO
-    // ==========================================
+    // ABRE MODAL VAZIO (Modo Antigo)
     const abrirModalNovoProduto = (subcategoriaId) => {
         setProdutoModal({
-            id: null,
-            codigo: '',
-            nome: '',
-            precoCusto: '',
-            preco: '',
-            estoque: '', 
-            descricao: '',
-            subcategoriaId: subcategoriaId,
-            imagens: [],
-            previews: []
+            id: null, codigo: '', nome: '', precoCusto: '', preco: '',
+            estoque: 1, descricao: '', subcategoriaId: subcategoriaId, imagens: [], previews: [],
+            isXML: false
         });
     };
 
+    // ABRE MODAL PARA EDITAR (Modo Antigo)
     const abrirModalEditarProduto = (produto) => {
         setProdutoModal({
             id: produto.id,
@@ -99,11 +105,29 @@ const ListarCategorias = () => {
             nome: produto.nome || '',
             precoCusto: produto.precoCusto || '',
             preco: produto.preco || '',
-            estoque: produto.estoque || '',
+            estoque: produto.estoque || 0,
             descricao: produto.material || produto.descricao || '', 
             subcategoriaId: produto.subcategoria ? produto.subcategoria.id : '',
             imagens: [],
-            previews: produto.img ? [produto.img] : [] 
+            previews: produto.img ? [produto.img] : [],
+            isXML: false
+        });
+    };
+
+    // ABRE MODAL COM DADOS DO XML (Modo Novo)
+    const finalizarRascunhoXML = (rascunho) => {
+        setProdutoModal({
+            id: rascunho.id,
+            codigo: rascunho.codigo || '',
+            nome: rascunho.nome || '',
+            precoCusto: rascunho.precoCusto || '',
+            preco: '',
+            estoque: 1,
+            descricao: '',
+            subcategoriaId: '', 
+            imagens: [],
+            previews: [],
+            isXML: true 
         });
     };
 
@@ -139,6 +163,12 @@ const ListarCategorias = () => {
 
     const salvarProduto = async (e) => {
         e.preventDefault();
+        
+        if (!produtoModal.subcategoriaId) {
+            mostrarMensagem("Por favor, selecione a qual categoria essa joia pertence.", "erro");
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             const formData = new FormData();
@@ -157,21 +187,19 @@ const ListarCategorias = () => {
             formData.append("produto", produtoBlob);
 
             if (produtoModal.imagens && produtoModal.imagens.length > 0) {
-                produtoModal.imagens.forEach(img => {
-                    formData.append("files", img); 
-                });
+                produtoModal.imagens.forEach(img => formData.append("files", img));
             }
 
             if (produtoModal.id) {
                 await ProdutoService.atualizar(produtoModal.id, formData);
-                mostrarMensagem('Joia atualizada com sucesso!', 'sucesso');
+                mostrarMensagem('Joia salva e catalogada com sucesso!', 'sucesso');
             } else {
                 await ProdutoService.cadastrar(formData);
                 mostrarMensagem('Nova joia adicionada ao catálogo!', 'sucesso');
             }
 
             setProdutoModal(null);
-            carregarCategorias();
+            carregarDados();
         } catch (error) {
             console.error("Erro ao salvar produto:", error);
             mostrarMensagem('Erro ao salvar os dados da joia.', 'erro');
@@ -183,22 +211,35 @@ const ListarCategorias = () => {
     const handleDeletarProduto = async (id, nome) => {
         const confirmar = window.confirm(`Tem certeza que deseja excluir a peça "${nome}"?`);
         if (!confirmar) return;
-
         try {
             await ProdutoService.deletar(id);
             mostrarMensagem('Peça excluída com sucesso!', 'sucesso');
-            carregarCategorias();
+            carregarDados();
         } catch (error) {
             mostrarMensagem('Erro ao excluir a peça.', 'erro');
         }
     };
 
+    const todasSubcategorias = categorias.flatMap(c => 
+        (c.subcategorias || []).map(sub => ({ id: sub.id, nome: `${c.nome} > ${sub.nome}` }))
+    );
+
     return (
         <div className="lista-container">
             <div className="lista-card">
-                <header className="lista-header">
-                    <h2>📋 Gerenciar Categorias e Acervo</h2>
-                    <p>Visualize a estrutura do seu catálogo, cadastre ou edite joias rapidamente.</p>
+                
+                <header className="lista-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                    <div>
+                        <h2>📋 Gestão do Acervo</h2>
+                        <p>Cadastre joias ou importe o XML da Nota Fiscal.</p>
+                    </div>
+                    <div>
+                        <input id="upload-xml" type="file" accept=".xml" style={{ display: 'none' }} onChange={handleUploadXML} />
+                        <label htmlFor="upload-xml" className="btn-upload-xml" style={{ opacity: xmlLoading ? 0.7 : 1 }}>
+                            <FiUploadCloud size={20} />
+                            {xmlLoading ? 'Lendo Arquivo...' : 'Importar XML da Nota'}
+                        </label>
+                    </div>
                 </header>
 
                 {mensagem.texto && (
@@ -207,6 +248,28 @@ const ListarCategorias = () => {
                     </div>
                 )}
 
+                {/* GAVETA DE PENDÊNCIAS DO XML */}
+                {!loading && pendentes.length > 0 && (
+                    <div className="secao-pendencias">
+                        <div className="alerta-header">
+                            <FiAlertCircle size={20} /> 
+                            <span>Você tem {pendentes.length} novas joias importadas aguardando fotos e preços de venda!</span>
+                        </div>
+                        <div className="scroll-pendencias">
+                            {pendentes.map(pendente => (
+                                <div key={pendente.id} className="card-pendencia">
+                                    <div className="info-pendencia">
+                                        <strong>{pendente.nome}</strong>
+                                        <small>Ref: {pendente.codigo} | R$ {pendente.precoCusto?.toFixed(2)}</small>
+                                    </div>
+                                    <button onClick={() => finalizarRascunhoXML(pendente)}>Vincular</button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* TABELA DE CATEGORIAS */}
                 {loading ? (
                     <div className="loading">Carregando acervo... ✨</div>
                 ) : categorias.length === 0 ? (
@@ -277,7 +340,7 @@ const ListarCategorias = () => {
                                                                                 </div>
                                                                             ))
                                                                         ) : (
-                                                                            <div className="texto-vazio-produtos">Nenhum produto cadastrado nesta subcategoria.</div>
+                                                                            <div className="texto-vazio-produtos">Nenhum produto nesta subcategoria.</div>
                                                                         )}
                                                                     </div>
                                                                 </div>
@@ -297,9 +360,7 @@ const ListarCategorias = () => {
                 )}
             </div>
 
-            {/* =========================================
-                MODAL DE EDITAR CATEGORIA
-                ========================================= */}
+            {/* MODAL EDITAR CATEGORIA */}
             {categoriaEditando && (
                 <div className="modal-overlay">
                     <div className="modal-card">
@@ -307,41 +368,28 @@ const ListarCategorias = () => {
                             <h3>✏️ Editar Categoria #{categoriaEditando.id}</h3>
                             <button className="btn-close-modal" onClick={() => setCategoriaEditando(null)}><FiX size={24} /></button>
                         </div>
-
                         <form onSubmit={salvarEdicaoCategoria} className="cadastro-form-modal">
                             <div className="form-grid">
                                 <div className="form-group flex-full">
-                                    <label htmlFor="nomeCategoria">Nome da Categoria</label>
-                                    <input 
-                                        id="nomeCategoria" 
-                                        type="text" 
-                                        value={categoriaEditando.nome || ''} 
-                                        onChange={(e) => setCategoriaEditando({ ...categoriaEditando, nome: e.target.value })} 
-                                        required 
-                                        className="input-estilizado" 
-                                    />
+                                    <label>Nome da Categoria</label>
+                                    <input type="text" value={categoriaEditando.nome || ''} onChange={(e) => setCategoriaEditando({ ...categoriaEditando, nome: e.target.value })} required className="input-estilizado" />
                                 </div>
                             </div>
-
                             <div className="modal-footer">
                                 <button type="button" className="btn-cancelar" onClick={() => setCategoriaEditando(null)}>Cancelar</button>
-                                <button type="submit" className="btn-salvar">
-                                    Salvar Alterações
-                                </button>
+                                <button type="submit" className="btn-salvar">Salvar Alterações</button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* =========================================
-                MODAL RICO DE PRODUTO
-                ========================================= */}
+            {/* MODAL DE PRODUTO */}
             {produtoModal && (
                 <div className="modal-overlay">
                     <div className="modal-card modal-largo">
                         <div className="modal-header">
-                            <h3>{produtoModal.id ? `Editar Peça #${produtoModal.id}` : '💎 Cadastrar Nova Peça'}</h3>
+                            <h3>{produtoModal.id ? `Editar Peça / Rascunho` : '💎 Cadastrar Nova Peça'}</h3>
                             <button className="btn-close-modal" onClick={() => setProdutoModal(null)}><FiX size={24} /></button>
                         </div>
 
@@ -352,68 +400,79 @@ const ListarCategorias = () => {
                                         {produtoModal.previews && produtoModal.previews.length > 0 ? (
                                             produtoModal.previews.map((url, index) => (
                                                 <div key={index} className="preview-item">
-                                                    <img src={url} alt={`Preview ${index}`} className="image-preview" />
+                                                    <img src={url} alt="Preview" className="image-preview" />
                                                     <button type="button" className="btn-remove-preview" onClick={() => removerImagem(index)}><FiX /></button>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="image-placeholder">
-                                                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                                <span>Nenhuma foto</span>
-                                            </div>
+                                            <div className="image-placeholder"><span>Nenhuma foto</span></div>
                                         )}
                                     </div>
                                     <div className="image-upload-actions">
-                                        <div className="image-upload-text" style={{textAlign: 'center'}}>
-                                            <label>Fotos da Joia</label>
-                                            <p>Selecione várias fotos de uma vez.</p>
-                                        </div>
                                         <div className="image-upload-btn" style={{textAlign: 'center', marginTop: '10px'}}>
                                             <input id="imagemModal" type="file" accept="image/*" multiple onChange={handleImageChangeProduto} className="input-file-hidden" />
-                                            <label htmlFor="imagemModal" className="label-file-custom">
-                                                {produtoModal.previews?.length > 0 ? 'Adicionar mais fotos' : 'Procurar Fotos'}
-                                            </label>
+                                            <label htmlFor="imagemModal" className="label-file-custom">Procurar Fotos</label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="form-grid">
+                                {/* SÓ MOSTRA O SELECT SE VIER DA LISTA DE PENDENTES (XML) */}
+                                {produtoModal.isXML && (
+                                    <div className="form-group flex-full">
+                                        <label htmlFor="subcategoriaId">Local na Vitrine (Categoria) *</label>
+                                        <select 
+                                            id="subcategoriaId" 
+                                            name="subcategoriaId" 
+                                            value={produtoModal.subcategoriaId} 
+                                            onChange={handleChangeProduto} 
+                                            className="input-estilizado"
+                                            required
+                                        >
+                                            <option value="">-- Selecione onde esta peça vai aparecer --</option>
+                                            {todasSubcategorias.map(sub => (
+                                                <option key={sub.id} value={sub.id}>{sub.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
                                 <div className="form-group flex-1">
-                                    <label htmlFor="codigo">Código</label>
-                                    <input id="codigo" type="text" name="codigo" value={produtoModal.codigo || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="Ex: REF-001" />
+                                    <label htmlFor="codigo">Código / Ref</label>
+                                    <input id="codigo" type="text" name="codigo" value={produtoModal.codigo || ''} onChange={handleChangeProduto} className="input-estilizado" />
                                 </div>
                                 
                                 <div className="form-group flex-2">
-                                    <label htmlFor="nome">Nome da Peça</label>
-                                    <input id="nome" type="text" name="nome" value={produtoModal.nome || ''} onChange={handleChangeProduto} required className="input-estilizado" placeholder="Ex: Anel Ouro 18k" />
+                                    <label htmlFor="nome">Nome da Peça *</label>
+                                    <input id="nome" type="text" name="nome" value={produtoModal.nome || ''} onChange={handleChangeProduto} required className="input-estilizado" />
                                 </div>
 
                                 <div className="form-group flex-1">
                                     <label htmlFor="precoCusto">Custo (R$)</label>
-                                    <input id="precoCusto" type="number" name="precoCusto" step="0.01" value={produtoModal.precoCusto || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="0,00" />
+                                    <input id="precoCusto" type="number" name="precoCusto" step="0.01" value={produtoModal.precoCusto || ''} onChange={handleChangeProduto} className="input-estilizado" />
                                 </div>
 
                                 <div className="form-group flex-1">
-                                    <label htmlFor="preco">Venda (R$)</label>
-                                    <input id="preco" type="number" name="preco" step="0.01" value={produtoModal.preco || ''} onChange={handleChangeProduto} required className="input-estilizado" placeholder="0,00" />
+                                    <label htmlFor="preco">Venda (R$) *</label>
+                                    <input id="preco" type="number" name="preco" step="0.01" value={produtoModal.preco || ''} onChange={handleChangeProduto} required className="input-estilizado" />
                                 </div>
 
                                 <div className="form-group flex-1">
                                     <label htmlFor="estoque">Estoque Qtd</label>
-                                    <input id="estoque" type="number" name="estoque" min="0" value={produtoModal.estoque || ''} onChange={handleChangeProduto} className="input-estilizado" placeholder="0" />
+                                    <input id="estoque" type="number" name="estoque" min="0" value={produtoModal.estoque || ''} onChange={handleChangeProduto} className="input-estilizado" />
                                 </div>
 
                                 <div className="form-group flex-full">
-                                    <label htmlFor="descricao">Descrição Detalhada (Opcional)</label>
-                                    <textarea id="descricao" name="descricao" value={produtoModal.descricao || ''} onChange={handleChangeProduto} className="form-textarea" placeholder="Materiais, pedras, etc..." rows="2" />
+                                    <label htmlFor="descricao">Descrição (Opcional)</label>
+                                    <textarea id="descricao" name="descricao" value={produtoModal.descricao || ''} onChange={handleChangeProduto} className="form-textarea" rows="2" />
                                 </div>
                             </div>
 
                             <div className="modal-footer">
                                 <button type="button" className="btn-cancelar" onClick={() => setProdutoModal(null)}>Cancelar</button>
                                 <button type="submit" className="btn-salvar" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Salvando...' : (produtoModal.id ? 'Salvar Alterações' : 'Cadastrar Peça')}
+                                    {isSubmitting ? 'Salvando...' : 'Salvar Peça no Acervo'}
                                 </button>
                             </div>
                         </form>

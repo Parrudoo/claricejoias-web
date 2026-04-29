@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingBag, FiX, FiFileText } from 'react-icons/fi';
+import { FiShoppingBag, FiX, FiFileText, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 // Componentes
 import { CardItem } from '../components/CardItem';
@@ -16,32 +16,27 @@ import { BannerService } from '../services/BannerService';
 import './Catalogo.css';
 
 export default function Catalogo() {
-    // Contexto do Carrinho
     const { adicionarItem, itens, setCarrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
 
-    // Estados da Vitrine e Banner
     const [acervo, setAcervo] = useState([]);
-    const [bannerDestaque, setBannerDestaque] = useState(null);
+    const [bannersAtivos, setBannersAtivos] = useState([]);
+    const [indiceBanner, setIndiceBanner] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Estados do Modal de Detalhes da Joia
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [fotoDestaque, setFotoDestaque] = useState(null);
 
-    // Estados de Captura de Lead (Guia de Medidas)
     const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false);
     const [modalGuiaAberto, setModalGuiaAberto] = useState(false);
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // URL Base para buscar a imagem do Banner no MinIO
     const API_BASE_URL = 'http://localhost:8080';
 
     useEffect(() => {
         carregarDadosVitrine();
 
-        // Temporizador de 15 segundos para exibir o botão flutuante de captura de leads
         const timer = setTimeout(async () => {
             try {
                 const deveMostrar = await leadService.verificarStatusGuia();
@@ -57,30 +52,34 @@ export default function Catalogo() {
         return () => clearTimeout(timer);
     }, []);
 
-    // Busca as Categorias e o Banner de forma independente (Fix Aplicado!)
+    // Efeito para o Carrossel (reinicia o timer se o usuário clicar na seta)
+    useEffect(() => {
+        if (bannersAtivos.length <= 1) return;
+
+        const timerSlide = setInterval(() => {
+            proximoBanner();
+        }, 5000); 
+
+        return () => clearInterval(timerSlide);
+    }, [bannersAtivos, indiceBanner]); // 👈 Dependência adicionada para resetar o timer ao clicar
+
     const carregarDadosVitrine = async () => {
         setLoading(true);
-
-        // 1º PASSO: BUSCAR AS JOIAS (Prioridade máxima)
         try {
             const dadosCategorias = await CategoriaService.listarTodas();
             setAcervo(dadosCategorias);
         } catch (error) {
             console.error("Erro ao buscar as joias da vitrine:", error);
-            alert("Não foi possível carregar as joias. Tente novamente mais tarde.");
         }
 
-        // 2º PASSO: BUSCAR O BANNER (Independente das joias)
         try {
             const dadosBanners = await BannerService.listarAtivos();
             if (dadosBanners && dadosBanners.length > 0) {
-                setBannerDestaque(dadosBanners[0]);
+                setBannersAtivos(dadosBanners);
             }
         } catch (error) {
-            console.error("Erro silencioso ao carregar o banner:", error);
-            // Se falhar, usará o fundo preto padrão silenciosamente
+            console.error("Erro ao carregar o banner:", error);
         }
-
         setLoading(false);
     };
 
@@ -110,24 +109,13 @@ export default function Catalogo() {
 
     const handleBaixarGuia = async (e) => {
         e.preventDefault();
-
         const regexWhatsapp = /^\(\d{2}\)\s\d{5}-\d{4}$/;
-
-        if (!regexWhatsapp.test(dadosLead.whatsapp)) {
-            alert("Por favor, insira um número de WhatsApp válido com DDD: (00) 00000-0000");
-            return;
-        }
-
-        if (!dadosLead.nome) {
-            alert("Por favor, preencha seu nome.");
-            return;
-        }
+        if (!regexWhatsapp.test(dadosLead.whatsapp)) return alert("WhatsApp inválido!");
+        if (!dadosLead.nome) return alert("Preencha seu nome.");
 
         setIsSubmitting(true);
-
         try {
             await leadService.registrarLead(dadosLead);
-
             const link = document.createElement('a');
             link.href = '/guia-medidas.pdf';
             link.download = 'Guia_Medidas_Clarice_Joias.pdf';
@@ -137,15 +125,21 @@ export default function Catalogo() {
 
             setModalGuiaAberto(false);
             setMostrarBotaoGuia(false);
-
-            alert("Download iniciado! Em breve te chamaremos no WhatsApp com novidades.");
-
+            alert("Download iniciado! Em breve te chamaremos no WhatsApp.");
         } catch (error) {
             console.error("Erro ao processar captura:", error);
-            alert("Ocorreu um erro ao gerar seu arquivo. Tente novamente.");
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // 👇 FUNÇÕES DAS SETAS DO CARROSSEL 👇
+    const proximoBanner = () => {
+        setIndiceBanner((prev) => (prev === bannersAtivos.length - 1 ? 0 : prev + 1));
+    };
+
+    const bannerAnterior = () => {
+        setIndiceBanner((prev) => (prev === 0 ? bannersAtivos.length - 1 : prev - 1));
     };
 
     if (loading) {
@@ -156,9 +150,8 @@ export default function Catalogo() {
         );
     }
 
-    // Define a imagem do banner: usa a do banco (MinIO) se tiver, senão usa uma imagem padrão/fundo preto
-    const backgroundUrl = bannerDestaque 
-        ? `${API_BASE_URL}/api/arquivos/view/${bannerDestaque.objectName}`
+    const backgroundUrl = bannersAtivos.length > 0 
+        ? `${API_BASE_URL}/api/arquivos/view/${bannersAtivos[indiceBanner].objectName}`
         : 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop';
 
     return (
@@ -166,21 +159,27 @@ export default function Catalogo() {
             <Menu categorias={dadosMenu} aoClicarCategoria={rolarPara} />
             <div className="espacador-topo"></div>
 
-            {/* BANNER DINÂMICO GERENCIÁVEL */}
+            {/* BANNER DINÂMICO CARROSSEL */}
             <section 
                 className="banner-destaque"
-                style={{ 
-                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` 
-                }}
+                style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` }}
             >
-                <div className="banner-conteudo">
-                    <h2>{bannerDestaque ? bannerDestaque.titulo : "Nova Coleção Elegance"}</h2>
+                {/* SETA ESQUERDA */}
+                {bannersAtivos.length > 1 && (
+                    <button className="btn-seta-banner esquerda" onClick={bannerAnterior}>
+                        <FiChevronLeft size={36} />
+                    </button>
+                )}
+
+                <div className="banner-conteudo" key={indiceBanner}>
+                    <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Elegance"}</h2>
                     <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
                     <button 
                         className="btn-banner" 
                         onClick={() => {
-                            if (bannerDestaque && bannerDestaque.linkAcao) {
-                                window.location.href = bannerDestaque.linkAcao;
+                            const linkAcao = bannersAtivos[indiceBanner]?.linkAcao;
+                            if (linkAcao) {
+                                window.location.href = linkAcao;
                             } else {
                                 rolarPara(acervo[0]?.nome || acervo[0]?.categoria);
                             }
@@ -189,6 +188,26 @@ export default function Catalogo() {
                         Ver Novidades
                     </button>
                 </div>
+
+                {/* SETA DIREITA */}
+                {bannersAtivos.length > 1 && (
+                    <button className="btn-seta-banner direita" onClick={proximoBanner}>
+                        <FiChevronRight size={36} />
+                    </button>
+                )}
+
+                {/* INDICADORES (Bolinhas do Carrossel) */}
+                {bannersAtivos.length > 1 && (
+                    <div className="banner-indicadores">
+                        {bannersAtivos.map((_, index) => (
+                            <span 
+                                key={index} 
+                                className={`indicador-bolinha ${index === indiceBanner ? 'ativo' : ''}`}
+                                onClick={() => setIndiceBanner(index)}
+                            ></span>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* VITRINE DE JOIAS */}
@@ -199,7 +218,6 @@ export default function Catalogo() {
                     acervo.map(cat => (
                         <section key={cat.id || cat.categoria} id={cat.nome || cat.categoria} className="secao-categoria">
                             <h2 className="titulo-categoria">{cat.nome || cat.categoria}</h2>
-
                             {cat.subcategorias && cat.subcategorias.map(sub => (
                                 <div key={sub.id || sub.nome} id={sub.nome} className="container-subcategoria">
                                     <h3 className="titulo-subcategoria">{sub.nome}</h3>
@@ -220,7 +238,7 @@ export default function Catalogo() {
                 )}
             </main>
 
-            {/* BOTÃO FLUTUANTE DO CARRINHO */}
+            {/* BOTOES FLUTUANTES E MODAIS (CARRINHO E LEADS) MANTIDOS EXATAMENTE IGUAIS */}
             {itens.length > 0 && (
                 <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
                     <FiShoppingBag size={28} />
@@ -228,13 +246,8 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* BOTÃO FLUTUANTE DA CAPTURA DE LEADS (GUIA DE MEDIDAS) */}
             {mostrarBotaoGuia && !modalGuiaAberto && (
-                <div
-                    className="botao-guia-flutuante"
-                    onClick={() => setModalGuiaAberto(true)}
-                    title="Baixar Guia de Medidas"
-                >
+                <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Baixar Guia de Medidas">
                     <div className="guia-icone-container">
                         <FiFileText size={24} />
                     </div>
@@ -242,35 +255,21 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* MODAL DE CAPTURA DE LEADS (GUIA DE MEDIDAS) */}
             {modalGuiaAberto && (
                 <div className="modal-detalhes-overlay" onClick={() => setModalGuiaAberto(false)}>
                     <div className="modal-lead-card" onClick={(e) => e.stopPropagation()}>
                         <button className="btn-fechar-detalhes" onClick={() => setModalGuiaAberto(false)}>
                             <FiX size={24} />
                         </button>
-
                         <div className="modal-lead-content">
                             <h3 className="lead-titulo">Não sabe o tamanho do seu anel? 💍</h3>
-                            <p className="lead-subtitulo">
-                                Baixe agora nosso <strong>Guia Prático de Medidas</strong> e descubra o tamanho ideal sem sair de casa!
-                            </p>
-
+                            <p className="lead-subtitulo">Baixe agora nosso <strong>Guia Prático de Medidas</strong> e descubra o tamanho ideal sem sair de casa!</p>
                             <form onSubmit={handleBaixarGuia} className="form-lead">
                                 <div className="input-group">
                                     <label>Como podemos te chamar?</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Seu nome"
-                                        required
-                                        value={dadosLead.nome}
-                                        onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })}
-                                    />
+                                    <input type="text" placeholder="Seu nome" required value={dadosLead.nome} onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })} />
                                 </div>                                
-                                <WhatsAppInput
-                                    value={dadosLead.whatsapp}
-                                    onChange={(valorMascarado) => setDadosLead({ ...dadosLead, whatsapp: valorMascarado })}
-                                />
+                                <WhatsAppInput value={dadosLead.whatsapp} onChange={(valor) => setDadosLead({ ...dadosLead, whatsapp: valor })} />
                                 <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
                                     {isSubmitting ? 'Processando...' : 'Baixar Guia Grátis'}
                                 </button>
@@ -281,58 +280,34 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* MODAL DE DETALHES DA JOIA (GALERIA E COMPRA) */}
             {produtoSelecionado && (
                 <div className="modal-detalhes-overlay" onClick={fecharDetalhes}>
                     <div className="modal-detalhes-card" onClick={(e) => e.stopPropagation()}>
                         <button className="btn-fechar-detalhes" onClick={fecharDetalhes}>
                             <FiX size={24} />
                         </button>
-
                         <div className="modal-detalhes-content">
                             <div className="galeria-joia">
                                 <div className="foto-principal">
-                                    {fotoDestaque ? (
-                                        <img src={fotoDestaque} alt={produtoSelecionado.nome} />
-                                    ) : (
-                                        <div className="placeholder-foto">Sem foto</div>
-                                    )}
+                                    {fotoDestaque ? <img src={fotoDestaque} alt={produtoSelecionado.nome} /> : <div className="placeholder-foto">Sem foto</div>}
                                 </div>
-
                                 {produtoSelecionado.imagens && produtoSelecionado.imagens.length > 1 && (
                                     <div className="lista-miniaturas">
                                         {produtoSelecionado.imagens.map((imgUrl, index) => (
-                                            <img
-                                                key={index}
-                                                src={imgUrl}
-                                                alt={`Ângulo ${index + 1}`}
-                                                onClick={() => setFotoDestaque(imgUrl)}
-                                                className={`miniatura ${fotoDestaque === imgUrl ? 'selecionada' : ''}`}
-                                            />
+                                            <img key={index} src={imgUrl} alt={`Ângulo ${index + 1}`} onClick={() => setFotoDestaque(imgUrl)} className={`miniatura ${fotoDestaque === imgUrl ? 'selecionada' : ''}`} />
                                         ))}
                                     </div>
                                 )}
                             </div>
-
                             <div className="info-joia-detalhada">
                                 <h2>{produtoSelecionado.nome}</h2>
                                 <p className="preco-destaque">R$ {produtoSelecionado.preco ? produtoSelecionado.preco.toFixed(2).replace('.', ',') : '0,00'}</p>
-
                                 {produtoSelecionado.material && (
-                                    <div className="descricao-box">
-                                        <p>{produtoSelecionado.material}</p>
-                                    </div>
+                                    <div className="descricao-box"><p>{produtoSelecionado.material}</p></div>
                                 )}
-
                                 <button
                                     className="btn-add-maleta-modal"
-                                    onClick={() => {
-                                        adicionarItem({
-                                            ...produtoSelecionado,
-                                            imagemSelecionada: fotoDestaque
-                                        });
-                                        fecharDetalhes();
-                                    }}
+                                    onClick={() => { adicionarItem({ ...produtoSelecionado, imagemSelecionada: fotoDestaque }); fecharDetalhes(); }}
                                 >
                                     Adicionar à Maleta
                                 </button>
