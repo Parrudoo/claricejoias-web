@@ -55,7 +55,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
       login(); // 👈 Usando a função do contexto para abrir a tela de login
 
     } catch (error) {
-      alert(error.message);
+      // alert(error.message);
     }
   };
 
@@ -147,23 +147,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
             <form onSubmit={handleCadastroSubmit} className="modal-auth-form">
 
               <div className="auth-form-group">
-                <label>Nome Completo</label>
-                <input
-                  type="text"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                  required
-                  placeholder="Ex: Maria Silva"
-                />
-              </div>
-
-              <WhatsAppInput
-                value={formData.whatsapp}
-                onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })}
-              />
-
-              <div className="auth-form-group">
                 <label>E-mail</label>
                 <input
                   type="email"
@@ -174,6 +157,14 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   placeholder="seu@email.com"
                 />
               </div>
+
+              <WhatsAppInput
+              required={true}
+                value={formData.whatsapp}
+                onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })}
+              />
+
+              
 
               <div className="auth-form-group">
                 <label>Senha</label>

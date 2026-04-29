@@ -477,14 +477,14 @@
     color: #999;
 }
 
-/* =========================================================
-   NOVO BANNER DE DESTAQUE
-   ========================================================= */
-   .banner-destaque {
+.banner-destaque {
     width: 100%;
-    height: 350px; /* Altura do banner no desktop */
-    /* Substitua a URL abaixo por uma foto real de uma modelo usando as joias ou um banner editado */
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    height: 350px;
+    /* A URL fixa foi removida daqui, ela será injetada pelo React */
+    background-color: #1a1a1a; /* Fundo escuro enquanto a imagem carrega */
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -6,6 +6,7 @@ import { leadService } from '../services/leadService';
 import { ImagemService } from '../services/ImagemService'; // 👈 Importamos o serviço de imagens
 import { useKeycloak } from '@react-keycloak/web'; // 👈 Usamos o Keycloak em vez do hook antigo
 import './Checkout.css';
+import WhatsAppInput from './WhatsAppInput';
 
 export default function Checkout() {
   const { itens, total } = useMaleta();
@@ -105,6 +106,9 @@ export default function Checkout() {
                 style={{ borderColor: '#bbf7d0' }}
               />
             </div>
+
+          
+            
           </div>
         ) : (
           <>
@@ -130,6 +134,8 @@ export default function Checkout() {
                   required 
                 />
               </div>
+
+              
             </div>
 
             <div className="campo-form" style={{ marginBottom: '20px' }}>

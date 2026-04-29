@@ -18,6 +18,7 @@ import { ToastContainer } from 'react-toastify';
 import TelaPDV from './pages/admin/telaPdv/telaPdv';
 import ClientesDashboard from './pages/admin/cliente/ClientesDashboard';
 import { AuthProvider, useAuth } from './context/AuthProvider';
+import { GerenciarBanners } from './pages/admin/banner/GerenciarBanners';
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -64,6 +65,7 @@ function App() {
                   <Route path="leads" element={<LeadsDashboard />} />   
                   <Route path="telaPdv" element={<TelaPDV />} />                
                   <Route path="telaCliente" element={<ClientesDashboard />} /> 
+                  <Route path="config" element={<GerenciarBanners />} /> 
                 </Route>
               </Routes>
             </div>

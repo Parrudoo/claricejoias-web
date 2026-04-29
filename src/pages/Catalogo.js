@@ -1,44 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingBag, FiX, FiDownload, FiFileText } from 'react-icons/fi';
+import { FiShoppingBag, FiX, FiFileText } from 'react-icons/fi';
+
+// Componentes
 import { CardItem } from '../components/CardItem';
-import InputMask from 'react-input-mask';
 import { Menu } from '../components/Menu';
-import { useMaleta } from '../context/MaletaContext';
-import { CategoriaService } from '../services/CategoriaService';
-import './Catalogo.css';
-import { leadService } from '../services/leadService';
 import WhatsAppInput from '../components/WhatsAppInput';
 
+// Contexto e Serviços
+import { useMaleta } from '../context/MaletaContext';
+import { CategoriaService } from '../services/CategoriaService';
+import { leadService } from '../services/leadService';
+import { BannerService } from '../services/BannerService'; 
+
+// Estilos
+import './Catalogo.css';
+
 export default function Catalogo() {
+    // Contexto do Carrinho
     const { adicionarItem, itens, setCarrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
 
+    // Estados da Vitrine e Banner
     const [acervo, setAcervo] = useState([]);
+    const [bannerDestaque, setBannerDestaque] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Estados do Modal de Detalhes da Joia
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [fotoDestaque, setFotoDestaque] = useState(null);
 
+    // Estados de Captura de Lead (Guia de Medidas)
     const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false);
     const [modalGuiaAberto, setModalGuiaAberto] = useState(false);
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        carregarCatalogo();
+    // URL Base para buscar a imagem do Banner no MinIO
+    const API_BASE_URL = 'http://localhost:8080';
 
-        // Temporizador de 15 segundos para exibir o botão flutuante
+    useEffect(() => {
+        carregarDadosVitrine();
+
+        // Temporizador de 15 segundos para exibir o botão flutuante de captura de leads
         const timer = setTimeout(async () => {
             try {
-                // Pergunta ao Java se este crachá (Cookie) já baixou o material
                 const deveMostrar = await leadService.verificarStatusGuia();
-
                 if (deveMostrar) {
                     setMostrarBotaoGuia(true);
                 }
             } catch (error) {
                 console.error("Erro ao verificar status do visitante:", error);
-                // Por segurança de marketing, se falhar a API, a gente mostra o botão
                 setMostrarBotaoGuia(true);
             }
         }, 15000);
@@ -46,17 +57,31 @@ export default function Catalogo() {
         return () => clearTimeout(timer);
     }, []);
 
-    const carregarCatalogo = async () => {
+    // Busca as Categorias e o Banner de forma independente (Fix Aplicado!)
+    const carregarDadosVitrine = async () => {
+        setLoading(true);
+
+        // 1º PASSO: BUSCAR AS JOIAS (Prioridade máxima)
         try {
-            setLoading(true);
-            const dados = await CategoriaService.listarTodas();
-            setAcervo(dados);
+            const dadosCategorias = await CategoriaService.listarTodas();
+            setAcervo(dadosCategorias);
         } catch (error) {
-            console.error("Erro ao buscar o catálogo:", error);
+            console.error("Erro ao buscar as joias da vitrine:", error);
             alert("Não foi possível carregar as joias. Tente novamente mais tarde.");
-        } finally {
-            setLoading(false);
         }
+
+        // 2º PASSO: BUSCAR O BANNER (Independente das joias)
+        try {
+            const dadosBanners = await BannerService.listarAtivos();
+            if (dadosBanners && dadosBanners.length > 0) {
+                setBannerDestaque(dadosBanners[0]);
+            }
+        } catch (error) {
+            console.error("Erro silencioso ao carregar o banner:", error);
+            // Se falhar, usará o fundo preto padrão silenciosamente
+        }
+
+        setLoading(false);
     };
 
     const rolarPara = (id) => {
@@ -73,15 +98,6 @@ export default function Catalogo() {
         subitens: cat.subcategorias ? cat.subcategorias.map(sub => sub.nome) : []
     }));
 
-    // Adicione esta função fora ou dentro do seu componente Catalogo
-    const aplicarMascaraWhatsapp = (value) => {
-        if (!value) return "";
-        return value
-            .replace(/\D/g, "") // Remove tudo que não é número
-            .replace(/(\d{2})(\d)/, "($1) $2") // Coloca parênteses no DDD
-            .replace(/(\d{5})(\d)/, "$1-$2") // Coloca o hífen no número
-            .replace(/(-\d{4})\d+?$/, "$1"); // Limpa números extras
-    };
     const abrirDetalhes = (joia) => {
         setProdutoSelecionado(joia);
         setFotoDestaque(joia.imagens && joia.imagens.length > 0 ? joia.imagens[0] : null);
@@ -95,7 +111,6 @@ export default function Catalogo() {
     const handleBaixarGuia = async (e) => {
         e.preventDefault();
 
-        // Regex para validar: (99) 99999-9999
         const regexWhatsapp = /^\(\d{2}\)\s\d{5}-\d{4}$/;
 
         if (!regexWhatsapp.test(dadosLead.whatsapp)) {
@@ -111,10 +126,8 @@ export default function Catalogo() {
         setIsSubmitting(true);
 
         try {
-            // Manda para o Java salvar no banco (O Java vai ler o cookie automaticamente)
             await leadService.registrarLead(dadosLead);
 
-            // Inicia o download do PDF
             const link = document.createElement('a');
             link.href = '/guia-medidas.pdf';
             link.download = 'Guia_Medidas_Clarice_Joias.pdf';
@@ -122,7 +135,6 @@ export default function Catalogo() {
             link.click();
             document.body.removeChild(link);
 
-            // Esconde tudo
             setModalGuiaAberto(false);
             setMostrarBotaoGuia(false);
 
@@ -144,25 +156,42 @@ export default function Catalogo() {
         );
     }
 
+    // Define a imagem do banner: usa a do banco (MinIO) se tiver, senão usa uma imagem padrão/fundo preto
+    const backgroundUrl = bannerDestaque 
+        ? `${API_BASE_URL}/api/arquivos/view/${bannerDestaque.objectName}`
+        : 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop';
+
     return (
         <div className="catalogo-container">
             <Menu categorias={dadosMenu} aoClicarCategoria={rolarPara} />
             <div className="espacador-topo"></div>
 
-            <section className="banner-destaque">
+            {/* BANNER DINÂMICO GERENCIÁVEL */}
+            <section 
+                className="banner-destaque"
+                style={{ 
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` 
+                }}
+            >
                 <div className="banner-conteudo">
-                    <h2>Nova Coleção Elegance</h2>
-                    <p>Descubra peças exclusivas com até 15% de desconto.</p>
-                    <button className="btn-banner" onClick={() => rolarPara(acervo[0]?.nome || acervo[0]?.categoria)}>
+                    <h2>{bannerDestaque ? bannerDestaque.titulo : "Nova Coleção Elegance"}</h2>
+                    <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
+                    <button 
+                        className="btn-banner" 
+                        onClick={() => {
+                            if (bannerDestaque && bannerDestaque.linkAcao) {
+                                window.location.href = bannerDestaque.linkAcao;
+                            } else {
+                                rolarPara(acervo[0]?.nome || acervo[0]?.categoria);
+                            }
+                        }}
+                    >
                         Ver Novidades
                     </button>
                 </div>
             </section>
-            {/* <header className="header-vitrine">
-                <h1>Clarice Joias</h1>
-                <p>Acessórios de luxo para momentos inesquecíveis.</p>
-            </header> */}
 
+            {/* VITRINE DE JOIAS */}
             <main className="vitrine-conteudo">
                 {acervo.length === 0 ? (
                     <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>Nenhuma peça disponível no momento.</p>
@@ -191,7 +220,7 @@ export default function Catalogo() {
                 )}
             </main>
 
-            {/* CARRINHO */}
+            {/* BOTÃO FLUTUANTE DO CARRINHO */}
             {itens.length > 0 && (
                 <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
                     <FiShoppingBag size={28} />
@@ -199,7 +228,7 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* BOTÃO GUIA */}
+            {/* BOTÃO FLUTUANTE DA CAPTURA DE LEADS (GUIA DE MEDIDAS) */}
             {mostrarBotaoGuia && !modalGuiaAberto && (
                 <div
                     className="botao-guia-flutuante"
@@ -213,7 +242,7 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* MODAL LEAD */}
+            {/* MODAL DE CAPTURA DE LEADS (GUIA DE MEDIDAS) */}
             {modalGuiaAberto && (
                 <div className="modal-detalhes-overlay" onClick={() => setModalGuiaAberto(false)}>
                     <div className="modal-lead-card" onClick={(e) => e.stopPropagation()}>
@@ -239,8 +268,8 @@ export default function Catalogo() {
                                     />
                                 </div>                                
                                 <WhatsAppInput
-                                value={dadosLead.whatsapp}
-                                onChange={(valorMascarado) => setDadosLead({ ...dadosLead, whatsapp: valorMascarado })}
+                                    value={dadosLead.whatsapp}
+                                    onChange={(valorMascarado) => setDadosLead({ ...dadosLead, whatsapp: valorMascarado })}
                                 />
                                 <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
                                     {isSubmitting ? 'Processando...' : 'Baixar Guia Grátis'}
@@ -252,7 +281,7 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* MODAL GALERIA DA JOIA */}
+            {/* MODAL DE DETALHES DA JOIA (GALERIA E COMPRA) */}
             {produtoSelecionado && (
                 <div className="modal-detalhes-overlay" onClick={fecharDetalhes}>
                     <div className="modal-detalhes-card" onClick={(e) => e.stopPropagation()}>

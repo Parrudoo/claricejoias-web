@@ -193,6 +193,34 @@ const AdminLayout = () => {
               </div>
             )}
           </div>
+
+           {/* === GRUPO: BANNER === */}
+          <div className="nav-group">
+            <button 
+              className={`nav-group-btn ${submenuAberto === 'banner' ? 'open' : ''}`} 
+              onClick={() => toggleSubmenu('banner')}
+              title="banner"
+            >
+              <div className="nav-group-icon-text">
+                {/* Ícone de Usuários/Clientes */}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span className="nav-text">Config Banner</span>
+              </div>
+              <svg className={`chevron ${submenuAberto === 'banner' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            
+            {submenuAberto === 'banner' && isExpanded && (
+              <div className="submenu-items">
+                {/* Rota apontando para a tela LeadsDashboard que criamos */}
+                <NavLink to="/admin/config" className="submenu-link">Banner</NavLink>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="sidebar-footer">
