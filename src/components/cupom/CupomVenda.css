@@ -1,0 +1,93 @@
+/* Esconde o cupom na tela normal do sistema */
+.cupom-wrapper {
+    display: none; 
+}
+
+/* Formatação do papel da bobina */
+.cupom-container {
+    width: 300px; /* Aproximadamente 80mm */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    color: #000;
+    margin: 0 auto;
+    padding: 10px;
+    background: white;
+}
+
+.cupom-header, .cupom-footer {
+    text-align: center;
+}
+
+.cupom-header h2 {
+    font-size: 16px;
+    margin: 0 0 5px 0;
+}
+
+.cupom-header p, .cupom-footer p, .cupom-cliente p {
+    margin: 2px 0;
+}
+
+.cupom-divisor {
+    text-align: center;
+    margin: 5px 0;
+    letter-spacing: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.cupom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cupom-table th, .cupom-table td {
+    padding: 2px 0;
+    font-size: 11px;
+}
+
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.uppercase { text-transform: uppercase; }
+
+.linha-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.linha-pagamento {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+/* ==================================================
+   A MÁGICA DA IMPRESSÃO ACONTECE AQUI
+   ================================================== */
+@media print {
+    /* Esconde absolutamente TUDO no body */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Remove margens padrão do navegador */
+    @page {
+        margin: 0;
+    }
+
+    /* Mostra APENAS o cupom e seus filhos */
+    .cupom-wrapper, .cupom-wrapper * {
+        visibility: visible;
+        display: block;
+    }
+
+    /* Posiciona o cupom no canto superior esquerdo do papel */
+    .cupom-wrapper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}

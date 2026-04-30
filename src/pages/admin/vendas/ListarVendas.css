@@ -1,0 +1,234 @@
+.vendas-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.vendas-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+}
+
+.vendas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.vendas-header h2 {
+    margin: 0;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vendas-header p {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.stat-box {
+    background: #fffdf5;
+    border: 1px solid #f0e4c3;
+    padding: 10px 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-box span {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.stat-box strong {
+    font-size: 20px;
+    color: #D4AF37;
+}
+
+.tabela-responsiva {
+    overflow-x: auto;
+}
+
+.tabela-vendas {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.tabela-vendas th, .tabela-vendas td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.tabela-vendas th {
+    background-color: #fcfcfc;
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.tabela-vendas tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.cliente-nome {
+    font-weight: 500;
+    color: #333;
+}
+
+.cliente-anonimo {
+    color: #999;
+    font-style: italic;
+}
+
+/* Tags de Pagamento */
+.tag-pagamento {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.tag-pagamento.pix { background: #e0f2f1; color: #00897b; }
+.tag-pagamento.cartao { background: #e3f2fd; color: #1e88e5; }
+.tag-pagamento.especie { background: #e8f5e9; color: #43a047; }
+.tag-pagamento.fiado { background: #ffebee; color: #e53935; }
+
+.valor-destaque {
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.btn-ver-detalhes {
+    background: #f4f4f4;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.btn-ver-detalhes:hover {
+    background: #1a1a1a;
+    color: #D4AF37;
+    border-color: #1a1a1a;
+}
+
+/* ====================================
+   MODAL DE DETALHES
+   ==================================== */
+.modal-venda-detalhes {
+    width: 90%;
+    max-width: 650px !important;
+}
+
+.detalhes-grid-top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.detalhe-box {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detalhe-icone {
+    font-size: 24px;
+    color: #D4AF37;
+}
+
+.detalhe-box small {
+    display: block;
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.detalhe-box p {
+    margin: 2px 0 0 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.detalhes-itens-section h4 {
+    margin: 0 0 15px 0;
+    color: #1a1a1a;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 5px;
+}
+
+.tabela-itens-venda {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+}
+
+.tabela-itens-venda th, .tabela-itens-venda td {
+    padding: 10px 5px;
+    border-bottom: 1px dashed #eee;
+    font-size: 14px;
+}
+
+.tabela-itens-venda th {
+    text-align: left;
+    color: #666;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.detalhes-financeiro-section {
+    background: #fcfcfc;
+    border: 1px solid #eee;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.financeiro-linha {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+.financeiro-linha.total-final {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #ddd;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-green { color: #43a047; font-weight: 500;}
+.text-red { color: #e53935; font-weight: 500;}
+.font-bold { font-weight: bold; }
