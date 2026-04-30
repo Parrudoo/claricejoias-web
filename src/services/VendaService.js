@@ -8,8 +8,19 @@ export const VendaService = {
     },
 
     // Busca o histórico de todas as vendas cadastradas no sistema
-    listarTodas: async () => {
-        const response = await api.get('/vendas');
+   listarTodas: async (page = 0, filtros = {}) => {
+        const params = {
+            page: page,
+            size: 20, 
+            sort: 'id,desc'
+        };
+
+        if (filtros.loginOperador) params.loginOperador = filtros.loginOperador;
+        if (filtros.metodoPagamento) params.metodoPagamento = filtros.metodoPagamento;
+        if (filtros.dataInicio) params.dataInicio = filtros.dataInicio; 
+        if (filtros.dataFim) params.dataFim = filtros.dataFim;
+
+        const response = await api.get('/vendas', { params });
         return response.data;
     },
 

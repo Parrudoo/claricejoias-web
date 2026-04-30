@@ -4,6 +4,21 @@ import { NavLink, Outlet } from 'react-router-dom';
 import keycloak from '../../../config/keycloak'; 
 import './AdminLayout.css';
 
+// 👇 Nova importação dos ícones do pacote Feather (react-icons/fi)
+import { 
+  FiGrid, 
+  FiPackage, 
+  FiList, 
+  FiUsers, 
+  FiShoppingCart, 
+  FiDollarSign, 
+  FiUser, 
+  FiImage, 
+  FiLogOut, 
+  FiMenu, 
+  FiChevronDown 
+} from 'react-icons/fi';
+
 const AdminLayout = () => {
   // Controle de largura da barra lateral
   const [isExpanded, setIsExpanded] = useState(true);
@@ -32,7 +47,7 @@ const AdminLayout = () => {
     setSubmenuAberto(submenuAberto === menu ? '' : menu);
   };
 
-  // 👇 NOVA FUNÇÃO DE LOGOUT SEGURO
+  // NOVA FUNÇÃO DE LOGOUT SEGURO
   const handleSair = () => {
     // 1. Limpa os dados do LocalStorage para não deixar rastros na loja
     localStorage.removeItem('@ClariceJoias_Token');
@@ -61,7 +76,7 @@ const AdminLayout = () => {
         <nav className="sidebar-nav">
           
           <NavLink to="/admin/dashboard" className="nav-item-single" title="Visão Geral">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+            <FiGrid size={20} />
             <span className="nav-text">Visão Geral</span>
           </NavLink>
 
@@ -74,10 +89,10 @@ const AdminLayout = () => {
               title="Produtos"
             >
               <div className="nav-group-icon-text">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                <FiPackage size={20} />
                 <span className="nav-text">Produtos</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'produtos' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'produtos' ? 'rotate' : ''}`} />
             </button> */}
             
             {submenuAberto === 'produtos' && isExpanded && (
@@ -96,10 +111,10 @@ const AdminLayout = () => {
               title="Categorias"
             >
               <div className="nav-group-icon-text">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <FiList size={20} />
                 <span className="nav-text">Categorias</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'categorias' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'categorias' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'categorias' && isExpanded && (
@@ -118,27 +133,20 @@ const AdminLayout = () => {
               title="Leads"
             >
               <div className="nav-group-icon-text">
-                {/* Ícone de Usuários/Clientes */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+                <FiUsers size={20} />
                 <span className="nav-text">Leads</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'leads' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'leads' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'leads' && isExpanded && (
               <div className="submenu-items">
-                {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/leads" className="submenu-link">Gerenciar Leads</NavLink>
               </div>
             )}
           </div>
 
-          {/* === GRUPO: LEADS === */}
+          {/* === GRUPO: PDV === */}
           <div className="nav-group">
             <button 
               className={`nav-group-btn ${submenuAberto === 'pdv' ? 'open' : ''}`} 
@@ -146,21 +154,14 @@ const AdminLayout = () => {
               title="Pdv"
             >
               <div className="nav-group-icon-text">
-                {/* Ícone de Usuários/Clientes */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+                <FiShoppingCart size={20} />
                 <span className="nav-text">PDV</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'pdv' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'pdv' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'pdv' && isExpanded && (
               <div className="submenu-items">
-                {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/telaPdv" className="submenu-link">PDV</NavLink>
               </div>
             )}
@@ -174,21 +175,14 @@ const AdminLayout = () => {
               title="Vendas"
             >
               <div className="nav-group-icon-text">
-                {/* Ícone de Usuários/Clientes */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span className="nav-text">PDV</span>
+                <FiDollarSign size={20} />
+                <span className="nav-text">Vendas</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'vendas' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'vendas' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'vendas' && isExpanded && (
               <div className="submenu-items">
-                {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/vendas" className="submenu-link">Vendas PDV</NavLink>
               </div>
             )}
@@ -202,21 +196,14 @@ const AdminLayout = () => {
               title="Cliente"
             >
               <div className="nav-group-icon-text">
-                {/* Ícone de Usuários/Clientes */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+                <FiUser size={20} />
                 <span className="nav-text">Cliente</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'Cliente' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'Cliente' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'Cliente' && isExpanded && (
               <div className="submenu-items">
-                {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/telaCliente" className="submenu-link">Clientes</NavLink>
               </div>
             )}
@@ -230,21 +217,14 @@ const AdminLayout = () => {
               title="banner"
             >
               <div className="nav-group-icon-text">
-                {/* Ícone de Usuários/Clientes */}
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+                <FiImage size={20} />
                 <span className="nav-text">Config Banner</span>
               </div>
-              <svg className={`chevron ${submenuAberto === 'banner' ? 'rotate' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'banner' ? 'rotate' : ''}`} />
             </button>
             
             {submenuAberto === 'banner' && isExpanded && (
               <div className="submenu-items">
-                {/* Rota apontando para a tela LeadsDashboard que criamos */}
                 <NavLink to="/admin/config" className="submenu-link">Banner</NavLink>
               </div>
             )}
@@ -252,9 +232,8 @@ const AdminLayout = () => {
         </nav>
 
         <div className="sidebar-footer">
-          {/* 👇 Botão ajustado com a função que limpa os dados antes de sair */}
           <button className="btn-sair" title="Sair do Sistema" onClick={handleSair}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <FiLogOut size={20} />
             <span className="nav-text">Sair</span>
           </button>
         </div>
@@ -265,11 +244,7 @@ const AdminLayout = () => {
         <header className="admin-topbar">
           <div className="topbar-left">
             <button className="btn-toggle-menu" onClick={toggleSidebar}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
+              <FiMenu size={24} />
             </button>
             <div className="topbar-titulo">Administração</div>
           </div>
