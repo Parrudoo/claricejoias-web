@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus, FiX, FiUploadCloud, FiAlertCircle } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiChevronDown, FiChevronUp, FiPackage, FiPlus, FiX, FiUploadCloud, FiAlertCircle, FiImage } from 'react-icons/fi';
 import { CategoriaService } from '../../../services/CategoriaService';
 import { ProdutoService } from '../../../services/ProdutoService';
 
@@ -10,6 +10,7 @@ const ListarCategorias = () => {
     const [pendentes, setPendentes] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [xmlLoading, setXmlLoading] = useState(false);
+    const [imgLoading, setImgLoading] = useState(false);
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
 
     const [categoriaEditando, setCategoriaEditando] = useState(null);
@@ -64,6 +65,30 @@ const ListarCategorias = () => {
         }
     };
 
+    const handleUploadImagensMassa = async (e) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setImgLoading(true);
+        try {
+            const formData = new FormData();
+            Array.from(files).forEach(file => {
+                formData.append('imagens', file); 
+            });
+
+            await ProdutoService.vincularImagensEmMassa(formData);
+            
+            mostrarMensagem(`${files.length} foto(s) processada(s) com sucesso!`, 'sucesso');
+            carregarDados(); 
+        } catch (error) {
+            console.error("Erro ao enviar imagens:", error);
+            mostrarMensagem('Erro ao processar o envio em massa das fotos.', 'erro');
+        } finally {
+            setImgLoading(false);
+            e.target.value = null; 
+        }
+    };
+
     const handleDeletarCategoria = async (id, nome) => {
         const confirmar = window.confirm(`Deseja excluir a categoria "${nome}"?`);
         if (!confirmar) return;
@@ -97,8 +122,8 @@ const ListarCategorias = () => {
         });
     };
 
-    // ABRE MODAL PARA EDITAR (Modo Antigo)
-    const abrirModalEditarProduto = (produto) => {
+    // ABRE MODAL PARA EDITAR (Modo Antigo - Corrigido com idSubcategoriaPai)
+    const abrirModalEditarProduto = (produto, idSubcategoriaPai) => {
         setProdutoModal({
             id: produto.id,
             codigo: produto.codigo || '',
@@ -107,7 +132,7 @@ const ListarCategorias = () => {
             preco: produto.preco || '',
             estoque: produto.estoque || 0,
             descricao: produto.material || produto.descricao || '', 
-            subcategoriaId: produto.subcategoria ? produto.subcategoria.id : '',
+            subcategoriaId: idSubcategoriaPai || (produto.subcategoria ? produto.subcategoria.id : ''),
             imagens: [],
             previews: produto.img ? [produto.img] : [],
             isXML: false
@@ -231,14 +256,25 @@ const ListarCategorias = () => {
                 <header className="lista-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
                     <div>
                         <h2>📋 Gestão do Acervo</h2>
-                        <p>Cadastre joias ou importe o XML da Nota Fiscal.</p>
+                        <p>Cadastre joias, importe notas ou atualize fotos em lote.</p>
                     </div>
-                    <div>
-                        <input id="upload-xml" type="file" accept=".xml" style={{ display: 'none' }} onChange={handleUploadXML} />
-                        <label htmlFor="upload-xml" className="btn-upload-xml" style={{ opacity: xmlLoading ? 0.7 : 1 }}>
-                            <FiUploadCloud size={20} />
-                            {xmlLoading ? 'Lendo Arquivo...' : 'Importar XML da Nota'}
-                        </label>
+                    
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <div>
+                            <input id="upload-imagens-massa" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleUploadImagensMassa} />
+                            <label htmlFor="upload-imagens-massa" className="btn-secundario-luxo" style={{ opacity: imgLoading ? 0.7 : 1 }}>
+                                <FiImage size={20} />
+                                {imgLoading ? 'Processando...' : 'Vincular Fotos (Massa)'}
+                            </label>
+                        </div>
+
+                        <div>
+                            <input id="upload-xml" type="file" accept=".xml" style={{ display: 'none' }} onChange={handleUploadXML} />
+                            <label htmlFor="upload-xml" className="btn-upload-xml" style={{ opacity: xmlLoading ? 0.7 : 1 }}>
+                                <FiUploadCloud size={20} />
+                                {xmlLoading ? 'Lendo Arquivo...' : 'Importar XML da Nota'}
+                            </label>
+                        </div>
                     </div>
                 </header>
 
@@ -334,7 +370,7 @@ const ListarCategorias = () => {
                                                                                         <span className="prod-mini-preco">R$ {prod.preco ? prod.preco.toFixed(2).replace('.', ',') : '0,00'}</span>
                                                                                     </div>
                                                                                     <div className="prod-mini-acoes">
-                                                                                        <button className="btn-mini-acao edit" onClick={() => abrirModalEditarProduto(prod)}><FiEdit2 size={14} /></button>
+                                                                                        <button className="btn-mini-acao edit" onClick={() => abrirModalEditarProduto(prod, sub.id)}><FiEdit2 size={14} /></button>
                                                                                         <button className="btn-mini-acao delete" onClick={() => handleDeletarProduto(prod.id, prod.nome)}><FiTrash2 size={14} /></button>
                                                                                     </div>
                                                                                 </div>

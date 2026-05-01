@@ -28,6 +28,16 @@ export const ProdutoService = {
         });
         return response.data;
     },
+
+    // --- NOVO MÉTODO: Envio de Imagens em Massa ---
+    vincularImagensEmMassa: async (formData) => {
+        const response = await api.post('/produtos/imagens/upload-massa', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
   
     buscarRascunhoPorCodigo: async (codigo) => {
         const response = await api.get(`/produtos/codigo/${codigo}`);
