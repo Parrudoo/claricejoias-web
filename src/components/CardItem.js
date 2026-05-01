@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { ImagemService } from '../services/ImagemService';
 import './CardItem.css';
 
 export function CardItem({ joia, adicionarItem }) {
+  
   const [imgAtiva, setImgAtiva] = useState(0);
+  // 👇 PRINT COMPLETO PARA DEBUG
+  console.log("--- DEBUG PRODUTO ---");
+  console.log("Código:", joia.codigo);
+  console.log("Imagens (Array):", joia.imagens);
+  console.log("PathImg (Fallback):", joia.pathImg);
+  console.log("Objeto Inteiro:", joia);
+
 
   
-  const fotos = joia.imagens && joia.imagens.length > 0
-    ? joia.imagens.map(ImagemService.getUrl) 
-    : [ImagemService.getUrl(joia.pathImg)];
+  const fotos = useMemo(() => {
+    if (joia.imagens && joia.imagens.length > 0) {
+      return joia.imagens.map(img => ImagemService.getUrl(img));
+    }
+    // Fallback para a imagem única ou uma imagem padrão de "sem foto"
+    return [ImagemService.getUrl(joia.pathImg || 'placeholder.png')];
+  }, [joia.imagens, joia.pathImg]);
 
   const proxima = (e) => {
     e.stopPropagation(); // Não abre o detalhe do card ao clicar na seta

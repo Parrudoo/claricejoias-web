@@ -146,7 +146,7 @@ const ListarCategorias = () => {
             codigo: rascunho.codigo || '',
             nome: rascunho.nome || '',
             precoCusto: rascunho.precoCusto || '',
-            preco: '',
+            preco: rascunho.preco,
             estoque: 1,
             descricao: '',
             subcategoriaId: '', 

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingBag, FiX, FiFileText, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { 
+    FiShoppingBag, FiX, FiFileText, FiChevronLeft, 
+    FiChevronRight, FiMaximize2 
+} from 'react-icons/fi';
 
 // Componentes
 import { CardItem } from '../components/CardItem';
 import { Menu } from '../components/Menu';
 import WhatsAppInput from '../components/WhatsAppInput';
+import MedidorDeAnel from './MedidorDeAnel';
 
 // Contexto e Serviços
 import { useMaleta } from '../context/MaletaContext';
@@ -27,30 +31,33 @@ export default function Catalogo() {
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [fotoDestaque, setFotoDestaque] = useState(null);
 
-    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false);
     const [modalGuiaAberto, setModalGuiaAberto] = useState(false);
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // 👇 Novos estados do Medidor
+    const [mostrarMedidor, setMostrarMedidor] = useState(false);
+    const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
 
     const API_BASE_URL = 'http://localhost:8080';
 
     useEffect(() => {
         carregarDadosVitrine();
-
-        const timer = setTimeout(async () => {
-            try {
-                const deveMostrar = await leadService.verificarStatusGuia();
-                if (deveMostrar) {
-                    setMostrarBotaoGuia(true);
-                }
-            } catch (error) {
-                console.error("Erro ao verificar status do visitante:", error);
-                setMostrarBotaoGuia(true);
-            }
-        }, 15000);
-
-        return () => clearTimeout(timer);
+        checarStatusLead();
     }, []);
+
+    // 👇 Nova função para checar se já libera o medidor direto
+    const checarStatusLead = async () => {
+        try {
+            const deveMostrarForm = await leadService.verificarStatusGuia();
+            if (!deveMostrarForm) {
+                setVisitanteJaEhLead(true);
+                setMostrarMedidor(true); 
+            }
+        } catch (error) {
+            console.error("Erro ao verificar status do visitante:", error);
+        }
+    };
 
     // Efeito para o Carrossel (reinicia o timer se o usuário clicar na seta)
     useEffect(() => {
@@ -61,7 +68,7 @@ export default function Catalogo() {
         }, 5000); 
 
         return () => clearInterval(timerSlide);
-    }, [bannersAtivos, indiceBanner]); // 👈 Dependência adicionada para resetar o timer ao clicar
+    }, [bannersAtivos, indiceBanner]);
 
     const carregarDadosVitrine = async () => {
         setLoading(true);
@@ -107,7 +114,8 @@ export default function Catalogo() {
         setFotoDestaque(null);
     };
 
-    const handleBaixarGuia = async (e) => {
+    // 👇 Função Atualizada: Abre o Medidor em vez do PDF
+    const handleCapturaLead = async (e) => {
         e.preventDefault();
         const regexWhatsapp = /^\(\d{2}\)\s\d{5}-\d{4}$/;
         if (!regexWhatsapp.test(dadosLead.whatsapp)) return alert("WhatsApp inválido!");
@@ -116,16 +124,8 @@ export default function Catalogo() {
         setIsSubmitting(true);
         try {
             await leadService.registrarLead(dadosLead);
-            const link = document.createElement('a');
-            link.href = '/guia-medidas.pdf';
-            link.download = 'Guia_Medidas_Clarice_Joias.pdf';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            setModalGuiaAberto(false);
-            setMostrarBotaoGuia(false);
-            alert("Download iniciado! Em breve te chamaremos no WhatsApp.");
+            setVisitanteJaEhLead(true);
+            setMostrarMedidor(true);
         } catch (error) {
             console.error("Erro ao processar captura:", error);
         } finally {
@@ -133,7 +133,6 @@ export default function Catalogo() {
         }
     };
 
-    // 👇 FUNÇÕES DAS SETAS DO CARROSSEL 👇
     const proximoBanner = () => {
         setIndiceBanner((prev) => (prev === bannersAtivos.length - 1 ? 0 : prev + 1));
     };
@@ -164,7 +163,6 @@ export default function Catalogo() {
                 className="banner-destaque"
                 style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` }}
             >
-                {/* SETA ESQUERDA */}
                 {bannersAtivos.length > 1 && (
                     <button className="btn-seta-banner esquerda" onClick={bannerAnterior}>
                         <FiChevronLeft size={36} />
@@ -189,14 +187,12 @@ export default function Catalogo() {
                     </button>
                 </div>
 
-                {/* SETA DIREITA */}
                 {bannersAtivos.length > 1 && (
                     <button className="btn-seta-banner direita" onClick={proximoBanner}>
                         <FiChevronRight size={36} />
                     </button>
                 )}
 
-                {/* INDICADORES (Bolinhas do Carrossel) */}
                 {bannersAtivos.length > 1 && (
                     <div className="banner-indicadores">
                         {bannersAtivos.map((_, index) => (
@@ -222,6 +218,7 @@ export default function Catalogo() {
                                 <div key={sub.id || sub.nome} id={sub.nome} className="container-subcategoria">
                                     <h3 className="titulo-subcategoria">{sub.nome}</h3>
                                     <div className="grid-produtos">
+                                        {/* AQUI ESTAVA O SEGREDO DO SEU CÓDIGO FUNCIONAR: sub.itens */}
                                         {(sub.produtos || sub.itens || []).map(joia => (
                                             <CardItem
                                                 key={joia.id}
@@ -238,23 +235,24 @@ export default function Catalogo() {
                 )}
             </main>
 
-            {/* BOTOES FLUTUANTES E MODAIS (CARRINHO E LEADS) MANTIDOS EXATAMENTE IGUAIS */}
-            {itens.length > 0 && (
-                <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
-                    <FiShoppingBag size={28} />
-                    <span className="badge-contagem">{qtdTotal}</span>
-                </div>
-            )}
-
-            {mostrarBotaoGuia && !modalGuiaAberto && (
-                <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Baixar Guia de Medidas">
+            {/* 👇 AREA FLUTUANTE DO RODAPÉ ATUALIZADA 👇 */}
+            <div className="area-flutuante-rodape">
+                <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Medir Anel">
                     <div className="guia-icone-container">
-                        <FiFileText size={24} />
+                        <FiMaximize2 size={24} />
                     </div>
                     <span className="guia-texto">Descubra seu tamanho!</span>
                 </div>
-            )}
 
+                {itens.length > 0 && (
+                    <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
+                        <FiShoppingBag size={28} />
+                        <span className="badge-contagem">{qtdTotal}</span>
+                    </div>
+                )}
+            </div>
+
+            {/* 👇 MODAL DO MEDIDOR 👇 */}
             {modalGuiaAberto && (
                 <div className="modal-detalhes-overlay" onClick={() => setModalGuiaAberto(false)}>
                     <div className="modal-lead-card" onClick={(e) => e.stopPropagation()}>
@@ -262,24 +260,33 @@ export default function Catalogo() {
                             <FiX size={24} />
                         </button>
                         <div className="modal-lead-content">
-                            <h3 className="lead-titulo">Não sabe o tamanho do seu anel? 💍</h3>
-                            <p className="lead-subtitulo">Baixe agora nosso <strong>Guia Prático de Medidas</strong> e descubra o tamanho ideal sem sair de casa!</p>
-                            <form onSubmit={handleBaixarGuia} className="form-lead">
-                                <div className="input-group">
-                                    <label>Como podemos te chamar?</label>
-                                    <input type="text" placeholder="Seu nome" required value={dadosLead.nome} onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })} />
-                                </div>                                
-                                <WhatsAppInput value={dadosLead.whatsapp} onChange={(valor) => setDadosLead({ ...dadosLead, whatsapp: valor })} />
-                                <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Processando...' : 'Baixar Guia Grátis'}
-                                </button>
-                            </form>
-                            <span className="lead-spam-aviso">Prometemos não enviar spam.</span>
+                            {!mostrarMedidor && !visitanteJaEhLead ? (
+                                <>
+                                    <h3 className="lead-titulo">Não sabe o tamanho do seu anel? 💍</h3>
+                                    <p className="lead-subtitulo">Libere agora nossa <strong>Ferramenta Prática de Medidas</strong> e descubra o tamanho ideal sem sair de casa!</p>
+                                    <form onSubmit={handleCapturaLead} className="form-lead">
+                                        <div className="input-group">
+                                            <label>Como podemos te chamar?</label>
+                                            <input type="text" placeholder="Seu nome" required value={dadosLead.nome} onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })} />
+                                        </div>                                
+                                        <WhatsAppInput value={dadosLead.whatsapp} onChange={(valor) => setDadosLead({ ...dadosLead, whatsapp: valor })} />
+                                        <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Processando...' : 'Acessar Ferramenta Grátis'}
+                                        </button>
+                                    </form>
+                                    <span className="lead-spam-aviso">Prometemos não enviar spam.</span>
+                                </>
+                            ) : (
+                                <div className="ferramenta-container-modal">
+                                    <MedidorDeAnel />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* SEU MODAL DE DETALHES DE PRODUTO INTACTO (O QUE FAZ AS FOTOS FUNCIONAREM) */}
             {produtoSelecionado && (
                 <div className="modal-detalhes-overlay" onClick={fecharDetalhes}>
                     <div className="modal-detalhes-card" onClick={(e) => e.stopPropagation()}>
