@@ -35,18 +35,27 @@ export default function Catalogo() {
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // 👇 Novos estados do Medidor
+    // Novos estados do Medidor e Botão Flutuante
     const [mostrarMedidor, setMostrarMedidor] = useState(false);
     const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
+    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); // 👈 Novo estado para o botão
 
     const API_BASE_URL = 'http://localhost:8080';
 
     useEffect(() => {
         carregarDadosVitrine();
         checarStatusLead();
+
+        // 👈 Faz o BOTÃO aparecer após 10 segundos (não o modal)
+        const timerBotao = setTimeout(() => {
+            setMostrarBotaoGuia(true);
+        }, 10000);
+
+        // Limpa o timer caso o componente seja desmontado antes dos 10s
+        return () => clearTimeout(timerBotao);
     }, []);
 
-    // 👇 Nova função para checar se já libera o medidor direto
+    // Função para checar se já libera o medidor direto
     const checarStatusLead = async () => {
         try {
             const deveMostrarForm = await leadService.verificarStatusGuia();
@@ -114,7 +123,7 @@ export default function Catalogo() {
         setFotoDestaque(null);
     };
 
-    // 👇 Função Atualizada: Abre o Medidor em vez do PDF
+    // Abre o Medidor em vez do PDF
     const handleCapturaLead = async (e) => {
         e.preventDefault();
         const regexWhatsapp = /^\(\d{2}\)\s\d{5}-\d{4}$/;
@@ -218,7 +227,6 @@ export default function Catalogo() {
                                 <div key={sub.id || sub.nome} id={sub.nome} className="container-subcategoria">
                                     <h3 className="titulo-subcategoria">{sub.nome}</h3>
                                     <div className="grid-produtos">
-                                        {/* AQUI ESTAVA O SEGREDO DO SEU CÓDIGO FUNCIONAR: sub.itens */}
                                         {(sub.produtos || sub.itens || []).map(joia => (
                                             <CardItem
                                                 key={joia.id}
@@ -235,14 +243,19 @@ export default function Catalogo() {
                 )}
             </main>
 
-            {/* 👇 AREA FLUTUANTE DO RODAPÉ ATUALIZADA 👇 */}
+            {/* AREA FLUTUANTE DO RODAPÉ */}
             <div className="area-flutuante-rodape">
-                <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Medir Anel">
-                    <div className="guia-icone-container">
-                        <FiMaximize2 size={24} />
+                {/* 👈 Só exibe o botão se mostrarBotaoGuia for true (após 10s) */}
+                {mostrarBotaoGuia && (
+                    <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Medir Anel">
+                        <div className="guia-icone-container">
+                            <FiMaximize2 size={24} />
+                        </div>
+                        <span className="guia-texto">
+                            {visitanteJaEhLead ? 'Medir Anel' : 'Descubra seu tamanho!'}
+                        </span>
                     </div>
-                    <span className="guia-texto">Descubra seu tamanho!</span>
-                </div>
+                )}
 
                 {itens.length > 0 && (
                     <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
@@ -252,7 +265,7 @@ export default function Catalogo() {
                 )}
             </div>
 
-            {/* 👇 MODAL DO MEDIDOR 👇 */}
+            {/* MODAL DO MEDIDOR */}
             {modalGuiaAberto && (
                 <div className="modal-detalhes-overlay" onClick={() => setModalGuiaAberto(false)}>
                     <div className="modal-lead-card" onClick={(e) => e.stopPropagation()}>
@@ -286,7 +299,7 @@ export default function Catalogo() {
                 </div>
             )}
 
-            {/* SEU MODAL DE DETALHES DE PRODUTO INTACTO (O QUE FAZ AS FOTOS FUNCIONAREM) */}
+            {/* MODAL DE DETALHES DE PRODUTO */}
             {produtoSelecionado && (
                 <div className="modal-detalhes-overlay" onClick={fecharDetalhes}>
                     <div className="modal-detalhes-card" onClick={(e) => e.stopPropagation()}>
