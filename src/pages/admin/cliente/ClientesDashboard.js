@@ -98,17 +98,31 @@ const ClientesDashboard = () => {
       cliente.vendas.forEach(venda => {
         if (venda.parcelas && Array.isArray(venda.parcelas)) {
           venda.parcelas.forEach(parcela => {
-            if (parcela.status === 'PENDENTE') {
+
+            // 👈 MUDANÇA AQUI: Agora ele aceita PENDENTE ou ATRASADA
+            if (parcela.status === 'PENDENTE' || parcela.status === 'ATRASADA') {
               valorTotalPendente += parcela.valor;
 
-              if (parcela.dataVencimento) {
+              let parcelaEstaAtrasada = false;
+
+              // Se o backend já carimbou como ATRASADA, já sabemos que está atrasada
+              if (parcela.status === 'ATRASADA') {
+                parcelaEstaAtrasada = true;
+              }
+              // Se for PENDENTE, verificamos se a data já passou de hoje
+              else if (parcela.dataVencimento) {
                 const [ano, mes, dia] = parcela.dataVencimento.split('-');
                 const dataVencimento = new Date(ano, mes - 1, dia);
 
                 if (dataVencimento < hoje) {
-                  temAtraso = true;
-                  valorVencido += parcela.valor;
+                  parcelaEstaAtrasada = true;
                 }
+              }
+
+              // Se a parcela caiu em qualquer regra de atraso, soma no valor vencido
+              if (parcelaEstaAtrasada) {
+                temAtraso = true;
+                valorVencido += parcela.valor;
               }
             }
           });
@@ -117,7 +131,7 @@ const ClientesDashboard = () => {
     }
 
     if (temAtraso) {
-      return { situacao: 'ATRASADO', texto: 'Em Atraso', valorPrincipal: valorVencido, valorTotal: valorTotalPendente, classeCss: 'badge-red' };
+      return { situacao: 'ATRASADA', texto: 'Em Atraso', valorPrincipal: valorVencido, valorTotal: valorTotalPendente, classeCss: 'badge-red' };
     } else if (valorTotalPendente > 0) {
       return { situacao: 'A_VENCER', texto: 'A Vencer', valorPrincipal: valorTotalPendente, valorTotal: valorTotalPendente, classeCss: 'badge-orange' };
     } else {
@@ -205,8 +219,14 @@ const ClientesDashboard = () => {
                             <button onClick={() => toggleDetalhes(cliente.id)} className="btn btn-outline">
                               {clienteExpandido === cliente.id ? '▴ Ocultar' : '▾ Detalhes'}
                             </button>
-                            <button onClick={() => handleCobrarWhatsApp(cliente)} disabled={statusReal.valorTotal <= 0} className="btn btn-whatsapp">Cobrar</button>
-                            {/* O botão "Receber" geral foi removido daqui! */}
+                            <button
+                              onClick={() => handleCobrarWhatsApp(cliente)}
+                              disabled={statusReal.situacao !== 'ATRASADA'}
+                              className="btn btn-whatsapp"
+                              title={statusReal.situacao !== 'ATRASADA' ? 'Cobrança apenas para parcelas vencidas' : 'Enviar cobrança'}
+                            >
+                              Cobrar
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -256,7 +276,7 @@ const ClientesDashboard = () => {
                                                             <span><strong>{parcela.numeroParcela}ª Parcela</strong> - R$ {parcela.valor?.toFixed(2).replace('.', ',')}</span>
                                                             <span style={{ color: '#6b7280', fontSize: '11px' }}>
                                                               {parcela.status === 'PAGA' ? (
-                                                                <>Pago em: {parcela.dataPagamento ? new Date(parcela.dataPagamento).toLocaleDateString() : '--'}</>
+                                                                <>Pago em: {parcela.dataPagamento ? new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString() : '--'}</>
                                                               ) : (
                                                                 <>Venc: {parcela.dataVencimento ? new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString() : '--'}</>
                                                               )}

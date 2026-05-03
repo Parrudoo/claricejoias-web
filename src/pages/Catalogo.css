@@ -1,11 +1,14 @@
+/* =========================================================
+   ESTRUTURA GERAL
+   ========================================================= */
 .catalogo-container {
     padding-top: 100px; 
     background-color: #fafafa; 
     min-height: 100vh;
-  }
+}
   
-  /* --- CABEÇALHO / MENU --- */
-  .menu-categorias {
+/* --- CABEÇALHO / MENU --- */
+.menu-categorias {
     position: fixed;
     top: 0;
     left: 0;
@@ -17,9 +20,9 @@
     padding: 15px 0;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  }
+}
   
-  .menu-categorias button {
+.menu-categorias button {
     background: none;
     border: none;
     color: #D4AF37;
@@ -27,220 +30,229 @@
     text-transform: uppercase;
     cursor: pointer;
     font-size: 14px;
-  }
+}
   
-  .header-vitrine {
+.header-vitrine {
     text-align: center;
     padding: 20px 20px 60px 20px; 
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
+}
   
-  .header-vitrine h1 {
+.header-vitrine h1 {
     font-family: 'Playfair Display', serif;
     font-size: 42px;
     color: #1a1a1a;
     margin: 0 0 10px 0;
     letter-spacing: 2px;
-  }
+}
   
-  .header-vitrine p {
+.header-vitrine p {
     color: #666;
     font-size: 16px;
     font-weight: 400;
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 1px;
-  }
+}
   
-  .espacador-topo {
+.espacador-topo {
     height: 20px; 
-  }
+}
   
-  /* =========================================================
-     CARROSSEL DE BANNERS (FUNDO, TEXTO, SETAS E BOLINHAS)
-     ========================================================= */
-  .banner-destaque {
-      width: 100%;
-      height: 350px;
-      background-color: #1a1a1a; 
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      margin-bottom: 40px;
-      position: relative; /* Necessário para fixar setas e bolinhas */
-      transition: background-image 0.6s ease-in-out;
-  }
+/* =========================================================
+   CARROSSEL DE BANNERS (FUNDO, TEXTO, SETAS E BOLINHAS)
+   ========================================================= */
+.banner-destaque {
+    width: 100%;
+    height: 350px;
+    background-color: #1a1a1a; 
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    transition: background-image 0.6s ease-in-out;
+}
   
-  /* Animação do Texto ao trocar o slide */
-  @keyframes fadeInText {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-  }
+@keyframes fadeInText {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
   
-  .banner-conteudo {
-      animation: fadeInText 0.5s ease-out;
-      padding: 0 60px; /* Evita que o texto encoste nas setas */
-  }
+.banner-conteudo {
+    animation: fadeInText 0.5s ease-out;
+    padding: 0 60px;
+}
   
-  .banner-conteudo h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 42px;
-      color: #D4AF37;
-      margin-bottom: 15px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
+.banner-conteudo h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    color: #D4AF37;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
   
-  .banner-conteudo p {
-      color: #fff;
-      font-size: 18px;
-      margin-bottom: 25px;
-      letter-spacing: 1px;
-  }
+.banner-conteudo p {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
   
-  .btn-banner {
-      background-color: transparent;
-      color: #D4AF37;
-      border: 2px solid #D4AF37;
-      padding: 12px 30px;
-      font-size: 16px;
-      font-weight: bold;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.3s ease;
-  }
+.btn-banner {
+    background-color: transparent;
+    color: #D4AF37;
+    border: 2px solid #D4AF37;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
   
-  .btn-banner:hover {
-      background-color: #D4AF37;
-      color: #1a1a1a;
-  }
+.btn-banner:hover {
+    background-color: #D4AF37;
+    color: #1a1a1a;
+}
   
-  /* --- AS SETAS DO CARROSSEL --- */
-  .btn-seta-banner {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(0, 0, 0, 0.3);
-      color: #fff;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 10;
-      transition: all 0.3s ease;
-  }
+.btn-seta-banner {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
   
-  .btn-seta-banner:hover {
-      background: rgba(212, 175, 55, 0.8); /* Dourado transparente ao passar o mouse */
-      color: #1a1a1a;
-      transform: translateY(-50%) scale(1.1);
-  }
+.btn-seta-banner:hover {
+    background: rgba(212, 175, 55, 0.8);
+    color: #1a1a1a;
+    transform: translateY(-50%) scale(1.1);
+}
   
-  .btn-seta-banner.esquerda { left: 30px; }
-  .btn-seta-banner.direita { right: 30px; }
+.btn-seta-banner.esquerda { left: 30px; }
+.btn-seta-banner.direita { right: 30px; }
   
-  /* --- AS BOLINHAS DO CARROSSEL --- */
-  .banner-indicadores {
-      position: absolute;
-      bottom: 20px;
-      display: flex;
-      gap: 12px;
-  }
+.banner-indicadores {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    gap: 12px;
+}
   
-  .indicador-bolinha {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.4);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-  }
+.indicador-bolinha {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
   
-  .indicador-bolinha:hover {
-      background-color: rgba(255, 255, 255, 0.8);
-  }
+.indicador-bolinha:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
   
-  .indicador-bolinha.ativo {
-      background-color: #D4AF37; 
-      transform: scale(1.3);
-      box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
-      border-color: transparent;
-  }
+.indicador-bolinha.ativo {
+    background-color: #D4AF37; 
+    transform: scale(1.3);
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+    border-color: transparent;
+}
   
-  @media (max-width: 768px) {
-      .banner-destaque { height: 250px; }
-      .banner-conteudo h2 { font-size: 28px; }
-      .banner-conteudo p { font-size: 14px; }
-      .btn-seta-banner { width: 35px; height: 35px; } /* Setas menores no celular */
-      .btn-seta-banner.esquerda { left: 10px; }
-      .btn-seta-banner.direita { right: 10px; }
-  }
+@media (max-width: 768px) {
+    .banner-destaque { height: 250px; }
+    .banner-conteudo h2 { font-size: 28px; }
+    .banner-conteudo p { font-size: 14px; }
+    .btn-seta-banner { width: 35px; height: 35px; }
+    .btn-seta-banner.esquerda { left: 10px; }
+    .btn-seta-banner.direita { right: 10px; }
+}
   
-  /* =========================================================
-     VITRINE E GRID DE PRODUTOS
-     ========================================================= */
-  .vitrine-conteudo {
+/* =========================================================
+   VITRINE E GRID DE PRODUTOS
+   ========================================================= */
+.vitrine-conteudo {
     max-width: 1300px;
     margin: 0 auto;
     padding: 0 20px;
-  }
+}
   
-  .secao-categoria {
+.secao-categoria {
     margin-bottom: 50px;
     padding: 0 20px;
-  }
+}
   
-  .titulo-categoria {
+.titulo-categoria {
     font-family: 'Playfair Display', serif;
     font-size: 32px;
     color: #1a1a1a;
     border-bottom: 2px solid #D4AF37;
     display: inline-block;
     margin-bottom: 20px;
-  }
+}
   
-  .titulo-subcategoria {
+.titulo-subcategoria {
     font-size: 18px;
     color: #666;
     margin: 15px 0;
     text-transform: italic;
-  }
+}
   
-  .grid-produtos {
+.grid-produtos {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 30px;
-  }
+}
   
-  .imagem-padrao-card {
+.imagem-padrao-card {
     width: 100%;
     height: 280px; 
     object-fit: cover; 
     object-position: center; 
     border-radius: 8px 8px 0 0;
-  }
+}
   
-  .preco {
+.preco {
     display: block;
     font-weight: bold;
     margin: 10px 0;
     color: #333;
-  }
+}
   
-  /* =========================================================
-     BOTÃO FLUTUANTE DA MALETA E LEADS
-     ========================================================= */
-  .botao-maleta-flutuante {
+/* =========================================================
+   BOTÕES FLUTUANTES (MALETA E GUIA MEDIDOR)
+   ========================================================= */
+.area-flutuante-rodape {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 9999; 
+    pointer-events: none; 
+}
+  
+/* 1. Botão da Maleta (Carrinho) */
+.botao-maleta-flutuante {
     position: fixed;
     bottom: 30px; 
     right: 30px; 
@@ -253,19 +265,20 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 2500; 
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     border: 2px solid #D4AF37;
     transition: transform 0.3s ease, background-color 0.3s;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
+    pointer-events: auto; 
+    z-index: 9999;
+}
   
-  .botao-maleta-flutuante:hover {
+.botao-maleta-flutuante:hover {
     transform: scale(1.1); 
     background-color: #333;
-  }
+}
   
-  .badge-contagem {
+.badge-contagem {
     position: absolute;
     top: -5px;
     right: -5px;
@@ -281,262 +294,407 @@
     justify-content: center;
     border: 2px solid #1a1a1a;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  }
+}
   
-  @keyframes popIn {
+@keyframes popIn {
     0% { transform: scale(0); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
-  }
+}
   
-  @media (max-width: 480px) {
+/* 2. Botão do Guia Medidor (Branco) */
+.botao-guia-flutuante {
+    position: fixed;
+    bottom: 30px;
+    left: 20px; 
+    background-color: #fff; 
+    border: 2px solid #D4AF37; 
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 6px 16px 6px 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUpFadeIn 0.8s ease-out;
+    pointer-events: auto; 
+    z-index: 9999;
+}
+  
+.botao-guia-flutuante:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+}
+  
+.guia-icone-container {
+    background-color: #D4AF37;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+}
+  
+.guia-texto {
+    color: #333; 
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+  
+@keyframes slideUpFadeIn {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+  
+@media (max-width: 480px) {
+    .guia-texto {
+        display: none;
+    }
+    .botao-guia-flutuante {
+        padding: 8px; 
+    }
+    .guia-icone-container {
+        margin-right: 0;
+    }
     .botao-maleta-flutuante {
         bottom: 20px;
         right: 20px;
         width: 55px;
         height: 55px;
     }
-  }
+}
   
-  .botao-guia-flutuante {
-      position: fixed;
-      bottom: 20px;
-      left: 20px; 
-      background-color: #fff;
-      border: 2px solid #D4AF37; 
-      border-radius: 50px;
-      display: flex;
-      align-items: center;
-      padding: 6px 16px 6px 6px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 900;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      animation: slideUpFadeIn 0.8s ease-out;
-  }
+/* =========================================================
+   MODAIS (CAPTURA LEADS E DETALHES DA JOIA)
+   ========================================================= */
+.modal-detalhes-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
   
-  .botao-guia-flutuante:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
-  }
+.modal-detalhes-card {
+    background: #fff;
+    width: 100%;
+    max-width: 850px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    overflow: hidden;
+    animation: fadeIn 0.3s ease;
+}
   
-  .guia-icone-container {
-      background-color: #D4AF37;
-      color: white;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-right: 12px;
-  }
+.modal-lead-card {
+    background-color: white;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 12px;
+    position: relative;
+    padding: 30px 24px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease;
+}
   
-  .guia-texto {
-      color: #333;
-      font-weight: 600;
-      font-size: 0.9rem;
-  }
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
   
-  @keyframes slideUpFadeIn {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-  }
+.btn-fechar-detalhes {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #f5f5f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #333;
+    z-index: 10;
+    transition: 0.2s;
+}
   
-  /* =========================================================
-     MODAIS (CAPTURA LEADS E DETALHES DA JOIA)
-     ========================================================= */
-  .modal-detalhes-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(3px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 20px;
-  }
+.btn-fechar-detalhes:hover {
+    background: #ff4d4f;
+    color: #fff;
+}
   
-  .modal-detalhes-card {
-      background: #fff;
-      width: 100%;
-      max-width: 850px;
-      border-radius: 12px;
-      position: relative;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      overflow: hidden;
-      animation: fadeIn 0.3s ease;
-  }
+.lead-titulo {
+    font-family: 'Playfair Display', serif;
+    color: #D4AF37;
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
   
-  .modal-lead-card {
-      background-color: white;
-      width: 90%;
-      max-width: 420px;
-      border-radius: 12px;
-      position: relative;
-      padding: 30px 24px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease;
-  }
+.lead-subtitulo {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
   
-  @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-  }
+.form-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
   
-  .btn-fechar-detalhes {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #f5f5f5;
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: #333;
-      z-index: 10;
-      transition: 0.2s;
-  }
+.input-group { text-align: left; }
+.input-group label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 6px; font-weight: 500; }
+.input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.input-group input:focus { border-color: #D4AF37; }
   
-  .btn-fechar-detalhes:hover {
-      background: #ff4d4f;
-      color: #fff;
-  }
+.btn-baixar-guia {
+    background-color: #D4AF37;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
   
-  .lead-titulo {
-      font-family: 'Playfair Display', serif;
-      color: #D4AF37;
-      font-size: 1.5rem;
-      margin-top: 0;
-      margin-bottom: 12px;
-  }
+.btn-baixar-guia:hover:not(:disabled) { background-color: #b8962e; }
+.btn-baixar-guia:disabled { opacity: 0.7; cursor: not-allowed; }
   
-  .lead-subtitulo {
-      color: #555;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 24px;
-  }
+.lead-spam-aviso {
+    display: block;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: #999;
+}
   
-  .form-lead {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-  }
+.modal-detalhes-content { display: flex; flex-wrap: wrap; }
   
-  .input-group { text-align: left; }
-  .input-group label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 6px; font-weight: 500; }
-  .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-  .input-group input:focus { border-color: #D4AF37; }
+.galeria-joia {
+    flex: 1;
+    min-width: 300px;
+    padding: 30px;
+    background-color: #fafafa;
+}
   
-  .btn-baixar-guia {
-      background-color: #D4AF37;
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 8px;
-      transition: background-color 0.2s;
-  }
+.foto-principal {
+    width: 100%;
+    max-width: 400px; 
+    height: 400px; 
+    margin: 0 auto 15px auto; 
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+}
   
-  .btn-baixar-guia:hover:not(:disabled) { background-color: #b8962e; }
-  .btn-baixar-guia:disabled { opacity: 0.7; cursor: not-allowed; }
+.foto-principal img { width: 100%; height: 100%; object-fit: cover; }
   
-  .lead-spam-aviso {
-      display: block;
-      margin-top: 16px;
-      font-size: 0.75rem;
-      color: #999;
-  }
+.placeholder-foto {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+}
   
-  .modal-detalhes-content { display: flex; flex-wrap: wrap; }
+.lista-miniaturas { display: flex; gap: 10px; overflow-x: auto; }
+.miniatura {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6;
+    transition: 0.2s;
+}
   
-  .galeria-joia {
-      flex: 1;
-      min-width: 300px;
-      padding: 30px;
-      background-color: #fafafa;
-  }
+.miniatura:hover { opacity: 0.9; }
+.miniatura.selecionada { opacity: 1; border-color: #D4AF37; }
   
-  .foto-principal {
-      width: 100%;
-      max-width: 400px; 
-      height: 400px; 
-      margin: 0 auto 15px auto; 
-      border-radius: 8px;
-      overflow: hidden;
-      background-color: #fff;
-      display: flex;
-      justify-content: center;
-  }
+.info-joia-detalhada {
+    flex: 1;
+    min-width: 300px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
   
-  .foto-principal img { width: 100%; height: 100%; object-fit: cover; }
+.info-joia-detalhada h2 { font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 10px; }
+.preco-destaque { font-size: 26px; font-weight: bold; color: #D4AF37; margin-bottom: 25px; }
+.descricao-box { color: #555; line-height: 1.6; margin-bottom: 30px; font-size: 15px; }
   
-  .placeholder-foto {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #aaa;
-      border: 1px dashed #ddd;
-      border-radius: 8px;
-  }
+.btn-add-maleta-modal {
+    background-color: #1a1a1a;
+    color: #D4AF37;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    width: 100%;
+}
   
-  .lista-miniaturas { display: flex; gap: 10px; overflow-x: auto; }
-  .miniatura {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 6px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      opacity: 0.6;
-      transition: 0.2s;
-  }
-  
-  .miniatura:hover { opacity: 0.9; }
-  .miniatura.selecionada { opacity: 1; border-color: #D4AF37; }
-  
-  .info-joia-detalhada {
-      flex: 1;
-      min-width: 300px;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-  }
-  
-  .info-joia-detalhada h2 { font-family: 'Playfair Display', serif; font-size: 28px; color: #1a1a1a; margin-bottom: 10px; }
-  .preco-destaque { font-size: 26px; font-weight: bold; color: #D4AF37; margin-bottom: 25px; }
-  .descricao-box { color: #555; line-height: 1.6; margin-bottom: 30px; font-size: 15px; }
-  
-  .btn-add-maleta-modal {
-      background-color: #1a1a1a;
-      color: #D4AF37;
-      border: none;
-      padding: 15px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      text-transform: uppercase;
-      width: 100%;
-  }
-  
-  .btn-add-maleta-modal:hover { background-color: #333; transform: translateY(-2px); }
+.btn-add-maleta-modal:hover { background-color: #333; transform: translateY(-2px); }
+
+.ferramenta-container-modal {
+    padding: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* =========================================================
+   RODAPÉ ELEGANTE E REDES SOCIAIS (VERSÃO COMPACTA)
+   ========================================================= */
+.rodape-elegante {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 25px 20px 15px 20px; 
+    margin-top: 50px;
+    border-top: 3px solid #D4AF37;
+    position: relative;
+    z-index: 10;
+}
+
+.rodape-conteudo {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.rodape-logo {
+    text-align: left;
+}
+
+.rodape-logo h2 {
+    font-family: 'Playfair Display', serif;
+    color: #D4AF37;
+    font-size: 22px; 
+    margin: 0 0 4px 0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.rodape-logo p {
+    color: #999;
+    font-size: 13px;
+    font-style: italic;
+    margin: 0;
+}
+
+.rodape-social {
+    display: flex;
+    gap: 12px;
+}
+
+.rodape-social a {
+    color: #fff;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; 
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.rodape-social a:hover {
+    color: #1a1a1a;
+    background-color: #D4AF37;
+    border-color: #D4AF37;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+}
+
+.rodape-copyright {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    letter-spacing: 0.5px;
+}
+
+/* Ajustes para telas menores (Celular) */
+@media (max-width: 600px) {
+    .rodape-conteudo {
+        flex-direction: column;
+        text-align: center;
+    }
+    .rodape-logo {
+        text-align: center;
+    }
+    .rodape-elegante {
+        padding-bottom: 90px; /* Evita que o texto fique atrás dos botões no celular */
+    }
+}
+
+.rodape-logo {
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.rodape-logo:hover {
+    transform: scale(1.03);
+}
+
+.rodape-logo h2 {
+    font-family: 'Playfair Display', serif;
+    color: #fff; 
+    font-size: 26px; 
+    margin: 0 0 4px 0;
+    letter-spacing: 1px;
+    text-transform: none; /* 👈 Isso garante que ele respeite as letras maiúsculas e minúsculas que você digitou */
+}
+
+.rodape-logo h2 span {
+    color: #D4AF37; /* 'Joias' em dourado */
+}
+
+.rodape-logo p {
+    color: #999;
+    font-size: 13px;
+    font-style: italic;
+    margin: 0;
+}

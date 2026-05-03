@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    FiShoppingBag, FiX, FiFileText, FiChevronLeft, 
-    FiChevronRight, FiMaximize2 
+import {
+    FiShoppingBag, FiX, FiFileText, FiChevronLeft,
+    FiChevronRight, FiMaximize2,
+    FiInstagram,
+    FiTwitter,
+    FiFacebook
 } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 
 // Componentes
 import { CardItem } from '../components/CardItem';
@@ -14,7 +18,7 @@ import MedidorDeAnel from './MedidorDeAnel';
 import { useMaleta } from '../context/MaletaContext';
 import { CategoriaService } from '../services/CategoriaService';
 import { leadService } from '../services/leadService';
-import { BannerService } from '../services/BannerService'; 
+import { BannerService } from '../services/BannerService';
 
 // Estilos
 import './Catalogo.css';
@@ -34,7 +38,7 @@ export default function Catalogo() {
     const [modalGuiaAberto, setModalGuiaAberto] = useState(false);
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // Novos estados do Medidor e Botão Flutuante
     const [mostrarMedidor, setMostrarMedidor] = useState(false);
     const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
@@ -61,7 +65,7 @@ export default function Catalogo() {
             const deveMostrarForm = await leadService.verificarStatusGuia();
             if (!deveMostrarForm) {
                 setVisitanteJaEhLead(true);
-                setMostrarMedidor(true); 
+                setMostrarMedidor(true);
             }
         } catch (error) {
             console.error("Erro ao verificar status do visitante:", error);
@@ -74,7 +78,7 @@ export default function Catalogo() {
 
         const timerSlide = setInterval(() => {
             proximoBanner();
-        }, 5000); 
+        }, 5000);
 
         return () => clearInterval(timerSlide);
     }, [bannersAtivos, indiceBanner]);
@@ -158,7 +162,7 @@ export default function Catalogo() {
         );
     }
 
-    const backgroundUrl = bannersAtivos.length > 0 
+    const backgroundUrl = bannersAtivos.length > 0
         ? `${API_BASE_URL}/api/arquivos/view/${bannersAtivos[indiceBanner].objectName}`
         : 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop';
 
@@ -168,7 +172,7 @@ export default function Catalogo() {
             <div className="espacador-topo"></div>
 
             {/* BANNER DINÂMICO CARROSSEL */}
-            <section 
+            <section
                 className="banner-destaque"
                 style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` }}
             >
@@ -179,10 +183,10 @@ export default function Catalogo() {
                 )}
 
                 <div className="banner-conteudo" key={indiceBanner}>
-                    <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Elegance"}</h2>
+                    <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Clarice Joias"}</h2>
                     <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
-                    <button 
-                        className="btn-banner" 
+                    <button
+                        className="btn-banner"
                         onClick={() => {
                             const linkAcao = bannersAtivos[indiceBanner]?.linkAcao;
                             if (linkAcao) {
@@ -205,8 +209,8 @@ export default function Catalogo() {
                 {bannersAtivos.length > 1 && (
                     <div className="banner-indicadores">
                         {bannersAtivos.map((_, index) => (
-                            <span 
-                                key={index} 
+                            <span
+                                key={index}
                                 className={`indicador-bolinha ${index === indiceBanner ? 'ativo' : ''}`}
                                 onClick={() => setIndiceBanner(index)}
                             ></span>
@@ -281,7 +285,7 @@ export default function Catalogo() {
                                         <div className="input-group">
                                             <label>Como podemos te chamar?</label>
                                             <input type="text" placeholder="Seu nome" required value={dadosLead.nome} onChange={e => setDadosLead({ ...dadosLead, nome: e.target.value })} />
-                                        </div>                                
+                                        </div>
                                         <WhatsAppInput value={dadosLead.whatsapp} onChange={(valor) => setDadosLead({ ...dadosLead, whatsapp: valor })} />
                                         <button type="submit" className="btn-baixar-guia" disabled={isSubmitting}>
                                             {isSubmitting ? 'Processando...' : 'Acessar Ferramenta Grátis'}
@@ -336,6 +340,35 @@ export default function Catalogo() {
                     </div>
                 </div>
             )}
+
+            {/* ... seus modais existentes terminam aqui ... */}
+
+            {/* RODAPÉ ELEGANTE */}
+            <footer className="rodape-elegante">
+                <div className="rodape-conteudo">
+                    <div
+                        className="rodape-logo"
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        title="Voltar ao início"
+                    >
+                        <h2>Clarice<span>Joias</span></h2>
+                        <p>Peças exclusivas para momentos inesquecíveis.</p>
+                    </div>
+
+                    <div className="rodape-social">
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">
+                            <FiInstagram />
+                        </a>
+                        <a href="https://wa.me/5586995646615" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+                            <FaWhatsapp />
+                        </a>
+                    </div>
+                </div>
+
+                <div className="rodape-copyright">
+                    <p>&copy; {new Date().getFullYear()} Elegance Joias. Todos os direitos reservados.</p>
+                </div>
+            </footer>
         </div>
     );
 }
