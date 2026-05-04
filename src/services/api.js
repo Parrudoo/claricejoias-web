@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import keycloak from '../config/keycloak';
+import { v4 as uuidv4 } from 'uuid'; // 👇 IMPORT ADICIONADO AQUI
 
 // =======================================================================
 // 1. GERA OU RECUPERA O ID DO VISITANTE (CARRINHO ANÔNIMO)
@@ -8,7 +9,8 @@ import keycloak from '../config/keycloak';
 let visitorId = localStorage.getItem('visitor_id');
 if (!visitorId) {
     // Se for a primeira vez da pessoa no site, gera um código único pra ela
-    visitorId = crypto.randomUUID(); 
+    // FUNÇÃO TROCADA AQUI PARA FUNCIONAR SEM HTTPS
+    visitorId = uuidv4(); 
     localStorage.setItem('visitor_id', visitorId);
 }
 
@@ -25,7 +27,7 @@ const api = axios.create({
 // =======================================================================
 api.interceptors.request.use(
     async (config) => {
-        // 👇 INJETA O ID DO VISITANTE EM TODAS AS REQUISIÇÕES
+        //  INJETA O ID DO VISITANTE EM TODAS AS REQUISIÇÕES
         config.headers['X-Visitor-ID'] = visitorId;
 
         // Se o usuário já tiver feito login, envia o Token do Keycloak também
@@ -34,7 +36,7 @@ api.interceptors.request.use(
                 // Atualiza o token se ele for expirar nos próximos 30 segundos
                 await keycloak.updateToken(30);
                 config.headers.Authorization = `Bearer ${keycloak.token}`;
-                // 👇 A PEÇA QUE FALTA: Injeta o ID do usuário para o seu CarrinhoController
+                //  A PEÇA QUE FALTA: Injeta o ID do usuário para o seu CarrinhoController
                 // O 'subject' é o UUID do Keycloak que você salva no banco como 'usuarioId'
                 config.headers['X-Usuario-ID'] = keycloak.subject;
             } catch (error) {

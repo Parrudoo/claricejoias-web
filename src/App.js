@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ReactKeycloakProvider } from '@react-keycloak/web'; 
+import { ReactKeycloakProvider } from '@react-keycloak/web';
 import keycloak from './config/keycloak';
 
 import { MaletaProvider } from './context/MaletaContext';
@@ -39,12 +39,15 @@ const Dashboard = () => {
 
 function App() {
   return (
-    <ReactKeycloakProvider 
-      authClient={keycloak} 
-      initOptions={{ onLoad: 'check-sso', pkceMethod: 'S256' }}
+    <ReactKeycloakProvider
+      authClient={keycloak}
+      initOptions={{
+        onLoad: 'check-sso', // A MUDANÇA É AQUI (Libera a página inicial)
+        pkceMethod: 'S256',
+        checkLoginIframe: false// Mantenha isso para a tela não travar nunca mais!
+      }}
       LoadingComponent={<Loading />}
     >
-      {/* 3. O AuthProvider ABRAÇA a MaletaProvider e todo o resto do site! */}
       <AuthProvider>
         <MaletaProvider>
           <ToastContainer position="top-right" autoClose={4000} />
@@ -57,17 +60,17 @@ function App() {
                 <Route path="/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
 
                 {/* ROTAS ADMINISTRATIVAS */}
-                <Route path="/admin" element={ <RotaProtegida><AdminLayout /></RotaProtegida> }>
+                <Route path="/admin" element={<RotaProtegida><AdminLayout /></RotaProtegida>}>
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                  
+
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="cadastrar" element={<CadastroCategoria />} />
-                  <Route path="listar" element={<ListarCategorias />} />   
-                  <Route path="leads" element={<LeadsDashboard />} />   
-                  <Route path="telaPdv" element={<TelaPDV />} />                
-                  <Route path="telaCliente" element={<ClientesDashboard />} /> 
-                  <Route path="config" element={<GerenciarBanners />} /> 
-                  <Route path="vendas" element={<ListarVendas />} /> 
+                  <Route path="listar" element={<ListarCategorias />} />
+                  <Route path="leads" element={<LeadsDashboard />} />
+                  <Route path="telaPdv" element={<TelaPDV />} />
+                  <Route path="telaCliente" element={<ClientesDashboard />} />
+                  <Route path="config" element={<GerenciarBanners />} />
+                  <Route path="vendas" element={<ListarVendas />} />
                 </Route>
               </Routes>
             </div>
