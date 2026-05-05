@@ -92,7 +92,7 @@ export default function Checkout() {
       navigate('/'); 
     } catch (error) {
       setLoading(false);
-      alert("Houve um erro ao processar seu pedido. Tente novamente.");
+      
     }
   };
 
