@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import keycloak from '../config/keycloak';
-import { v4 as uuidv4 } from 'uuid'; // 👇 IMPORT ADICIONADO AQUI
+import { v4 as uuidv4 } from 'uuid'; // IMPORT ADICIONADO AQUI
 
 // =======================================================================
 // 1. GERA OU RECUPERA O ID DO VISITANTE (CARRINHO ANÔNIMO)

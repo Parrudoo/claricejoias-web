@@ -1,24 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiUser, FiChevronDown, FiX } from 'react-icons/fi';
+import { FiUser, FiChevronDown, FiX, FiSmartphone, FiLock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthProvider';
-import { authService } from '../services/authService';
+import { leadService } from '../services/leadService';
+import { authService } from '../services/authService'; // 👈 Importamos o serviço para a recuperação de senha
 import './Menu.css';
 import WhatsAppInput from './WhatsAppInput';
 
 export function Menu({ categorias, aoClicarCategoria }) {
   const { logado, keycloakData, ehAdmin, login, logout } = useAuth();
 
+  // ==========================================
+  // ESTADOS DO MODAL DE CADASTRO (STEPS)
+  // ==========================================
   const [modalAberto, setModalAberto] = useState(false);
+  const [step, setStep] = useState(1);
+  const [codigoOtp, setCodigoOtp] = useState('');
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     whatsapp: '',
-    email: '',
-    senha: ''
+    email: ''
   });
 
-  // 👇 NOVO ESTADO: Controla se a roleta deve ser ativada ou não
-  const [isRoleta, setIsRoleta] = useState(false);
+  // ==========================================
+  // ESTADOS DO MODAL DE RECUPERAÇÃO DE SENHA
+  // ==========================================
+  const [modalRecuperarAberto, setModalRecuperarAberto] = useState(false);
+  const [whatsAppRecuperar, setWhatsAppRecuperar] = useState('');
+  const [loadingRecuperar, setLoadingRecuperar] = useState(false);
 
+  // ==========================================
+  // ESTADOS E REFS DA ROLETA/CARROSSEL
+  // ==========================================
+  const [isRoleta, setIsRoleta] = useState(false);
   const menuRef = useRef(null);
   const isDown = useRef(false);
   const startX = useRef(0);
@@ -27,47 +41,36 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
   const primeiroNome = keycloakData?.primeiroNome || 'Cliente';
 
-  // --- LÓGICA INTELIGENTE DE TELA (RESIZE E OVERFLOW) ---
+  // --- LÓGICA DE TELA (RESIZE E OVERFLOW) ---
   useEffect(() => {
     const checarEspaco = () => {
       if (!menuRef.current) return;
       const nav = menuRef.current;
-      
-      // Se já estiver triplicado, a largura real é 1/3 do total. Se não, é o total.
       const larguraOriginal = isRoleta ? nav.scrollWidth / 3 : nav.scrollWidth;
       
-      // Verifica se a largura dos itens é maior que a largura da tela (precisa de scroll)
       if (larguraOriginal > nav.clientWidth) {
         setIsRoleta(true);
       } else {
         setIsRoleta(false);
       }
     };
-
-    // Roda a checagem ao carregar a página
     checarEspaco();
-
-    // Roda a checagem toda vez que o usuário redimensionar a janela (ex: virar o celular)
     window.addEventListener('resize', checarEspaco);
     return () => window.removeEventListener('resize', checarEspaco);
   }, [isRoleta, categorias]);
 
-  // Se ativou a roleta, joga o scroll para o meio invisivelmente
   useEffect(() => {
     if (isRoleta && menuRef.current) {
       menuRef.current.scrollLeft = menuRef.current.scrollWidth / 3;
     }
   }, [isRoleta]);
 
-  // Decide qual lista renderizar com base no espaço da tela
   const categoriasParaRenderizar = isRoleta 
     ? [...categorias, ...categorias, ...categorias] 
     : categorias;
 
-  // --- Função da Roleta Infinita ---
   const handleScroll = () => {
-    if (!isRoleta || !menuRef.current) return; // Só faz o "pulo" se estiver no celular (roleta ativada)
-    
+    if (!isRoleta || !menuRef.current) return;
     const nav = menuRef.current;
     const tamanhoDeUmaLista = nav.scrollWidth / 3;
 
@@ -82,8 +85,20 @@ export function Menu({ categorias, aoClicarCategoria }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const abrirModalCadastro = () => setModalAberto(true);
+  // --- CONTROLES DOS MODAIS ---
+  const abrirModalCadastro = () => {
+    setStep(1);
+    setCodigoOtp('');
+    setFormData({ nome: '', whatsapp: '', email: '' });
+    setModalAberto(true);
+  };
   const fecharModal = () => setModalAberto(false);
+
+  const abrirModalRecuperar = () => {
+    setWhatsAppRecuperar('');
+    setModalRecuperarAberto(true);
+  };
+  const fecharModalRecuperar = () => setModalRecuperarAberto(false);
 
   const handleMinhaConta = () => {
     if (ehAdmin) {
@@ -93,29 +108,87 @@ export function Menu({ categorias, aoClicarCategoria }) {
     }
   };
 
-  const handleCadastroSubmit = async (e) => {
+  // ==========================================================
+  // LÓGICA DE CADASTRO COM WHATSAPP
+  // ==========================================================
+
+  const handleSolicitarCodigo = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    const whatsappLimpo = formData.whatsapp.replace(/\D/g, '');
     try {
-      await authService.cadastrar({
-        nome: formData.nome,
-        whatsapp: formData.whatsapp,
-        email: formData.email,
-        senha: formData.senha
-      });
-
-      alert("Conta criada com sucesso! Você será redirecionado para o login.");
-
-      setFormData({ nome: '', whatsapp: '', email: '', senha: '' });
-      fecharModal();
-      login();
+      await leadService.solicitarCodigo(whatsappLimpo);
+      setLoading(false);
+      setStep(2);
     } catch (error) {
-      // Tratar erro
+      setLoading(false);
+      alert("Erro ao enviar código. Verifique se o número está correto.");
     }
   };
 
-  const voltarAoTopo = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleValidarCodigo = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const whatsappLimpo = formData.whatsapp.replace(/\D/g, '');
+    try {
+      await leadService.validarCodigo(whatsappLimpo, codigoOtp);
+      setLoading(false);
+      setStep(3);
+    } catch (error) {
+      setLoading(false);
+      alert("Código inválido. Tente novamente.");
+    }
   };
+
+  const handleFinalizarCadastro = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const whatsappLimpo = formData.whatsapp.replace(/\D/g, '');
+
+    try {
+      await leadService.salvar({
+        nome: formData.nome,
+        email: formData.email,
+        whatsapp: whatsappLimpo,
+        criarConta: true,
+        itens: [] 
+      });
+
+      setLoading(false);
+      alert("Conta criada com sucesso! 💎 A senha de acesso foi enviada para o seu WhatsApp.");
+      fecharModal();
+      login();
+    } catch (error) {
+      setLoading(false);
+      alert("Houve um erro ao criar sua conta. Tente novamente.");
+    }
+  };
+
+  // ==========================================================
+  // LÓGICA DE RECUPERAÇÃO DE SENHA
+  // ==========================================================
+
+  const handleRecuperarSenha = async (e) => {
+    e.preventDefault();
+    setLoadingRecuperar(true);
+    const whatsappLimpo = whatsAppRecuperar.replace(/\D/g, '');
+
+    try {
+      await authService.solicitarRecuperacaoSenha(whatsappLimpo);
+      alert("Pronto! 💎 Uma senha provisória foi enviada para o seu WhatsApp.");
+      fecharModalRecuperar();
+      login(); // Redireciona para o login do Keycloak
+    } catch (error) {
+      alert("Não encontramos nenhuma conta com este número de WhatsApp ou houve uma falha.");
+    } finally {
+      setLoadingRecuperar(false);
+    }
+  };
+
+  // ==========================================================
+  // LÓGICA DE ARRASTAR O MENU (DRAG TO SCROLL)
+  // ==========================================================
+  const voltarAoTopo = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const handleMouseDown = (e) => {
     isDown.current = true;
@@ -133,9 +206,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
   const handleMouseUp = () => {
     isDown.current = false;
     menuRef.current.classList.remove('active');
-    setTimeout(() => {
-      isDragging.current = false;
-    }, 50);
+    setTimeout(() => isDragging.current = false, 50);
   };
 
   const handleMouseMove = (e) => {
@@ -150,23 +221,13 @@ export function Menu({ categorias, aoClicarCategoria }) {
   const posicionarSubmenu = (e) => {
     const li = e.currentTarget;
     const submenu = li.querySelector('.submenu');
-    
     if (submenu) {
       const rect = li.getBoundingClientRect();
       const submenuWidth = submenu.offsetWidth || 180;
-      
       submenu.style.top = `${rect.bottom}px`;
-
       let calculatedLeft = rect.left;
-
-      if (calculatedLeft + submenuWidth > window.innerWidth) {
-        calculatedLeft = window.innerWidth - submenuWidth - 15; 
-      }
-
-      if (calculatedLeft < 15) {
-        calculatedLeft = 15; 
-      }
-
+      if (calculatedLeft + submenuWidth > window.innerWidth) calculatedLeft = window.innerWidth - submenuWidth - 15; 
+      if (calculatedLeft < 15) calculatedLeft = 15; 
       submenu.style.left = `${calculatedLeft}px`;
     }
   };
@@ -181,7 +242,6 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
           <div className="login-container">
             <FiUser size={14} />
-
             {logado ? (
               <>
                 <span className="btn-texto-login" style={{ cursor: 'default', textTransform: 'none' }}>
@@ -195,6 +255,8 @@ export function Menu({ categorias, aoClicarCategoria }) {
             ) : (
               <>
                 <button className="btn-texto-login" onClick={login}>Login</button>
+                <span className="divisor">|</span>
+                <button className="btn-texto-login" onClick={abrirModalRecuperar}>Esqueci a Senha</button>
                 <span className="divisor">|</span>
                 <button className="btn-texto-login" onClick={abrirModalCadastro}>Cadastre-se</button>
               </>
@@ -212,13 +274,8 @@ export function Menu({ categorias, aoClicarCategoria }) {
           onScroll={handleScroll} 
         >
           <ul className="menu-lista">
-            {/* Renderiza a lista normal ou a triplicada, dependendo do estado */}
             {categoriasParaRenderizar.map((cat, i) => (
-              <li 
-                key={`${cat.categoria}-${i}`} 
-                className="menu-item"
-                onMouseEnter={posicionarSubmenu}
-              >
+              <li key={`${cat.categoria}-${i}`} className="menu-item" onMouseEnter={posicionarSubmenu}>
                 <button
                   className="btn-categoria"
                   onClick={(e) => {
@@ -237,9 +294,7 @@ export function Menu({ categorias, aoClicarCategoria }) {
                   <ul className="submenu">
                     {cat.subitens.map((sub, j) => (
                       <li key={`${sub}-${j}`}>
-                        <button onClick={() => aoClicarCategoria(sub)}>
-                          {sub}
-                        </button>
+                        <button onClick={() => aoClicarCategoria(sub)}>{sub}</button>
                       </li>
                     ))}
                   </ul>
@@ -250,7 +305,9 @@ export function Menu({ categorias, aoClicarCategoria }) {
         </nav>
       </header>
 
-      {/* O SEU MODAL CONTINUA EXATAMENTE AQUI, SEM MUDANÇAS */}
+      {/* =========================================
+          MODAL DE CADASTRO COM VALIDAÇÃO (STEPS)
+          ========================================= */}
       {modalAberto && (
         <div className="modal-auth-overlay" onClick={fecharModal}>
           <div className="modal-auth-card" onClick={(e) => e.stopPropagation()}>
@@ -260,27 +317,110 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
             <div className="modal-auth-header">
               <h2>Criar Conta</h2>
-              <p>Cadastre-se para acompanhar seus pedidos na Clarice Joias.</p>
+              <p>Segurança e agilidade em um só lugar.</p>
             </div>
 
-            <form onSubmit={handleCadastroSubmit} className="modal-auth-form">
-              <div className="auth-form-group">
-                <label>E-mail</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="seu@email.com" />
-              </div>
+            <div className="modal-auth-body">
+              {step === 1 && (
+                <form onSubmit={handleSolicitarCodigo} className="fade-in">
+                  <p style={{ fontSize: '13px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
+                    Para sua segurança, valide seu número de WhatsApp.
+                  </p>
+                  <WhatsAppInput 
+                    required={true} 
+                    value={formData.whatsapp} 
+                    onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })} 
+                  />
+                  <button type="submit" className="btn-auth-submit" disabled={loading || formData.whatsapp.length < 10}>
+                    {loading ? 'Enviando código...' : 'Receber código de acesso'}
+                  </button>
+                </form>
+              )}
 
-              <WhatsAppInput required={true} value={formData.whatsapp} onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })} />
+              {step === 2 && (
+                <form onSubmit={handleValidarCodigo} className="fade-in">
+                  <p style={{ fontSize: '13px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
+                    Enviamos um código para o número final <strong>{formData.whatsapp.slice(-4)}</strong>
+                  </p>
+                  <div className="auth-form-group">
+                    <div className="input-with-icon">
+                      <FiLock className="icon-inside" />
+                      <input 
+                        type="text" 
+                        placeholder="000000" 
+                        maxLength="6"
+                        value={codigoOtp}
+                        onChange={(e) => setCodigoOtp(e.target.value.replace(/\D/g, ''))}
+                        required
+                        autoFocus
+                        className="input-codigo-centralizado"
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" className="btn-auth-submit" disabled={loading || codigoOtp.length < 6}>
+                    {loading ? 'Validando...' : 'Confirmar Código'}
+                  </button>
+                  <button type="button" className="btn-link-auth" onClick={() => setStep(1)}>
+                    Corrigir número
+                  </button>
+                </form>
+              )}
 
-              <div className="auth-form-group">
-                <label>Senha</label>
-                <input type="password" name="senha" value={formData.senha} onChange={handleChange} required placeholder="••••••••" />
-              </div>
-
-              <button type="submit" className="btn-auth-submit">Cadastrar</button>
-            </form>
+              {step === 3 && (
+                <form onSubmit={handleFinalizarCadastro} className="fade-in">
+                  <div className="auth-form-group">
+                    <label>Seu Nome Completo</label>
+                    <input type="text" name="nome" value={formData.nome} onChange={handleChange} required placeholder="Como podemos te chamar?" />
+                  </div>
+                  <div className="auth-form-group">
+                    <label>Seu E-mail (Opcional)</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" />
+                  </div>
+                  <button type="submit" className="btn-auth-submit" disabled={loading || !formData.nome}>
+                    {loading ? 'Criando conta...' : 'Finalizar Cadastro'}
+                  </button>
+                </form>
+              )}
+            </div>
 
             <div className="modal-auth-footer">
               <p>Já tem uma conta? <button type="button" onClick={() => { fecharModal(); login(); }}>Faça Login</button></p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================
+          MODAL DE RECUPERAÇÃO DE SENHA
+          ========================================= */}
+      {modalRecuperarAberto && (
+        <div className="modal-auth-overlay" onClick={fecharModalRecuperar}>
+          <div className="modal-auth-card" onClick={(e) => e.stopPropagation()}>
+            <button className="btn-fechar-modal-auth" onClick={fecharModalRecuperar}>
+              <FiX size={20} />
+            </button>
+
+            <div className="modal-auth-header">
+              <h2>Recuperar Senha</h2>
+              <p>Digite seu WhatsApp para receber uma senha provisória.</p>
+            </div>
+
+            <form onSubmit={handleRecuperarSenha} className="fade-in">
+              <div style={{ marginBottom: '20px' }}>
+                <WhatsAppInput 
+                  required={true} 
+                  value={whatsAppRecuperar} 
+                  onChange={(valorMascarado) => setWhatsAppRecuperar(valorMascarado)} 
+                />
+              </div>
+
+              <button type="submit" className="btn-auth-submit" disabled={loadingRecuperar || whatsAppRecuperar.length < 10}>
+                {loadingRecuperar ? 'Enviando...' : 'Receber Nova Senha no Zap'}
+              </button>
+            </form>
+
+            <div className="modal-auth-footer">
+              <p>Lembrou a senha? <button type="button" onClick={() => { fecharModalRecuperar(); login(); }}>Faça Login</button></p>
             </div>
           </div>
         </div>

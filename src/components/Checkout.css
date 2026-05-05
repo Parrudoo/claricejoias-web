@@ -1,222 +1,387 @@
-/* Container Principal */
-.checkout-minimalista {
-  max-width: 600px;
-  margin: 120px auto 40px; /* Espaço para o menu fixo no topo */
-  padding: 30px;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  font-family: 'Montserrat', sans-serif;
+/* Fundo global e container principal */
+.checkout-container-ml {
+  background-color: #ededed;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding-bottom: 50px;
 }
 
-/* Botão Voltar */
-.btn-voltar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 14px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: 0.3s;
-}
-
-.btn-voltar:hover {
-  color: #D4AF37;
-  transform: translateX(-5px);
-}
-
-/* Tipografia */
-.checkout-minimalista h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 28px;
-  color: #1a1a1a;
-  margin-bottom: 10px;
-}
-
-.checkout-minimalista p {
-  color: #666;
-  margin-bottom: 30px;
-}
-
-/* Formulário e Input */
-.campo-nome {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 30px;
-}
-
-.campo-nome label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #444;
-}
-
-.campo-nome input {
-  padding: 15px;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  font-size: 16px;
-  background-color: #f9f9f9;
-  transition: 0.3s;
-}
-
-.campo-nome input:focus {
-  outline: none;
-  border-color: #D4AF37;
-  background-color: #fff;
-}
-
-/* Lista de Conferência */
-.lista-conferencia {
-  border-top: 1px solid #eee;
-  padding-top: 20px;
-  margin-bottom: 30px;
-}
-
-.checkout-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.img-checkout {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.checkout-item-info h4 {
-  margin: 0;
-  font-size: 16px;
-  color: #1a1a1a;
-}
-
-.checkout-item-info span {
-  font-size: 14px;
-  color: #888;
-}
-
-/* Total */
-.checkout-total-final {
+/* Header Seguro */
+.checkout-header-seguro {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
-  padding: 15px 0;
-  border-top: 2px dashed #eee;
+  background-color: #fff;
+  padding: 15px 5%;
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.checkout-total-final strong {
+.btn-voltar-simples {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.btn-voltar-simples:hover {
+  color: #00a650;
+}
+
+.selo-seguranca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00a650;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.icone-verde {
+  font-size: 18px;
+}
+
+/* Estrutura de Colunas */
+.checkout-content {
+  display: flex;
+  gap: 30px;
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+  align-items: flex-start;
+}
+
+.checkout-steps {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Estilo dos Cards de Step */
+.step-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.step-card.bloqueado {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.step-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.step-number {
+  background-color: #d1d5db;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.step-card.ativo .step-number {
+  background-color: #3483fa; /* Azul estilo ML, pode trocar para o verde da sua loja */
+}
+
+.step-card.concluido .step-number {
+  background-color: #00a650; /* Verde de sucesso */
+}
+
+.icone-sucesso-step {
+  color: #00a650;
+  margin-left: auto;
+  font-size: 22px;
+}
+
+.step-descricao {
+  color: #666;
+  font-size: 14px;
+  margin: 15px 0;
+}
+
+.step-resumo-texto {
+  margin-top: 15px;
+  color: #444;
+  font-size: 15px;
+}
+
+/* Inputs e Formulários */
+.input-group-moderno {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
   font-size: 20px;
-  color: #D4AF37;
 }
 
-/* Botão WhatsApp */
-.btn-whatsapp {
+.input-group-moderno input {
   width: 100%;
-  padding: 18px;
-  background-color: #25D366; /* Verde oficial WhatsApp */
+  padding: 15px 15px 15px 45px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.input-group-moderno input:focus {
+  border-color: #3483fa;
+}
+
+.input-nome {
+  padding-left: 15px !important; /* Sem ícone nesse */
+}
+
+.input-codigo input {
+  letter-spacing: 8px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  padding-left: 15px;
+}
+
+.label-moderno {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+/* Botões */
+.btn-primario {
+  background-color: #3483fa;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  transition: 0.3s;
-}
-
-.btn-whatsapp:hover {
-  background-color: #128C7E;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
-}
-
-/* Formulário e Inputs */
-.linha-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 15px; /* Reduzido para dar espaço ao email */
-}
-
-@media (min-width: 600px) {
-  .linha-inputs {
-    flex-direction: row;
-  }
-}
-
-.campo-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.campo-form label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #444;
-}
-
-.campo-form input {
+  border-radius: 6px;
   padding: 15px;
-  border: 1px solid #eee;
-  border-radius: 8px;
   font-size: 16px;
-  background-color: #f9f9f9;
-  transition: 0.3s;
+  font-weight: 600;
   width: 100%;
-  box-sizing: border-box; 
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.campo-form input:focus {
-  outline: none;
-  border-color: #D4AF37;
+.btn-primario:hover:not(:disabled) {
+  background-color: #2968c8;
+}
+
+.btn-primario:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-finalizar {
+  background-color: #00a650;
+  margin-top: 10px;
+}
+
+.btn-finalizar:hover:not(:disabled) {
+  background-color: #008a42;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #3483fa;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* Grid de Formas de Pagamento */
+.grid-pagamentos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.card-pagamento {
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   background-color: #fff;
 }
 
-/* ===================================================
-   NOVOS ESTILOS PARA A CRIAÇÃO DE CONTA (CHECKBOX)
-   =================================================== */
-.modulo-criacao-conta {
-  background-color: #FAFAFA;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 30px;
+.card-pagamento:hover {
+  border-color: #b3ccff;
 }
 
-.checkbox-conta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.card-pagamento.selecionado {
+  border-color: #3483fa;
+  background-color: #f0f4ff;
+}
+
+.icone-pagamento {
+  font-size: 28px;
+  color: #555;
+}
+
+.card-pagamento.selecionado .icone-pagamento {
+  color: #3483fa;
+}
+
+.card-pagamento strong {
   font-size: 14px;
-  font-weight: 500;
   color: #333;
-  cursor: pointer;
+  margin-top: 5px;
 }
 
-.checkbox-conta input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #D4AF37; /* Pinta a caixinha de dourado ao marcar */
-  cursor: pointer;
+.card-pagamento span {
+  font-size: 11px;
+  color: #777;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+/* Sidebar Resumo do Pedido */
+.checkout-sidebar {
+  flex: 1;
+  position: sticky;
+  top: 30px;
+}
+
+.resumo-pedido-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.resumo-pedido-card h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.lista-itens-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.item-mini {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.item-mini img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.item-mini-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-nome {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.item-preco {
+  font-size: 13px;
+  color: #666;
+  margin-top: 3px;
+}
+
+.linha-divisoria {
+  height: 1px;
+  background-color: #e5e5e5;
+  margin: 20px 0;
+}
+
+.total-resumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  color: #333;
+}
+
+.total-resumo strong {
+  font-size: 22px;
+}
+
+/* Animação suave para as etapas abrindo */
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+  margin-top: 20px;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsivo para Celulares */
+@media (max-width: 768px) {
+  .checkout-content {
+    flex-direction: column;
+  }
+  
+  .checkout-sidebar {
+    position: static;
+    width: 100%;
+    order: -1; /* Joga o resumo para cima no celular (opcional) */
+  }
+
+  .grid-pagamentos {
+    grid-template-columns: 1fr; /* Cartões de pagamento um embaixo do outro no mobile */
+  }
 }

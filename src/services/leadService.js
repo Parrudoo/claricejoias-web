@@ -57,7 +57,6 @@ export const leadService = {
   // NOVO: Endpoint para disparar mensagem no WhatsApp sob demanda
   dispararWhatsapp: async (id, texto) => {
     try {
-      // Assumindo que o seu arquivo api.js já aponta para a base da sua API (ex: http://localhost:8080/api)
       const resposta = await api.post('/mensagens/disparar', {
         leadId: id,
         texto: texto
@@ -67,5 +66,36 @@ export const leadService = {
       console.error("Erro ao disparar WhatsApp:", erro);
       throw erro;
     }
+  },
+
+  // ==================================================
+  // 👇 NOVOS ENDPOINTS: CHECKOUT PREMIUM (WhatsApp OTP)
+  // ==================================================
+
+  // Dispara o código de 6 dígitos via Evolution API
+  solicitarCodigo: async (whatsapp) => {
+    try {
+      const resposta = await api.post('/leads/solicitar-codigo', null, {
+        params: { whatsapp }
+      });
+      return resposta.data;
+    } catch (erro) {
+      console.error("Erro ao solicitar código:", erro);
+      throw erro;
+    }
+  },
+
+  // Valida se o código digitado é o mesmo que foi enviado
+  validarCodigo: async (whatsapp, codigo) => {
+    try {
+      const resposta = await api.post('/leads/validar-codigo', null, {
+        params: { whatsapp, codigo }
+      });
+      return resposta.data;
+    } catch (erro) {
+      console.error("Erro ao validar código:", erro);
+      throw erro;
+    }
   }
+
 };
