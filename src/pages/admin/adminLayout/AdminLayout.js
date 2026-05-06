@@ -4,7 +4,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import keycloak from '../../../config/keycloak'; 
 import './AdminLayout.css';
 
-// 👇 Nova importação dos ícones do pacote Feather (react-icons/fi)
+// 👇 Adicionado o FiSettings (Engrenagem) para o menu de configurações
 import { 
   FiGrid, 
   FiPackage, 
@@ -16,7 +16,8 @@ import {
   FiImage, 
   FiLogOut, 
   FiMenu, 
-  FiChevronDown 
+  FiChevronDown,
+  FiSettings 
 } from 'react-icons/fi';
 
 const AdminLayout = () => {
@@ -209,23 +210,27 @@ const AdminLayout = () => {
             )}
           </div>
 
-           {/* === GRUPO: BANNER === */}
+           {/* === GRUPO: CONFIGURAÇÕES (Antigo Banner) === */}
           <div className="nav-group">
             <button 
-              className={`nav-group-btn ${submenuAberto === 'banner' ? 'open' : ''}`} 
-              onClick={() => toggleSubmenu('banner')}
-              title="banner"
+              className={`nav-group-btn ${submenuAberto === 'config' ? 'open' : ''}`} 
+              onClick={() => toggleSubmenu('config')}
+              title="Configurações"
             >
               <div className="nav-group-icon-text">
-                <FiImage size={20} />
-                <span className="nav-text">Config Banner</span>
+                <FiSettings size={20} />
+                <span className="nav-text">Configurações</span>
               </div>
-              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'banner' ? 'rotate' : ''}`} />
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'config' ? 'rotate' : ''}`} />
             </button>
             
-            {submenuAberto === 'banner' && isExpanded && (
+            {submenuAberto === 'config' && isExpanded && (
               <div className="submenu-items">
-                <NavLink to="/admin/config" className="submenu-link">Banner</NavLink>
+                {/* Link para o Banner */}
+                <NavLink to="/admin/config" className="submenu-link">Banners</NavLink>
+                
+                {/* NOVO: Link para o WhatsApp (deve bater com a rota que configuramos no App.js) */}
+                <NavLink to="/admin/config/whatsapp" className="submenu-link">Conexão WhatsApp</NavLink>
               </div>
             )}
           </div>

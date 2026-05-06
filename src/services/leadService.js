@@ -69,7 +69,7 @@ export const leadService = {
   },
 
   // ==================================================
-  // 👇 NOVOS ENDPOINTS: CHECKOUT PREMIUM (WhatsApp OTP)
+  //  NOVOS ENDPOINTS: CHECKOUT PREMIUM (WhatsApp OTP)
   // ==================================================
 
   // Dispara o código de 6 dígitos via Evolution API

@@ -20,6 +20,7 @@ import ClientesDashboard from './pages/admin/cliente/ClientesDashboard';
 import { AuthProvider, useAuth } from './context/AuthProvider';
 import { GerenciarBanners } from './pages/admin/banner/GerenciarBanners';
 import ListarVendas from './pages/admin/vendas/ListarVendas';
+import GerenciadorWhatsapp from './pages/admin/GerenciadorWhatsapp/GerenciadorWhatsapp';
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -68,9 +69,12 @@ function App() {
                   <Route path="listar" element={<ListarCategorias />} />
                   <Route path="leads" element={<LeadsDashboard />} />
                   <Route path="telaPdv" element={<TelaPDV />} />
-                  <Route path="telaCliente" element={<ClientesDashboard />} />
-                  <Route path="config" element={<GerenciarBanners />} />
+                  <Route path="telaCliente" element={<ClientesDashboard />} />                  
                   <Route path="vendas" element={<ListarVendas />} />
+                  {/* 2. ÁREA DE CONFIGURAÇÕES E SEUS SUBMENUS */}
+                  <Route path="config" element={<GerenciarBanners />} />
+                  {/* Nova rota do WhatsApp. Como está dentro de /admin, a URL final será /admin/config/whatsapp */}
+                  <Route path="config/whatsapp" element={<GerenciadorWhatsapp />} />
                 </Route>
               </Routes>
             </div>
