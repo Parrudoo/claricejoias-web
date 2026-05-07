@@ -55,11 +55,10 @@ export const leadService = {
   },
 
   // NOVO: Endpoint para disparar mensagem no WhatsApp sob demanda
-  dispararWhatsapp: async (id, texto) => {
+  dispararWhatsapp: async (id) => {
     try {
       const resposta = await api.post('/mensagens/disparar', {
-        leadId: id,
-        texto: texto
+        leadId: id        
       });
       return resposta.data;
     } catch (erro) {
