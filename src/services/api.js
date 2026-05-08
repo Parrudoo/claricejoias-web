@@ -38,7 +38,7 @@ api.interceptors.request.use(
                 config.headers.Authorization = `Bearer ${keycloak.token}`;
                 //  A PEÇA QUE FALTA: Injeta o ID do usuário para o seu CarrinhoController
                 // O 'subject' é o UUID do Keycloak que você salva no banco como 'usuarioId'
-                config.headers['X-Usuario-ID'] = keycloak.subject;
+                // config.headers['X-Usuario-ID'] = keycloak.subject;
             } catch (error) {
                 console.error("Falha ao atualizar o token do Keycloak:", error);
                 // Opcional: Forçar logout se o refresh falhar

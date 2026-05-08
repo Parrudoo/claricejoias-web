@@ -12,7 +12,7 @@ export default function Checkout() {
   const { itens, total } = useMaleta();
   const navigate = useNavigate();
 
-  // 👈 Puxando tudo de uma vez do seu AuthProvider!
+  // Puxando tudo de uma vez do seu AuthProvider!
   const { logado, keycloakData, dadosPessoais, carregando } = useAuth();
 
   // Estados do Fluxo de Steps
@@ -30,7 +30,7 @@ export default function Checkout() {
     if (itens.length === 0) navigate('/');
   }, [itens, navigate]);
 
-  // 👈 SE LOGADO: Pula para o passo 3 e preenche os dados
+  // SE LOGADO: Pula para o passo 3 e preenche os dados
   useEffect(() => {
     if (logado && !carregando) {
       setStep(3); // Pula as etapas de OTP
@@ -83,7 +83,7 @@ export default function Checkout() {
         nome, 
         whatsapp: whatsappLimpo, 
         formaPagamento,
-        criarConta: !logado, // 👈 Se já está logado, NÃO tenta criar conta de novo
+        criarConta: !logado, // Se já está logado, NÃO tenta criar conta de novo
         itens 
       });
       
@@ -246,7 +246,7 @@ export default function Checkout() {
                 </div>
 
                 <button onClick={handleFinalizarPedido} className="btn-primario btn-finalizar" disabled={loading || !nome || !whatsapp}>
-                  {loading ? 'Finalizando...' : 'Confirmar Pedido 🛍️'}
+                  {loading ? 'Finalizando...' : 'Confirmar Pedido'}
                 </button>
               </div>
             )}
