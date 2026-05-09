@@ -1,0 +1,157 @@
+/* ========================================================= */
+/* LAYOUT MINHA CONTA (MinhaContaLayout.css)                 */
+/* ========================================================= */
+
+/* Garante que o padding não aumente o tamanho real das caixas */
+* {
+  box-sizing: border-box; 
+}
+
+.conta-layout-container {
+  width: 100%; /* 👈 Garante que ocupe a tela para poder centralizar */
+  max-width: 1200px;
+  margin: 100px auto 40px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@media (min-width: 768px) {
+  .conta-layout-container {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+/* ========================================================= */
+/* SIDEBAR (MENU LATERAL)                                    */
+/* ========================================================= */
+.conta-sidebar {
+  width: 100%;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f3f4f6;
+}
+
+@media (min-width: 768px) {
+  .conta-sidebar {
+    width: 280px;
+    min-width: 280px; /* 👈 Força o menu a não diminuir no PC */
+    flex-shrink: 0; /* 👈 Impede que a tela do lado esprema o menu */
+  }
+}
+
+.conta-sidebar-header {
+  margin-bottom: 30px;
+}
+
+.conta-titulo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.conta-saudacao {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 5px 0 0 0;
+}
+
+/* Navegação */
+.conta-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conta-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease-in-out;
+  border-left: 4px solid transparent;
+}
+
+.conta-nav-link span {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Efeito ao passar o mouse (Hover) */
+.conta-nav-link:hover {
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+/* Link Ativo (Página atual) */
+.conta-nav-link.ativo {
+  background-color: #fff1f2; 
+  color: #be123c; 
+  border-left-color: #e11d48; 
+  font-weight: 600;
+}
+
+/* Separador */
+.conta-divisor {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 16px 0;
+  border: none;
+}
+
+/* Botão de Sair */
+.conta-btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  color: #ef4444; 
+  font-weight: 500;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.conta-btn-logout:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* ========================================================= */
+/* ÁREA DE CONTEÚDO PRINCIPAL (MAIN)                         */
+/* ========================================================= */
+.conta-main-content {
+  flex: 1; 
+  min-width: 0; /* 👈 TRUQUE DO FLEXBOX: Impede que o conteúdo "vaze" ou quebre a tela */
+  background-color: #ffffff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f3f4f6;
+  min-height: 500px;
+}
+
+@media (max-width: 768px) {
+  .conta-main-content {
+    padding: 20px;
+  }
+}

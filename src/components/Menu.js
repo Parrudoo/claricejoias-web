@@ -5,10 +5,11 @@ import { leadService } from '../services/leadService';
 import { authService } from '../services/authService'; // 👈 Importamos o serviço para a recuperação de senha
 import './Menu.css';
 import WhatsAppInput from './WhatsAppInput';
+import { useNavigate } from 'react-router-dom';
 
 export function Menu({ categorias, aoClicarCategoria }) {
   const { logado, keycloakData, ehAdmin, login, logout } = useAuth();
-
+const navigate = useNavigate();
   // ==========================================
   // ESTADOS DO MODAL DE CADASTRO (STEPS)
   // ==========================================
@@ -102,9 +103,9 @@ export function Menu({ categorias, aoClicarCategoria }) {
 
   const handleMinhaConta = () => {
     if (ehAdmin) {
-      window.location.href = '/admin';
+      navigate('/admin'); // Leva o admin para o painel administrativo
     } else {
-      alert("A área de perfil do cliente estará disponível em breve!");
+      navigate('/minha-conta'); // Leva o cliente para a área de "Minha Conta"
     }
   };
 

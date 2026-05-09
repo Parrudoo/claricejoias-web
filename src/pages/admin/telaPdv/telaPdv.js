@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './TelaPDV.css';
 import { ProdutoService } from '../../../services/ProdutoService';
-import { VendaService } from '../../../services/VendaService';
 import { ImagemService } from '../../../services/ImagemService';
-import CupomVenda from '../../../components/cupom/CupomVenda';
-
-
-
+import CupomVenda from '../../../components/cupom/CupomVenda'; // Você pode renomear para CupomPedido futuramente
+import { PedidoService } from '../../../services/pedidoService';
 
 const TelaPDV = () => {
     // ==========================================
@@ -30,7 +27,7 @@ const TelaPDV = () => {
     // ==========================================
     // ESTADO DE IMPRESSÃO
     // ==========================================
-    const [vendaImpressao, setVendaImpressao] = useState(null);
+    const [pedidoImpressao, setPedidoImpressao] = useState(null); // Atualizado de vendaImpressao
 
     const inputRef = useRef(null);
 
@@ -106,7 +103,7 @@ const TelaPDV = () => {
     const troco = formaPagamento === 'especie' && valorRecebido ? (parseFloat(valorRecebido) - total) : 0;
 
     // ==========================================
-    // FINALIZAR VENDA E IMPRIMIR
+    // FINALIZAR PEDIDO (VENDA PDV) E IMPRIMIR
     // ==========================================
     const handleFinalizarVenda = async () => {
         if (carrinho.length === 0) return alert('O carrinho está vazio.');
@@ -115,7 +112,7 @@ const TelaPDV = () => {
             return alert('Para vendas no FIADO, é obrigatório preencher o Nome e o WhatsApp do cliente!');
         }
 
-        const payloadVenda = {
+        const payloadPedido = {
             itens: carrinho.map(item => ({
                 id: item.id,
                 nome: item.nome,
@@ -137,16 +134,17 @@ const TelaPDV = () => {
 
         try {
             setIsLoading(true);
-            const response = await VendaService.registrar(payloadVenda);
+            // Chama o novo serviço consolidado de Pedidos apontando para /pdv
+            const response = await PedidoService.registrar(payloadPedido);
             
-            // Prepara os dados para o Cupom, unindo o ID gerado com os dados da venda
+            // Prepara os dados para o Cupom, unindo o ID gerado com os dados do pedido
             const dadosDoCupom = {
-                ...payloadVenda,
+                ...payloadPedido,
                 id: response.id || response.data?.id
             };
 
             // Aciona o estado de impressão (Isso vai renderizar o <CupomVenda /> invisível no HTML)
-            setVendaImpressao(dadosDoCupom);
+            setPedidoImpressao(dadosDoCupom);
 
             // Dá um tempinho (100ms) pro React colocar o HTML na tela e aciona a impressora do Windows/Mac
             setTimeout(() => {
@@ -173,7 +171,7 @@ const TelaPDV = () => {
         setClienteTelefone('');
         setValorEntrada('');
         setParcelas(1);
-        setVendaImpressao(null); // Remove o cupom do HTML
+        setPedidoImpressao(null); // Remove o cupom do HTML
     };
 
     // ==========================================
@@ -415,9 +413,9 @@ const TelaPDV = () => {
 
             {/* =========================================
                 ÁREA DO CUPOM DE IMPRESSÃO INVISÍVEL
-                Só é preenchido e jogado na tela na hora que clica em Finalizar
                 ========================================= */}
-            {vendaImpressao && <CupomVenda venda={vendaImpressao} />}
+            {/* Mantive o componente CupomVenda, mas você pode renomeá-lo para CupomPedido depois se preferir */}
+            {pedidoImpressao && <CupomVenda venda={pedidoImpressao} />}
         </>
     );
 };

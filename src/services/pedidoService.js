@@ -1,53 +1,43 @@
 import api from './api';
 
-export const pedidoService = {
-    
-    // Busca o histórico de pedidos do cliente.
-    // O X-Visitor-ID e o Token JWT já são injetados automaticamente pelo interceptor do api.js!
-    buscarMeusPedidos: async () => {
-        try {
-            const response = await api.get('/pedidos/meus-pedidos');
-            return response.data;
-        } catch (error) {
-            console.error("Erro na API ao buscar meus pedidos:", error);
-            throw error;
-        }
+export const PedidoService = {
+    // Registra uma nova venda vinda do PDV
+    registrar: async (venda) => {
+        const response = await api.post('/pedidos/pdv', venda);
+        return response.data;
     },
 
-    // Busca os detalhes de um pedido específico
-    buscarPorId: async (pedidoId) => {
-        try {
-            const response = await api.get(`/pedidos/${pedidoId}`);
-            return response.data;
-        } catch (error) {
-            console.error("Erro na API ao buscar o pedido:", error);
-            throw error;
-        }
+    // Busca o histórico de todas as vendas cadastradas no sistema (Admin)
+    listarTodas: async (page = 0, filtros = {}) => {
+        const params = {
+            page: page,
+            size: 20, 
+            sort: 'id,desc'
+        };
+
+        if (filtros.loginOperador) params.loginOperador = filtros.loginOperador;
+        if (filtros.metodoPagamento) params.metodoPagamento = filtros.metodoPagamento;
+        if (filtros.dataInicio) params.dataInicio = filtros.dataInicio; 
+        if (filtros.dataFim) params.dataFim = filtros.dataFim;
+
+        const response = await api.get('/pedidos', { params });
+        return response.data;
     },
 
-    // ==========================================================
-    // MÉTODOS PARA O PAINEL DE ADMINISTRAÇÃO (Sua Vendedora)
-    // ==========================================================
-
-    // Lista todos os pedidos da loja
-    listarTodos: async () => {
-        try {
-            const response = await api.get('/pedidos');
-            return response.data;
-        } catch (error) {
-            console.error("Erro na API ao listar todos os pedidos:", error);
-            throw error;
-        }
+    // NOVO: Busca os pedidos apenas do cliente logado (Minha Conta)
+    listarMeusPedidos: async (page = 0) => {
+        const params = {
+            page: page,
+            size: 10, // Traz de 10 em 10 para o cliente
+            sort: 'id,desc'
+        };
+        const response = await api.get('/pedidos/meus-pedidos', { params });
+        return response.data;
     },
 
-    // Atualiza o status do pedido (ex: de AGUARDANDO_WHATSAPP para CONCLUIDO)
-    atualizarStatus: async (pedidoId, novoStatus) => {
-        try {
-            const response = await api.put(`/pedidos/${pedidoId}/status`, { statusPedido: novoStatus });
-            return response.data;
-        } catch (error) {
-            console.error(`Erro na API ao atualizar status do pedido ${pedidoId}:`, error);
-            throw error;
-        }
+    // Caso futuramente você crie no backend a rota de buscar por ID
+    buscarPorId: async (id) => {
+        const response = await api.get(`/pedidos/${id}`);
+        return response.data;
     }
 };

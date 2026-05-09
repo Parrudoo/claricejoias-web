@@ -12,6 +12,20 @@
   margin-bottom: 30px;
 }
 
+/* Ajuste do botão de voltar para celular */
+.btn-voltar-simples {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+
 .pedidos-titulo {
   display: flex;
   align-items: center;
@@ -172,6 +186,8 @@
   justify-content: space-between;
   align-items: center;
   margin: 15px 0;
+  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+  gap: 10px;
 }
 
 .pedido-detalhes-header h4 {
@@ -216,18 +232,23 @@
   object-fit: cover;
   border-radius: 6px;
   background: #f0f0f0;
+  flex-shrink: 0; /* Impede que a imagem encolha no flexbox */
 }
 
 .pedido-item-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Evita que texto longo quebre o layout */
 }
 
 .pedido-item-nome {
   font-weight: 500;
   color: #333;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Coloca '...' se o nome for muito grande */
 }
 
 .pedido-item-qtd {
@@ -238,6 +259,7 @@
 .pedido-item-preco {
   font-weight: 600;
   color: #333;
+  white-space: nowrap;
 }
 
 .pedido-resumo-final {
@@ -276,15 +298,56 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsividade Básica */
+/* =========================================
+   Responsividade Avançada (Celulares)
+   ========================================= */
 @media (max-width: 600px) {
+  .pedidos-container {
+    padding: 15px 10px; /* Reduz padding lateral */
+  }
+
+  .pedidos-titulo h2 {
+    font-size: 20px;
+  }
+
+  /* Oculta o texto "Voltar à loja" para poupar espaço */
+  .btn-voltar-simples span {
+    display: none;
+  }
+
   .pedido-card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
+    padding: 15px;
   }
+  
   .pedido-info-secundaria {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .pedido-card-body {
+    padding: 0 15px 15px 15px;
+  }
+
+  /* Em telas muito pequenas, o preço do item desce para a próxima linha */
+  .pedido-item {
+    flex-wrap: wrap; 
+  }
+
+  .pedido-item-preco {
+    width: 100%;
+    text-align: right;
+    font-size: 15px;
+    margin-top: 5px;
+  }
+
+  /* Ajuste no nome do item para permitir múltiplas linhas se necessário */
+  .pedido-item-nome {
+    white-space: normal; 
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limita a 2 linhas */
+    -webkit-box-orient: vertical;
   }
 }

@@ -5,7 +5,7 @@ import { FiArrowLeft, FiShield, FiSmartphone, FiCheckCircle, FiCreditCard, FiMes
 import { MdOutlinePix } from 'react-icons/md';
 import { leadService } from '../services/leadService';
 import { ImagemService } from '../services/ImagemService';
-import { useAuth } from '../context/AuthProvider'; // 👈 Importando o seu super Hook
+import { useAuth } from '../context/AuthProvider'; 
 import './Checkout.css'; 
 
 export default function Checkout() {

@@ -4,20 +4,21 @@ import {
     FiDollarSign, FiUser, FiUserCheck, FiPrinter, 
     FiFilter, FiSearch 
 } from 'react-icons/fi';
-import { VendaService } from '../../../services/VendaService';
 
 import './ListarVendas.css';
 import CupomVenda from '../../../components/cupom/CupomVenda';
 import Paginacao from '../../../components/paginacao/Paginacao';
+import { PedidoService } from '../../../services/pedidoService';
 
 const ListarVendas = () => {
-    const [vendas, setVendas] = useState([]);
+    // Alterado de vendas para pedidos
+    const [pedidos, setPedidos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState('');
-    const [vendaModal, setVendaModal] = useState(null);
-    const [vendaImpressao, setVendaImpressao] = useState(null);
+    const [pedidoModal, setPedidoModal] = useState(null);
+    const [pedidoImpressao, setPedidoImpressao] = useState(null);
 
-    // ESTADOS DE FILTROS (Atualizados para Período)
+    // ESTADOS DE FILTROS
     const [filtroOperador, setFiltroOperador] = useState('');
     const [filtroMetodo, setFiltroMetodo] = useState('');
     const [filtroDataInicio, setFiltroDataInicio] = useState('');
@@ -30,45 +31,44 @@ const ListarVendas = () => {
 
     // Carrega a página 0 ao abrir a tela
     useEffect(() => {
-        carregarVendas(0);
+        carregarPedidos(0);
     }, []);
 
-    const handleImprimirCupom = (venda) => {
+    const handleImprimirCupom = (pedido) => {
         const dadosCupom = {
-            id: venda.id,
-            dataVenda: venda.dataVenda,
-            total: venda.total,
-            itens: venda.itens.map(item => ({
+            id: pedido.id,
+            dataVenda: pedido.dataCriacao, // ATENÇÃO: Mudou de dataVenda para dataCriacao no backend
+            total: pedido.total,
+            itens: pedido.itens.map(item => ({
                 nome: item.produto?.nome || 'Produto Indisponível',
                 quantidade: item.quantidade,
                 preco: item.precoUnitario
             })),
             pagamento: {
-                metodo: venda.metodoPagamento,
-                parcelas: venda.parcelas,
-                valorRecebido: venda.valorRecebido,
-                valorEntrada: venda.valorEntrada
+                metodo: pedido.metodoPagamento,
+                parcelas: pedido.parcelas,
+                valorRecebido: pedido.valorRecebido,
+                valorEntrada: pedido.valorEntrada
             },
-            cliente: venda.cliente ? {
-                nome: venda.cliente.nome,
-                telefone: venda.cliente.telefone
+            cliente: pedido.cliente ? {
+                nome: pedido.cliente.nome,
+                telefone: pedido.cliente.telefone
             } : null,
-            loginOperador: venda.loginOperador
+            loginOperador: pedido.loginOperador
         };
 
-        setVendaImpressao(dadosCupom);
+        setPedidoImpressao(dadosCupom);
 
         setTimeout(() => {
             window.print();
-            setVendaImpressao(null);
+            setPedidoImpressao(null);
         }, 150);
     };
 
-    const carregarVendas = async (pageIndex = 0, filtrosOverride = null) => {
+    const carregarPedidos = async (pageIndex = 0, filtrosOverride = null) => {
         try {
             setLoading(true);
             
-            // Usa os filtros passados por parâmetro ou pega do estado atual
             const filtrosAtuais = filtrosOverride !== null ? filtrosOverride : {
                 loginOperador: filtroOperador,
                 metodoPagamento: filtroMetodo,
@@ -76,15 +76,16 @@ const ListarVendas = () => {
                 dataFim: filtroDataFim
             };
 
-            const dados = await VendaService.listarTodas(pageIndex, filtrosAtuais);
+            // Certifique-se de que o método listarPedidos existe no seu PedidoService.js
+            const dados = await PedidoService.listarTodas(pageIndex, filtrosAtuais);
             
-            setVendas(dados.content);
+            setPedidos(dados.content);
             setCurrentPage(dados.number);
             setTotalPages(dados.totalPages);
             setTotalElements(dados.totalElements);
 
         } catch (error) {
-            console.error("Erro ao carregar vendas:", error);
+            console.error("Erro ao carregar pedidos:", error);
             setErro('Não foi possível carregar o histórico de vendas.');
         } finally {
             setLoading(false);
@@ -93,7 +94,7 @@ const ListarVendas = () => {
 
     const handleFiltrar = (e) => {
         e.preventDefault(); 
-        carregarVendas(0);  
+        carregarPedidos(0);  
     };
 
     const handleLimparFiltros = () => {
@@ -101,11 +102,11 @@ const ListarVendas = () => {
         setFiltroMetodo('');
         setFiltroDataInicio('');
         setFiltroDataFim('');
-        carregarVendas(0, { loginOperador: '', metodoPagamento: '', dataInicio: '', dataFim: '' });
+        carregarPedidos(0, { loginOperador: '', metodoPagamento: '', dataInicio: '', dataFim: '' });
     };
 
     const handlePageChange = (novaPagina) => {
-        carregarVendas(novaPagina);
+        carregarPedidos(novaPagina);
     };
 
     const formatarDinheiro = (valor) => {
@@ -164,7 +165,7 @@ const ListarVendas = () => {
                             value={filtroDataFim}
                             onChange={(e) => setFiltroDataFim(e.target.value)}
                             style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            min={filtroDataInicio} // Impede selecionar data final menor que inicial
+                            min={filtroDataInicio}
                         />
                     </div>
 
@@ -208,8 +209,8 @@ const ListarVendas = () => {
 
                 {loading ? (
                     <div className="loading-vendas">Carregando histórico... ✨</div>
-                ) : vendas.length === 0 ? (
-                    <div className="loading-vendas">Nenhuma venda encontrada para estes filtros.</div>
+                ) : pedidos.length === 0 ? (
+                    <div className="loading-vendas">Nenhum pedido encontrado para estes filtros.</div>
                 ) : (
                     <>
                         <div className="tabela-responsiva">
@@ -226,42 +227,42 @@ const ListarVendas = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {vendas.map(venda => (
-                                        <tr key={venda.id}>
-                                            <td><strong>#{venda.id}</strong></td>
-                                            <td>{formatarData(venda.dataVenda)}</td>
+                                    {pedidos.map(pedido => (
+                                        <tr key={pedido.id}>
+                                            <td><strong>#{pedido.id}</strong></td>
+                                            <td>{formatarData(pedido.dataCriacao)}</td> {/* ATUALIZADO */}
                                             <td>
                                                 <span style={{ color: '#555', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     <FiUserCheck size={14} color="#D4AF37" />
-                                                    {venda.loginOperador || 'Sistema'}
+                                                    {pedido.loginOperador || 'Sistema'}
                                                 </span>
                                             </td>
                                             <td>
-                                                {venda.cliente ? (
-                                                    <span className="cliente-nome">{venda.cliente.nome}</span>
+                                                {pedido.cliente ? (
+                                                    <span className="cliente-nome">{pedido.cliente.nome}</span>
                                                 ) : (
                                                     <span className="cliente-anonimo">Cliente Balcão</span>
                                                 )}
                                             </td>
                                             <td>
-                                                <span className={`tag-pagamento ${venda.metodoPagamento}`}>
-                                                    {traduzirPagamento(venda.metodoPagamento)}
-                                                    {venda.parcelas > 1 && ` (${venda.parcelas}x)`}
+                                                <span className={`tag-pagamento ${pedido.metodoPagamento}`}>
+                                                    {traduzirPagamento(pedido.metodoPagamento)}
+                                                    {pedido.parcelas > 1 && ` (${pedido.parcelas}x)`}
                                                 </span>
                                             </td>
-                                            <td className="valor-destaque">{formatarDinheiro(venda.total)}</td>
+                                            <td className="valor-destaque">{formatarDinheiro(pedido.total)}</td>
                                             <td className="text-center">
                                                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
                                                     <button
                                                         className="btn-ver-detalhes"
-                                                        onClick={() => setVendaModal(venda)}
+                                                        onClick={() => setPedidoModal(pedido)}
                                                         title="Ver Detalhes"
                                                     >
                                                         <FiEye size={16} /> Detalhes
                                                     </button>
                                                     <button 
                                                         className="btn-ver-detalhes" 
-                                                        onClick={() => handleImprimirCupom(venda)}
+                                                        onClick={() => handleImprimirCupom(pedido)}
                                                         title="Reimprimir Cupom"
                                                         style={{ color: '#1a1a1a', borderColor: '#ccc', backgroundColor: '#fafafa' }}
                                                     >
@@ -286,17 +287,17 @@ const ListarVendas = () => {
                 )}
             </div>
 
-            {/* MODAL DE DETALHES DA VENDA */}
-            {vendaModal && (
+            {/* MODAL DE DETALHES DO PEDIDO */}
+            {pedidoModal && (
                 <div className="modal-overlay">
                     <div className="modal-card modal-venda-detalhes">
                         <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <FiShoppingBag /> Detalhes da Venda #{vendaModal.id}
+                                <FiShoppingBag /> Detalhes da Venda #{pedidoModal.id}
                             </h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                 <button 
-                                    onClick={() => handleImprimirCupom(vendaModal)} 
+                                    onClick={() => handleImprimirCupom(pedidoModal)} 
                                     className="btn-ver-detalhes"
                                     style={{ background: '#1a1a1a', color: '#D4AF37', border: 'none', padding: '8px 16px' }}
                                 >
@@ -304,7 +305,7 @@ const ListarVendas = () => {
                                 </button>
                                 <button 
                                     className="btn-close-modal" 
-                                    onClick={() => setVendaModal(null)}
+                                    onClick={() => setPedidoModal(null)}
                                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#555', display: 'flex', alignItems: 'center' }}
                                 >
                                     <FiX size={24} />
@@ -318,22 +319,22 @@ const ListarVendas = () => {
                                     <FiCalendar className="detalhe-icone" />
                                     <div>
                                         <small>Data da Venda</small>
-                                        <p>{formatarData(vendaModal.dataVenda)}</p>
+                                        <p>{formatarData(pedidoModal.dataCriacao)}</p> {/* ATUALIZADO */}
                                     </div>
                                 </div>
                                 <div className="detalhe-box">
                                     <FiUser className="detalhe-icone" />
                                     <div>
                                         <small>Cliente</small>
-                                        <p>{vendaModal.cliente ? vendaModal.cliente.nome : 'Cliente não identificado'}</p>
-                                        {vendaModal.cliente?.telefone && <small>{vendaModal.cliente.telefone}</small>}
+                                        <p>{pedidoModal.cliente ? pedidoModal.cliente.nome : 'Cliente não identificado'}</p>
+                                        {pedidoModal.cliente?.telefone && <small>{pedidoModal.cliente.telefone}</small>}
                                     </div>
                                 </div>
                                 <div className="detalhe-box">
                                     <FiDollarSign className="detalhe-icone" />
                                     <div>
                                         <small>Pagamento</small>
-                                        <p>{traduzirPagamento(vendaModal.metodoPagamento)} {vendaModal.parcelas > 1 && `em ${vendaModal.parcelas}x`}</p>
+                                        <p>{traduzirPagamento(pedidoModal.metodoPagamento)} {pedidoModal.parcelas > 1 && `em ${pedidoModal.parcelas}x`}</p>
                                     </div>
                                 </div>
                             </div>
@@ -350,7 +351,7 @@ const ListarVendas = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {vendaModal.itens && vendaModal.itens.map(item => (
+                                        {pedidoModal.itens && pedidoModal.itens.map(item => (
                                             <tr key={item.id}>
                                                 <td>{item.produto?.nome || 'Produto não encontrado'}</td>
                                                 <td className="text-center">{item.quantidade}x</td>
@@ -365,35 +366,35 @@ const ListarVendas = () => {
                             <div className="detalhes-financeiro-section">
                                 <div className="financeiro-linha">
                                     <span>Subtotal Itens:</span>
-                                    <span>{formatarDinheiro(vendaModal.total)}</span>
+                                    <span>{formatarDinheiro(pedidoModal.total)}</span>
                                 </div>
-                                {vendaModal.metodoPagamento === 'especie' && (
+                                {pedidoModal.metodoPagamento === 'especie' && (
                                     <>
                                         <div className="financeiro-linha">
                                             <span>Valor Recebido do Cliente:</span>
-                                            <span>{formatarDinheiro(vendaModal.valorRecebido)}</span>
+                                            <span>{formatarDinheiro(pedidoModal.valorRecebido)}</span>
                                         </div>
                                         <div className="financeiro-linha text-red">
                                             <span>Troco Devolvido:</span>
-                                            <span>{formatarDinheiro(vendaModal.troco)}</span>
+                                            <span>{formatarDinheiro(pedidoModal.troco)}</span>
                                         </div>
                                     </>
                                 )}
-                                {vendaModal.metodoPagamento === 'fiado' && (
+                                {pedidoModal.metodoPagamento === 'fiado' && (
                                     <>
                                         <div className="financeiro-linha text-green">
                                             <span>Valor de Entrada:</span>
-                                            <span>{formatarDinheiro(vendaModal.valorEntrada)}</span>
+                                            <span>{formatarDinheiro(pedidoModal.valorEntrada)}</span>
                                         </div>
                                         <div className="financeiro-linha text-red">
                                             <span>Saldo Devido (Fiado):</span>
-                                            <span>{formatarDinheiro(vendaModal.valorDevido)}</span>
+                                            <span>{formatarDinheiro(pedidoModal.valorDevido)}</span>
                                         </div>
                                     </>
                                 )}
                                 <div className="financeiro-linha total-final">
                                     <span>TOTAL DA VENDA:</span>
-                                    <span>{formatarDinheiro(vendaModal.total)}</span>
+                                    <span>{formatarDinheiro(pedidoModal.total)}</span>
                                 </div>
                             </div>
                         </div>
@@ -401,7 +402,8 @@ const ListarVendas = () => {
                 </div>
             )}
 
-            {vendaImpressao && <CupomVenda venda={vendaImpressao} />}
+            {/* Mantemos a prop como "venda" para o componente CupomVenda caso você não o tenha refatorado ainda */}
+            {pedidoImpressao && <CupomVenda venda={pedidoImpressao} />}
         </div>
     );
 };

@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiPackage, FiCalendar, FiChevronDown, FiChevronUp, FiCreditCard, FiMessageCircle } from 'react-icons/fi';
 import { MdOutlinePix } from 'react-icons/md';
-import { useAuth } from '../context/AuthProvider';
-import { ImagemService } from '../services/ImagemService'; // Ajuste o caminho se necessário
 
 import './MeusPedidos.css';
-import { pedidoService } from '../../../services/pedidoService';
-
+import { useAuth } from '../../../context/AuthProvider';
+import { ImagemService } from '../../../services/ImagemService';
+import { PedidoService } from '../../../services/pedidoService';
 
 export default function MeusPedidos() {
   const navigate = useNavigate();
-  const { logado, carregando } = useAuth(); // keycloakData e dadosPessoais não são mais necessários aqui
+  const { logado, carregando } = useAuth(); 
   
   const [pedidos, setPedidos] = useState([]);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
@@ -28,12 +27,12 @@ export default function MeusPedidos() {
     }
   }, [logado, carregando, navigate]);
 
-const buscarPedidos = async () => {
+  const buscarPedidos = async () => {
     setLoadingPedidos(true);
     try {
-      // Chama direto! O Axios cuida de empacotar o ID e o Token nos bastidores.
-      const data = await pedidoService.buscarMeusPedidos(); 
-      setPedidos(data || []);
+      // A API retorna um Page<PedidoDTO>, portanto a lista de pedidos está em "content"
+      const data = await PedidoService.listarMeusPedidos(); 
+      setPedidos(data.content || []); 
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error);
     } finally {
@@ -62,6 +61,11 @@ const buscarPedidos = async () => {
     if (!dataString) return '';
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Função robusta para formatar valores numéricos (protege contra quebras caso o BigDecimal venha nulo)
+  const formatarMoeda = (valor) => {
+    return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   if (carregando || loadingPedidos) {
@@ -106,13 +110,12 @@ const buscarPedidos = async () => {
                     </span>
                   </div>
                   <div className="pedido-info-secundaria">
-                    {/* 👈 Ajuste para statusPedido */}
                     <span className={`pedido-status status-${pedido.statusPedido?.toLowerCase()}`}>
-                      {pedido.statusPedido?.replace('_', ' ') || 'Processando'}
+                      {pedido.statusPedido?.replace(/_/g, ' ') || 'Processando'}
                     </span>
-                    {/* 👈 Ajuste para totalCobrado */}
+                    
                     <span className="pedido-total">
-                      R$ {pedido.totalCobrado?.toFixed(2).replace('.', ',')}
+                      {formatarMoeda(pedido.totalCobrado)}
                     </span>
                     <button className="btn-expandir">
                       {pedidoExpandido === pedido.id ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
@@ -134,20 +137,19 @@ const buscarPedidos = async () => {
                     <div className="pedido-itens-lista">
                       {pedido.itens?.map((item, index) => (
                         <div key={index} className="pedido-item">
-                          {/* 👈 Ajuste para item.produto.imagens e item.produto.nome */}
                           <img 
                             src={ImagemService.getUrl(item.produto?.imagens?.[0])} 
                             alt={item.produto?.nome} 
                             className="pedido-item-img"
-                            onError={(e) => { e.target.src = 'caminho/para/imagem/padrao.png'; }}
+                            onError={(e) => { e.target.src = '/caminho/para/imagem/padrao.png'; }}
                           />
                           <div className="pedido-item-info">
                             <span className="pedido-item-nome">{item.produto?.nome}</span>
                             <span className="pedido-item-qtd">Qtd: {item.quantidade}</span>
                           </div>
                           <div className="pedido-item-preco">
-                            {/* 👈 Ajuste para item.precoUnitario */}
-                            R$ {(item.precoUnitario * item.quantidade).toFixed(2).replace('.', ',')}
+                            {/* Cálculo do subtotal do item formatado corretamente */}
+                            {formatarMoeda(Number(item.precoUnitario || 0) * Number(item.quantidade || 0))}
                           </div>
                         </div>
                       ))}
@@ -156,11 +158,11 @@ const buscarPedidos = async () => {
                     <div className="pedido-resumo-final">
                       <div className="linha-resumo">
                         <span>Subtotal</span>
-                        <span>R$ {pedido.totalCobrado?.toFixed(2).replace('.', ',')}</span>
+                        <span>{formatarMoeda(pedido.totalCobrado)}</span>
                       </div>
                       <div className="linha-resumo total-destaque">
                         <strong>Total Pago</strong>
-                        <strong>R$ {pedido.totalCobrado?.toFixed(2).replace('.', ',')}</strong>
+                        <strong>{formatarMoeda(pedido.totalCobrado)}</strong>
                       </div>
                     </div>
                   </div>

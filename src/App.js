@@ -21,6 +21,15 @@ import { AuthProvider, useAuth } from './context/AuthProvider';
 import { GerenciarBanners } from './pages/admin/banner/GerenciarBanners';
 import ListarVendas from './pages/admin/vendas/ListarVendas';
 import GerenciadorWhatsapp from './pages/admin/GerenciadorWhatsapp/GerenciadorWhatsapp';
+import MinhaContaLayout from './pages/admin/cliente/MinhaContaLayout';
+import MeusPedidos from './pages/admin/meusPedidos/MeusPedidos';
+
+
+// =========================================================
+// IMPORTAÇÕES DA ÁREA DO CLIENTE (MINHA CONTA)
+// =========================================================
+
+
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
@@ -43,9 +52,9 @@ function App() {
     <ReactKeycloakProvider
       authClient={keycloak}
       initOptions={{
-        onLoad: 'check-sso', // A MUDANÇA É AQUI (Libera a página inicial)
+        onLoad: 'check-sso',
         pkceMethod: 'S256',
-        checkLoginIframe: false// Mantenha isso para a tela não travar nunca mais!
+        checkLoginIframe: false
       }}
       LoadingComponent={<Loading />}
     >
@@ -60,8 +69,23 @@ function App() {
                 <Route path="/" element={<main className="conteudo-principal"><Catalogo /></main>} />
                 <Route path="/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
 
+                {/* ========================================================= */}
+                {/* ÁREA DO CLIENTE (MINHA CONTA) - NOVO BLOCO */}
+                {/* ========================================================= */}
+                <Route path="/minha-conta" element={<RotaProtegida><MinhaContaLayout /></RotaProtegida>}>
+                  <Route index element={<Navigate to="/minha-conta/pedidos" replace />} />
+
+                  {/* <Route path="visao-geral" element={<VisaoGeralCliente />} /> */}
+                  {/* Rota de Pedidos que acabamos de criar */}
+                  <Route path="pedidos" element={<MeusPedidos />} />
+                  {/* <Route path="dados" element={<MeusDados />} /> */}
+                  {/* Você pode ir adicionando endereços, favoritos, etc, aqui depois */}
+                </Route>
+
+                {/* ========================================================= */}
                 {/* ROTAS ADMINISTRATIVAS */}
-                <Route path="/admin" element={<RotaProtegida><AdminLayout /></RotaProtegida>}>
+                {/* ========================================================= */}
+                <Route path="/admin" element={<RotaProtegida adminOnly={true}><AdminLayout /></RotaProtegida>}>
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
 
                   <Route path="dashboard" element={<Dashboard />} />
@@ -69,11 +93,9 @@ function App() {
                   <Route path="listar" element={<ListarCategorias />} />
                   <Route path="leads" element={<LeadsDashboard />} />
                   <Route path="telaPdv" element={<TelaPDV />} />
-                  <Route path="telaCliente" element={<ClientesDashboard />} />                  
+                  <Route path="telaCliente" element={<ClientesDashboard />} />
                   <Route path="vendas" element={<ListarVendas />} />
-                  {/* 2. ÁREA DE CONFIGURAÇÕES E SEUS SUBMENUS */}
                   <Route path="config" element={<GerenciarBanners />} />
-                  {/* Nova rota do WhatsApp. Como está dentro de /admin, a URL final será /admin/config/whatsapp */}
                   <Route path="config/whatsapp" element={<GerenciadorWhatsapp />} />
                 </Route>
               </Routes>
