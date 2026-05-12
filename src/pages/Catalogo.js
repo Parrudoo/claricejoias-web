@@ -24,7 +24,7 @@ import { BannerService } from '../services/BannerService';
 import './Catalogo.css';
 
 export default function Catalogo() {
-    const { adicionarItem, itens, setCarrinhoAberto } = useMaleta();
+    const { adicionarItem, itens, setCarrinhoAberto, carrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
 
     const [acervo, setAcervo] = useState([]);
@@ -42,7 +42,7 @@ export default function Catalogo() {
     // Novos estados do Medidor e Botão Flutuante
     const [mostrarMedidor, setMostrarMedidor] = useState(false);
     const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
-    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); // 👈 Novo estado para o botão
+    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); // Novo estado para o botão
 
     const API_BASE_URL = 'http://localhost:8080';
 
@@ -50,7 +50,7 @@ export default function Catalogo() {
         carregarDadosVitrine();
         checarStatusLead();
 
-        // 👈 Faz o BOTÃO aparecer após 10 segundos (não o modal)
+        // Faz o BOTÃO aparecer após 10 segundos (não o modal)
         const timerBotao = setTimeout(() => {
             setMostrarBotaoGuia(true);
         }, 10000);
@@ -112,10 +112,22 @@ export default function Catalogo() {
         }
     };
 
-    const dadosMenu = acervo.map(cat => ({
-        categoria: cat.nome || cat.categoria,
-        subitens: cat.subcategorias ? cat.subcategorias.map(sub => sub.nome) : []
-    }));
+    const dadosMenu = acervo
+    .map(cat => {
+        // 1. Primeiro, filtramos as subcategorias que realmente possuem produtos
+        const subcategoriasComProdutos = cat.subcategorias 
+            ? cat.subcategorias.filter(sub => sub.itens && sub.itens.length > 0)
+            : [];
+
+        // 2. Retornamos o objeto no formato que você quer, mapeando apenas os nomes das subcategorias válidas
+        return {
+            categoria: cat.nome || cat.categoria,
+            subitens: subcategoriasComProdutos.map(sub => sub.nome)
+        };
+    })
+    // 3. Por fim, filtramos as categorias principais: 
+    // Só mantemos a categoria se ela ficou com pelo menos 1 subitem válido
+    .filter(catFormatada => catFormatada.subitens.length > 0);
 
     const abrirDetalhes = (joia) => {
         setProdutoSelecionado(joia);
@@ -145,6 +157,27 @@ export default function Catalogo() {
             setIsSubmitting(false);
         }
     };
+
+    // Filtra o acervo completo para a vitrine, mantendo as propriedades originais
+const acervoFiltrado = acervo
+    .map(cat => {
+        // Filtra apenas as subcategorias que têm itens/produtos
+        const subcategoriasComProdutos = cat.subcategorias
+            ? cat.subcategorias.filter(sub => {
+                  const listaProdutos = sub.produtos || sub.itens || [];
+                  return listaProdutos.length > 0;
+              })
+            : [];
+
+        // Retorna a categoria completa (...cat), mas sobrescreve as subcategorias 
+        // apenas com aquelas que passaram no filtro acima
+        return {
+            ...cat,
+            subcategorias: subcategoriasComProdutos
+        };
+    })
+    // Remove as categorias principais que ficaram com 0 subcategorias
+    .filter(cat => cat.subcategorias.length > 0);
 
     const proximoBanner = () => {
         setIndiceBanner((prev) => (prev === bannersAtivos.length - 1 ? 0 : prev + 1));
@@ -221,10 +254,10 @@ export default function Catalogo() {
 
             {/* VITRINE DE JOIAS */}
             <main className="vitrine-conteudo">
-                {acervo.length === 0 ? (
+                {acervoFiltrado.length === 0 ? (
                     <p style={{ textAlign: 'center', color: '#666', marginTop: '50px' }}>Nenhuma peça disponível no momento.</p>
                 ) : (
-                    acervo.map(cat => (
+                    acervoFiltrado.map(cat => (
                         <section key={cat.id || cat.categoria} id={cat.nome || cat.categoria} className="secao-categoria">
                             <h2 className="titulo-categoria">{cat.nome || cat.categoria}</h2>
                             {cat.subcategorias && cat.subcategorias.map(sub => (
@@ -249,7 +282,7 @@ export default function Catalogo() {
 
             {/* AREA FLUTUANTE DO RODAPÉ */}
             <div className="area-flutuante-rodape">
-                {/* 👈 Só exibe o botão se mostrarBotaoGuia for true (após 10s) */}
+                {/* Só exibe o botão se mostrarBotaoGuia for true (após 10s) */}
                 {mostrarBotaoGuia && (
                     <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Medir Anel">
                         <div className="guia-icone-container">
@@ -261,7 +294,7 @@ export default function Catalogo() {
                     </div>
                 )}
 
-                {itens.length > 0 && (
+                {itens.length > 0 && !carrinhoAberto && (
                     <div className="botao-maleta-flutuante" onClick={() => setCarrinhoAberto(true)}>
                         <FiShoppingBag size={28} />
                         <span className="badge-contagem">{qtdTotal}</span>
