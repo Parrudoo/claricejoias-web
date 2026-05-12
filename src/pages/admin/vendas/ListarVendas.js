@@ -250,7 +250,7 @@ const ListarVendas = () => {
                                                     {pedido.parcelas > 1 && ` (${pedido.parcelas}x)`}
                                                 </span>
                                             </td>
-                                            <td className="valor-destaque">{formatarDinheiro(pedido.total)}</td>
+                                            <td className="valor-destaque">{formatarDinheiro(pedido.totalCobrado)}</td>
                                             <td className="text-center">
                                                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
                                                     <button
