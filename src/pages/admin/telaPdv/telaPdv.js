@@ -2,10 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import './TelaPDV.css';
 import { ProdutoService } from '../../../services/ProdutoService';
 import { ImagemService } from '../../../services/ImagemService';
-import CupomVenda from '../../../components/cupom/CupomVenda'; // Você pode renomear para CupomPedido futuramente
+import CupomVenda from '../../../components/cupom/CupomVenda'; 
 import { PedidoService } from '../../../services/pedidoService';
 
-const TelaPDV = () => {
+// NOVOS IMPORTS:
+import { useAuth } from '../../../context/AuthProvider';
+import { EstoqueRevendedorService } from '../../../services/EstoqueRevendedorService';
+
+// Adicionamos a prop "isRevendedor", por padrão é false (Admin)
+const TelaPDV = ({ isRevendedor = false }) => {
+    // Pegando o ID do usuário logado (necessário para buscar a maleta)
+    const { keycloakData } = useAuth();
+    const usuarioId = keycloakData?.id; // Pegamos o ID (UUID) que vem do token
+
     // ==========================================
     // ESTADOS PRINCIPAIS DO PDV
     // ==========================================
@@ -23,21 +32,16 @@ const TelaPDV = () => {
     const [clienteNome, setClienteNome] = useState('');
     const [clienteTelefone, setClienteTelefone] = useState('');
     const [valorEntrada, setValorEntrada] = useState('');
-
-    // ==========================================
-    // ESTADO DE IMPRESSÃO
-    // ==========================================
-    const [pedidoImpressao, setPedidoImpressao] = useState(null); // Atualizado de vendaImpressao
+    const [pedidoImpressao, setPedidoImpressao] = useState(null);
 
     const inputRef = useRef(null);
 
-    // Mantém o foco no input para o leitor de código de barras
     useEffect(() => {
         inputRef.current?.focus();
     }, [carrinho]);
 
     // ==========================================
-    // LÓGICA DO CARRINHO
+    // LÓGICA DO CARRINHO (ADAPTADA PARA MALETA)
     // ==========================================
     const handleBuscarProduto = async (e) => {
         e.preventDefault();
@@ -45,47 +49,92 @@ const TelaPDV = () => {
 
         setIsLoading(true);
         try {
-            const produtoEncontrado = await ProdutoService.buscarPorCodigo(codigoBusca);
-            adicionarAoCarrinho(produtoEncontrado);
+            let produtoEncontrado = null;
+            let limiteEstoque = null; // Limite que a vendedora tem na maleta
+
+            if (isRevendedor) {
+                // 1. LÓGICA DA REVENDEDORA: Busca apenas na maleta dela
+                if (!usuarioId) throw new Error("Usuário não identificado.");
+                
+                const maleta = await EstoqueRevendedorService.listarMaleta(usuarioId);
+                
+                // Procura o produto dentro da maleta pelo ID
+                const itemNaMaleta = maleta.find(item => String(item.produto.id) === codigoBusca);
+                
+                if (!itemNaMaleta) {
+                    throw new Error("Esta joia não está na sua maleta!");
+                }
+                if (itemNaMaleta.quantidade <= 0) {
+                    throw new Error("Você não tem mais saldo desta joia na sua maleta.");
+                }
+
+                // Extrai o produto e anota o limite que ela pode vender
+                produtoEncontrado = itemNaMaleta.produto;
+                limiteEstoque = itemNaMaleta.quantidade;
+
+            } else {
+                // 2. LÓGICA DO ADMIN: Busca no banco de dados geral
+                produtoEncontrado = await ProdutoService.buscarPorCodigo(codigoBusca);
+                // O Admin não tem limite rígido no PDV, ou você pode definir limiteEstoque = produtoEncontrado.estoqueCentral
+            }
+
+            adicionarAoCarrinho(produtoEncontrado, limiteEstoque);
             setProdutoAtual(produtoEncontrado);
             setCodigoBusca('');
+            
         } catch (error) {
             console.error("Erro ao buscar produto:", error);
-            alert('Joia não encontrada. Verifique se o código está correto.');
+            // Mostra o erro exato se for da maleta, senão mostra o genérico
+            alert(error.message || 'Joia não encontrada. Verifique se o código está correto.');
         } finally {
             setIsLoading(false);
             inputRef.current?.focus();
         }
     };
 
-    const adicionarAoCarrinho = (produto) => {
+    // Recebe o produto e o limite de estoque que a pessoa tem
+    const adicionarAoCarrinho = (produto, limiteEstoque) => {
         setCarrinho((prev) => {
             const itemExistente = prev.find(item => item.id === produto.id);
+            
             if (itemExistente) {
+                // Se for revendedora, bloqueia se tentar adicionar mais do que tem na maleta
+                if (limiteEstoque !== null && itemExistente.quantidade >= limiteEstoque) {
+                    alert(`Você só tem ${limiteEstoque} unidades desta joia na maleta.`);
+                    return prev;
+                }
                 return prev.map(item =>
                     item.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item
                 );
             }
-            return [...prev, { ...produto, quantidade: 1 }];
+            // Adiciona o item pela primeira vez, salvando o limite dele
+            return [...prev, { ...produto, quantidade: 1, limiteEstoque: limiteEstoque }];
         });
     };
 
     const alterarQuantidade = (id, delta) => {
         setCarrinho((prev) => {
-            const novoCarrinho = prev.map(item => {
+            return prev.map(item => {
                 if (item.id === id) {
-                    return { ...item, quantidade: item.quantidade + delta };
+                    const novaQuantidade = item.quantidade + delta;
+                    
+                    // Trava de segurança para a Revendedora
+                    if (item.limiteEstoque !== null && novaQuantidade > item.limiteEstoque) {
+                        alert(`Você só tem ${item.limiteEstoque} unidades disponíveis.`);
+                        return item;
+                    }
+                    return { ...item, quantidade: novaQuantidade };
                 }
                 return item;
             }).filter(item => item.quantidade > 0);
-
-            const itemAindaExiste = novoCarrinho.find(item => item.id === id);
-            if (!itemAindaExiste && produtoAtual?.id === id) {
-                setProdutoAtual(null);
-            }
-
-            return novoCarrinho;
         });
+        
+        // Verifica se o item removido era o item atual exibido
+        const carrinhoAtualizado = carrinho.filter(item => item.id !== id || (item.quantidade + delta) > 0);
+        const itemAindaExiste = carrinhoAtualizado.find(item => item.id === id);
+        if (!itemAindaExiste && produtoAtual?.id === id) {
+            setProdutoAtual(null);
+        }
     };
 
     const removerDoCarrinho = (id) => {
@@ -134,19 +183,18 @@ const TelaPDV = () => {
 
         try {
             setIsLoading(true);
-            // Chama o novo serviço consolidado de Pedidos apontando para /pdv
+            
+            // O backend que escrevemos antes JÁ SABE quem está fazendo a requisição pelo Token do Keycloak.
+            // Se for revendedor, ele vai baixar da maleta. Se for admin, pode baixar do central.
             const response = await PedidoService.registrar(payloadPedido);
             
-            // Prepara os dados para o Cupom, unindo o ID gerado com os dados do pedido
             const dadosDoCupom = {
                 ...payloadPedido,
                 id: response.id || response.data?.id
             };
 
-            // Aciona o estado de impressão (Isso vai renderizar o <CupomVenda /> invisível no HTML)
             setPedidoImpressao(dadosDoCupom);
 
-            // Dá um tempinho (100ms) pro React colocar o HTML na tela e aciona a impressora do Windows/Mac
             setTimeout(() => {
                 window.print();
                 limparPDV();
@@ -171,15 +219,15 @@ const TelaPDV = () => {
         setClienteTelefone('');
         setValorEntrada('');
         setParcelas(1);
-        setPedidoImpressao(null); // Remove o cupom do HTML
+        setPedidoImpressao(null); 
     };
 
-    // ==========================================
-    // RENDERIZAÇÃO DA TELA
-    // ==========================================
+    // A RENDERIZAÇÃO DA TELA SEGUE EXATAMENTE IGUAL ABAIXO...
+    // Pode colar o mesmo JSX (return) que você me enviou aqui, sem mudar nada!
     return (
         <>
             <div className="pdv-container">
+             {/* ... O MESMO HTML/JSX AQUI ... */}
                 {/* =========================================
                     SEÇÃO ESQUERDA - INSERÇÃO DE PRODUTOS
                     ========================================= */}

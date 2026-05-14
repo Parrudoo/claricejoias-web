@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     
     // Dados vindos do Keycloak (Token JWT)
     keycloakData: {
+      id: logado ? keycloak.tokenParsed?.sub : null,
       nomeCompleto: logado ? (keycloak.tokenParsed?.name || keycloak.tokenParsed?.given_name) : '',
       primeiroNome: logado ? (keycloak.tokenParsed?.name?.split(' ')[0]) : '',
       email: logado ? keycloak.tokenParsed?.email : '',

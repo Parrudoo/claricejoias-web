@@ -46,5 +46,10 @@ export const ClienteService = {
             console.error("Erro na API ao registrar pagamento:", error);
             throw error;
         }
+    },
+
+    listarMeusClientes: async (revendedorId) => {
+        const response = await api.get(`/clientes/revendedor/${revendedorId}`);
+        return response.data;
     }
 };

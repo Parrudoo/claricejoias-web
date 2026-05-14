@@ -23,19 +23,25 @@ import ListarVendas from './pages/admin/vendas/ListarVendas';
 import GerenciadorWhatsapp from './pages/admin/GerenciadorWhatsapp/GerenciadorWhatsapp';
 import MinhaContaLayout from './pages/admin/cliente/MinhaContaLayout';
 import MeusPedidos from './pages/admin/meusPedidos/MeusPedidos';
-
+import CadastrarRevendedor from './pages/revendedor/CadastrarRevendedor';
+import DistribuirEstoque from './pages/estoque/DistribuirEstoque';
 
 // =========================================================
-// IMPORTAÇÕES DA ÁREA DO CLIENTE (MINHA CONTA)
+// IMPORTAÇÕES DA ÁREA DA REVENDEDORA
 // =========================================================
-
+import RevendedorLayout from './pages/revendedor/RevendedorLayout';
+import MaletaRevendedora from './pages/revendedor/MaletaRevendedora';
+import ClientesRevendedora from './pages/revendedor/ClientesRevendedora';
 
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
 
-// CRIAMOS UM COMPONENTE SÓ PARA O DASHBOARD
+// =========================================================
+// COMPONENTES DE DASHBOARD (VISÃO GERAL)
+// =========================================================
+
+// DASHBOARD DO ADMIN
 const Dashboard = () => {
-  //  2. Olha que legal: agora você puxa as informações do seu próprio Contexto!
   const { keycloakData } = useAuth();
   const nomeUsuario = keycloakData?.primeiroNome || 'Usuário';
 
@@ -43,6 +49,19 @@ const Dashboard = () => {
     <div style={{ padding: '20px' }}>
       <h1>Visão Geral</h1>
       <p>Bem-vindo ao painel, {nomeUsuario}!</p>
+    </div>
+  );
+};
+
+// DASHBOARD PROVISÓRIO DA REVENDEDORA (Para a tela não quebrar enquanto você cria as outras)
+const DashboardRevendedora = () => {
+  const { keycloakData } = useAuth();
+  const nomeUsuario = keycloakData?.primeiroNome || 'Revendedora';
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Meu Resumo</h1>
+      <p>Bem-vinda, {nomeUsuario}! Aqui você acompanhará suas metas e lucros.</p>
     </div>
   );
 };
@@ -70,16 +89,30 @@ function App() {
                 <Route path="/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
 
                 {/* ========================================================= */}
-                {/* ÁREA DO CLIENTE (MINHA CONTA) - NOVO BLOCO */}
+                {/* ÁREA DO CLIENTE (MINHA CONTA) */}
                 {/* ========================================================= */}
                 <Route path="/minha-conta" element={<RotaProtegida><MinhaContaLayout /></RotaProtegida>}>
                   <Route index element={<Navigate to="/minha-conta/pedidos" replace />} />
-
-                  {/* <Route path="visao-geral" element={<VisaoGeralCliente />} /> */}
-                  {/* Rota de Pedidos que acabamos de criar */}
                   <Route path="pedidos" element={<MeusPedidos />} />
-                  {/* <Route path="dados" element={<MeusDados />} /> */}
-                  {/* Você pode ir adicionando endereços, favoritos, etc, aqui depois */}
+                </Route>
+
+                {/* ========================================================= */}
+                {/* ÁREA DA REVENDEDORA (NOVO BLOCO) */}
+                {/* ========================================================= */}
+                <Route path="/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
+                  {/* Redireciona a raiz /revendedor para o dashboard dela */}
+                  <Route index element={<Navigate to="/revendedor/dashboard" replace />} />
+                  
+                  <Route path="dashboard" element={<DashboardRevendedora />} />
+                  <Route path="pdv" element={<TelaPDV isRevendedor={true} />} />
+                   <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
+                   <Route path="clientes" element={<ClientesRevendedora isRevendedor={true} />} />
+                  {/* Conforme você for criando as telas da revendedora, basta descomentar e adicionar aqui: */}
+                  {/* <Route path="pdv" element={<TelaPDV />} /> */}
+                  {/* <Route path="maleta" element={<MaletaRevendedora />} /> */}
+                  {/* <Route path="clientes" element={<ClientesDashboard />} /> */}
+                  {/* <Route path="vendas" element={<ListarVendas />} /> */}
+                  {/* <Route path="financeiro" element={<FinanceiroRevendedora />} /> */}
                 </Route>
 
                 {/* ========================================================= */}
@@ -97,7 +130,10 @@ function App() {
                   <Route path="vendas" element={<ListarVendas />} />
                   <Route path="config" element={<GerenciarBanners />} />
                   <Route path="config/whatsapp" element={<GerenciadorWhatsapp />} />
+                  <Route path="revendedores/cadastrar" element={<CadastrarRevendedor />} />
+                  <Route path="revendedores/maletas" element={<DistribuirEstoque />} />
                 </Route>
+
               </Routes>
             </div>
           </Router>

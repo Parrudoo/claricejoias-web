@@ -4,7 +4,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import keycloak from '../../../config/keycloak'; 
 import './AdminLayout.css';
 
-// 👇 Adicionado o FiSettings (Engrenagem) para o menu de configurações
+// 👇 Adicionado o FiBriefcase (Maleta) para o menu de Revendedores
 import { 
   FiGrid, 
   FiPackage, 
@@ -17,7 +17,8 @@ import {
   FiLogOut, 
   FiMenu, 
   FiChevronDown,
-  FiSettings 
+  FiSettings,
+  FiBriefcase 
 } from 'react-icons/fi';
 
 const AdminLayout = () => {
@@ -210,7 +211,30 @@ const AdminLayout = () => {
             )}
           </div>
 
-           {/* === GRUPO: CONFIGURAÇÕES (Antigo Banner) === */}
+          {/* === NOVO GRUPO: REVENDEDORES E MALETAS === */}
+          <div className="nav-group">
+            <button 
+              className={`nav-group-btn ${submenuAberto === 'revendedores' ? 'open' : ''}`} 
+              onClick={() => toggleSubmenu('revendedores')}
+              title="Revendedores e Maletas"
+            >
+              <div className="nav-group-icon-text">
+                <FiBriefcase size={20} />
+                <span className="nav-text">Revendedores</span>
+              </div>
+              <FiChevronDown size={16} className={`chevron ${submenuAberto === 'revendedores' ? 'rotate' : ''}`} />
+            </button>
+            
+            {submenuAberto === 'revendedores' && isExpanded && (
+              <div className="submenu-items">
+                {/* Lembre-se de criar essas rotas no seu App.js ou Routes.js */}
+                <NavLink to="/admin/revendedores/cadastrar" className="submenu-link">Vincular Revendedor</NavLink>
+                <NavLink to="/admin/revendedores/maletas" className="submenu-link">Distribuir Maletas</NavLink>
+              </div>
+            )}
+          </div>
+
+           {/* === GRUPO: CONFIGURAÇÕES === */}
           <div className="nav-group">
             <button 
               className={`nav-group-btn ${submenuAberto === 'config' ? 'open' : ''}`} 
@@ -226,10 +250,7 @@ const AdminLayout = () => {
             
             {submenuAberto === 'config' && isExpanded && (
               <div className="submenu-items">
-                {/* Link para o Banner */}
                 <NavLink to="/admin/config" className="submenu-link">Banners</NavLink>
-                
-                {/* NOVO: Link para o WhatsApp (deve bater com a rota que configuramos no App.js) */}
                 <NavLink to="/admin/config/whatsapp" className="submenu-link">Conexão WhatsApp</NavLink>
               </div>
             )}
