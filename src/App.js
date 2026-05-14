@@ -106,7 +106,7 @@ function App() {
                   <Route path="dashboard" element={<DashboardRevendedora />} />
                   <Route path="pdv" element={<TelaPDV isRevendedor={true} />} />
                    <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
-                   <Route path="clientes" element={<ClientesRevendedora isRevendedor={true} />} />
+                   <Route path="clientes" element={<ClientesDashboard isRevendedor={true} />} />
                   {/* Conforme você for criando as telas da revendedora, basta descomentar e adicionar aqui: */}
                   {/* <Route path="pdv" element={<TelaPDV />} /> */}
                   {/* <Route path="maleta" element={<MaletaRevendedora />} /> */}
