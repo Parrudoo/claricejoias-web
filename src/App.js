@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { ReactKeycloakProvider } from '@react-keycloak/web';
 import keycloak from './config/keycloak';
 
@@ -66,6 +66,11 @@ const DashboardRevendedora = () => {
   );
 };
 
+const CatalogoWrapper = () => {
+  const { slug } = useParams();
+  return <main className="conteudo-principal"><Catalogo slug={slug} /></main>;
+};
+
 function App() {
   return (
     <ReactKeycloakProvider
@@ -84,9 +89,20 @@ function App() {
             <div className="App">
               <Maleta />
               <Routes>
+                {/* ========================================================= */}
                 {/* ROTAS PÚBLICAS */}
-                <Route path="/" element={<main className="conteudo-principal"><Catalogo /></main>} />
+                {/* ========================================================= */}
+                {/* 1. Catálogo da Loja Matriz */}
+                <Route path="/" element={<CatalogoWrapper />} />
+
+                {/* ROTAS PÚBLICAS */}
+                {/* <Route path="/" element={<main className="conteudo-principal"><Catalogo /></main>} /> */}
                 <Route path="/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
+
+
+                {/* 3. Catálogo da Revendedora (Rota Dinâmica) */}
+                {/* ATENÇÃO: O React Router v6 prioriza rotas exatas, então /checkout não vai cair aqui */}
+                <Route path="/:slug" element={<CatalogoWrapper />} />
 
                 {/* ========================================================= */}
                 {/* ÁREA DO CLIENTE (MINHA CONTA) */}
@@ -102,11 +118,12 @@ function App() {
                 <Route path="/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
                   {/* Redireciona a raiz /revendedor para o dashboard dela */}
                   <Route index element={<Navigate to="/revendedor/dashboard" replace />} />
-                  
+
                   <Route path="dashboard" element={<DashboardRevendedora />} />
                   <Route path="pdv" element={<TelaPDV isRevendedor={true} />} />
-                   <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
-                   <Route path="clientes" element={<ClientesDashboard isRevendedor={true} />} />
+                  <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
+                  <Route path="clientes" element={<ClientesDashboard isRevendedor={true} />} />
+                  <Route path="vendas" element={<ListarVendas isRevendedor={true} />} />
                   {/* Conforme você for criando as telas da revendedora, basta descomentar e adicionar aqui: */}
                   {/* <Route path="pdv" element={<TelaPDV />} /> */}
                   {/* <Route path="maleta" element={<MaletaRevendedora />} /> */}

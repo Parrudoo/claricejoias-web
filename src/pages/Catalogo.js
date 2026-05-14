@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     FiShoppingBag, FiX, FiFileText, FiChevronLeft,
     FiChevronRight, FiMaximize2,
-    FiInstagram,
-    FiTwitter,
-    FiFacebook
+    FiInstagram, FiTwitter, FiFacebook, FiUser
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 
@@ -19,11 +17,15 @@ import { useMaleta } from '../context/MaletaContext';
 import { CategoriaService } from '../services/CategoriaService';
 import { leadService } from '../services/leadService';
 import { BannerService } from '../services/BannerService';
+import { CatalogoService } from '../services/CatalogoService'; // <-- NOVO IMPORT
 
 // Estilos
 import './Catalogo.css';
 
-export default function Catalogo() {
+// ============================================================================
+// RECEBE O SLUG COMO PROP (Passado pelo App.js)
+// ============================================================================
+export default function Catalogo({ slug }) {
     const { adicionarItem, itens, setCarrinhoAberto, carrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
 
@@ -31,6 +33,9 @@ export default function Catalogo() {
     const [bannersAtivos, setBannersAtivos] = useState([]);
     const [indiceBanner, setIndiceBanner] = useState(0);
     const [loading, setLoading] = useState(true);
+
+    // ESTADO PARA GUARDAR QUEM É A REVENDEDORA (Se houver)
+    const [perfilRevendedor, setPerfilRevendedor] = useState(null);
 
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [fotoDestaque, setFotoDestaque] = useState(null);
@@ -42,7 +47,7 @@ export default function Catalogo() {
     // Novos estados do Medidor e Botão Flutuante
     const [mostrarMedidor, setMostrarMedidor] = useState(false);
     const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
-    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); // Novo estado para o botão
+    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); 
 
     const API_BASE_URL = 'http://localhost:8080';
 
@@ -50,16 +55,13 @@ export default function Catalogo() {
         carregarDadosVitrine();
         checarStatusLead();
 
-        // Faz o BOTÃO aparecer após 10 segundos (não o modal)
         const timerBotao = setTimeout(() => {
             setMostrarBotaoGuia(true);
         }, 10000);
 
-        // Limpa o timer caso o componente seja desmontado antes dos 10s
         return () => clearTimeout(timerBotao);
-    }, []);
+    }, [slug]); // <-- Recarrega se o slug mudar
 
-    // Função para checar se já libera o medidor direto
     const checarStatusLead = async () => {
         try {
             const deveMostrarForm = await leadService.verificarStatusGuia();
@@ -72,33 +74,45 @@ export default function Catalogo() {
         }
     };
 
-    // Efeito para o Carrossel (reinicia o timer se o usuário clicar na seta)
     useEffect(() => {
         if (bannersAtivos.length <= 1) return;
-
         const timerSlide = setInterval(() => {
             proximoBanner();
         }, 5000);
-
         return () => clearInterval(timerSlide);
     }, [bannersAtivos, indiceBanner]);
 
     const carregarDadosVitrine = async () => {
         setLoading(true);
+        
         try {
-            const dadosCategorias = await CategoriaService.listarTodas();
+            // 1. CHECA SE É LOJA DE REVENDEDORA OU LOJA MATRIZ
+            if (slug) {
+                const resPerfil = await CatalogoService.getPerfil(slug);
+                setPerfilRevendedor(resPerfil); // É o data puro, conforme ajustamos
+                localStorage.setItem('revendedorIdAtivo', resPerfil.id);
+            } else {
+                setPerfilRevendedor(null);
+                localStorage.removeItem('revendedorIdAtivo');
+            }
+
+            // 2. BUSCA AS CATEGORIAS JÁ CRUZANDO COM A MALETA (Se tiver slug)
+            const dadosCategorias = await CategoriaService.listarTodas(slug);
             setAcervo(dadosCategorias);
         } catch (error) {
             console.error("Erro ao buscar as joias da vitrine:", error);
         }
 
-        try {
-            const dadosBanners = await BannerService.listarAtivos();
-            if (dadosBanners && dadosBanners.length > 0) {
-                setBannersAtivos(dadosBanners);
+        // 3. SÓ CARREGA BANNERS SE FOR A LOJA MATRIZ
+        if (!slug) {
+            try {
+                const dadosBanners = await BannerService.listarAtivos();
+                if (dadosBanners && dadosBanners.length > 0) {
+                    setBannersAtivos(dadosBanners);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar o banner:", error);
             }
-        } catch (error) {
-            console.error("Erro ao carregar o banner:", error);
         }
         setLoading(false);
     };
@@ -113,21 +127,16 @@ export default function Catalogo() {
     };
 
     const dadosMenu = acervo
-    .map(cat => {
-        // 1. Primeiro, filtramos as subcategorias que realmente possuem produtos
-        const subcategoriasComProdutos = cat.subcategorias 
-            ? cat.subcategorias.filter(sub => sub.itens && sub.itens.length > 0)
-            : [];
-
-        // 2. Retornamos o objeto no formato que você quer, mapeando apenas os nomes das subcategorias válidas
-        return {
-            categoria: cat.nome || cat.categoria,
-            subitens: subcategoriasComProdutos.map(sub => sub.nome)
-        };
-    })
-    // 3. Por fim, filtramos as categorias principais: 
-    // Só mantemos a categoria se ela ficou com pelo menos 1 subitem válido
-    .filter(catFormatada => catFormatada.subitens.length > 0);
+        .map(cat => {
+            const subcategoriasComProdutos = cat.subcategorias 
+                ? cat.subcategorias.filter(sub => sub.itens && sub.itens.length > 0 || sub.produtos && sub.produtos.length > 0)
+                : [];
+            return {
+                categoria: cat.nome || cat.categoria,
+                subitens: subcategoriasComProdutos.map(sub => sub.nome)
+            };
+        })
+        .filter(catFormatada => catFormatada.subitens.length > 0);
 
     const abrirDetalhes = (joia) => {
         setProdutoSelecionado(joia);
@@ -139,7 +148,6 @@ export default function Catalogo() {
         setFotoDestaque(null);
     };
 
-    // Abre o Medidor em vez do PDF
     const handleCapturaLead = async (e) => {
         e.preventDefault();
         const regexWhatsapp = /^\(\d{2}\)\s\d{5}-\d{4}$/;
@@ -158,26 +166,20 @@ export default function Catalogo() {
         }
     };
 
-    // Filtra o acervo completo para a vitrine, mantendo as propriedades originais
-const acervoFiltrado = acervo
-    .map(cat => {
-        // Filtra apenas as subcategorias que têm itens/produtos
-        const subcategoriasComProdutos = cat.subcategorias
-            ? cat.subcategorias.filter(sub => {
-                  const listaProdutos = sub.produtos || sub.itens || [];
-                  return listaProdutos.length > 0;
-              })
-            : [];
-
-        // Retorna a categoria completa (...cat), mas sobrescreve as subcategorias 
-        // apenas com aquelas que passaram no filtro acima
-        return {
-            ...cat,
-            subcategorias: subcategoriasComProdutos
-        };
-    })
-    // Remove as categorias principais que ficaram com 0 subcategorias
-    .filter(cat => cat.subcategorias.length > 0);
+    const acervoFiltrado = acervo
+        .map(cat => {
+            const subcategoriasComProdutos = cat.subcategorias
+                ? cat.subcategorias.filter(sub => {
+                      const listaProdutos = sub.produtos || sub.itens || [];
+                      return listaProdutos.length > 0;
+                  })
+                : [];
+            return {
+                ...cat,
+                subcategorias: subcategoriasComProdutos
+            };
+        })
+        .filter(cat => cat.subcategorias.length > 0);
 
     const proximoBanner = () => {
         setIndiceBanner((prev) => (prev === bannersAtivos.length - 1 ? 0 : prev + 1));
@@ -204,53 +206,66 @@ const acervoFiltrado = acervo
             <Menu categorias={dadosMenu} aoClicarCategoria={rolarPara} />
             <div className="espacador-topo"></div>
 
-            {/* BANNER DINÂMICO CARROSSEL */}
-            <section
-                className="banner-destaque"
-                style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` }}
-            >
-                {bannersAtivos.length > 1 && (
-                    <button className="btn-seta-banner esquerda" onClick={bannerAnterior}>
-                        <FiChevronLeft size={36} />
-                    </button>
-                )}
-
-                <div className="banner-conteudo" key={indiceBanner}>
-                    <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Clarice Joias"}</h2>
-                    <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
-                    <button
-                        className="btn-banner"
-                        onClick={() => {
-                            const linkAcao = bannersAtivos[indiceBanner]?.linkAcao;
-                            if (linkAcao) {
-                                window.location.href = linkAcao;
-                            } else {
-                                rolarPara(acervo[0]?.nome || acervo[0]?.categoria);
-                            }
-                        }}
-                    >
-                        Ver Novidades
-                    </button>
-                </div>
-
-                {bannersAtivos.length > 1 && (
-                    <button className="btn-seta-banner direita" onClick={proximoBanner}>
-                        <FiChevronRight size={36} />
-                    </button>
-                )}
-
-                {bannersAtivos.length > 1 && (
-                    <div className="banner-indicadores">
-                        {bannersAtivos.map((_, index) => (
-                            <span
-                                key={index}
-                                className={`indicador-bolinha ${index === indiceBanner ? 'ativo' : ''}`}
-                                onClick={() => setIndiceBanner(index)}
-                            ></span>
-                        ))}
+            {/* ========================================================= */}
+            {/* CABEÇALHO DINÂMICO: MATRIZ VS REVENDEDORA */}
+            {/* ========================================================= */}
+            {perfilRevendedor ? (
+                <div className="cabecalho-revendedora" style={{ padding: '40px 20px', textAlign: 'center', backgroundColor: '#f9f9f9', borderBottom: '1px solid #eaeaea' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#fff', border: '2px solid #D4AF37', marginBottom: '15px' }}>
+                        <FiUser size={40} color="#D4AF37" />
                     </div>
-                )}
-            </section>
+                    <h1 style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#1a1a1a', margin: '0 0 10px 0' }}>{perfilRevendedor.nome}</h1>
+                    <p style={{ color: '#666', fontSize: '14px', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Revendedora Autorizada Clarice Joias</p>
+                </div>
+            ) : (
+                <section
+                    className="banner-destaque"
+                    style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('${backgroundUrl}')` }}
+                >
+                    {bannersAtivos.length > 1 && (
+                        <button className="btn-seta-banner esquerda" onClick={bannerAnterior}>
+                            <FiChevronLeft size={36} />
+                        </button>
+                    )}
+
+                    <div className="banner-conteudo" key={indiceBanner}>
+                        <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Clarice Joias"}</h2>
+                        <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
+                        <button
+                            className="btn-banner"
+                            onClick={() => {
+                                const linkAcao = bannersAtivos[indiceBanner]?.linkAcao;
+                                if (linkAcao) {
+                                    window.location.href = linkAcao;
+                                } else {
+                                    rolarPara(acervo[0]?.nome || acervo[0]?.categoria);
+                                }
+                            }}
+                        >
+                            Ver Novidades
+                        </button>
+                    </div>
+
+                    {bannersAtivos.length > 1 && (
+                        <button className="btn-seta-banner direita" onClick={proximoBanner}>
+                            <FiChevronRight size={36} />
+                        </button>
+                    )}
+
+                    {bannersAtivos.length > 1 && (
+                        <div className="banner-indicadores">
+                            {bannersAtivos.map((_, index) => (
+                                <span
+                                    key={index}
+                                    className={`indicador-bolinha ${index === indiceBanner ? 'ativo' : ''}`}
+                                    onClick={() => setIndiceBanner(index)}
+                                ></span>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            )}
+            {/* ========================================================= */}
 
             {/* VITRINE DE JOIAS */}
             <main className="vitrine-conteudo">
@@ -282,7 +297,6 @@ const acervoFiltrado = acervo
 
             {/* AREA FLUTUANTE DO RODAPÉ */}
             <div className="area-flutuante-rodape">
-                {/* Só exibe o botão se mostrarBotaoGuia for true (após 10s) */}
                 {mostrarBotaoGuia && (
                     <div className="botao-guia-flutuante" onClick={() => setModalGuiaAberto(true)} title="Medir Anel">
                         <div className="guia-icone-container">
@@ -302,7 +316,7 @@ const acervoFiltrado = acervo
                 )}
             </div>
 
-            {/* MODAL DO MEDIDOR */}
+            {/* MODAIS (Medidor e Produto) */}
             {modalGuiaAberto && (
                 <div className="modal-detalhes-overlay" onClick={() => setModalGuiaAberto(false)}>
                     <div className="modal-lead-card" onClick={(e) => e.stopPropagation()}>
@@ -336,7 +350,6 @@ const acervoFiltrado = acervo
                 </div>
             )}
 
-            {/* MODAL DE DETALHES DE PRODUTO */}
             {produtoSelecionado && (
                 <div className="modal-detalhes-overlay" onClick={fecharDetalhes}>
                     <div className="modal-detalhes-card" onClick={(e) => e.stopPropagation()}>
@@ -373,8 +386,6 @@ const acervoFiltrado = acervo
                     </div>
                 </div>
             )}
-
-            {/* ... seus modais existentes terminam aqui ... */}
 
             {/* RODAPÉ ELEGANTE */}
             <footer className="rodape-elegante">
