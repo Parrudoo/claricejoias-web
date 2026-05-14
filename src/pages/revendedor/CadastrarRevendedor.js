@@ -8,10 +8,12 @@ const CadastrarRevendedor = () => {
     const [erro, setErro] = useState('');
     const [sucesso, setSucesso] = useState('');
 
+    // 1. Adicionado o campo 'slug' no estado inicial
     const [formData, setFormData] = useState({
         id: '',
         nome: '',
-        email: ''
+        email: '',
+        slug: '' 
     });
 
     useEffect(() => {
@@ -42,10 +44,11 @@ const CadastrarRevendedor = () => {
         try {
             await RevendedorService.cadastrar(formData);
             setSucesso('Revendedor vinculado com sucesso!');
-            setFormData({ id: '', nome: '', email: '' });
+            // 2. Limpar o campo 'slug' após o sucesso
+            setFormData({ id: '', nome: '', email: '', slug: '' });
             carregarRevendedores(); // Atualiza a tabela
         } catch (error) {
-            setErro('Erro ao vincular revendedor. Verifique se o ID já existe.');
+            setErro('Erro ao vincular revendedor. Verifique se o ID ou Slug já existem.');
         } finally {
             setLoading(false);
         }
@@ -103,6 +106,17 @@ const CadastrarRevendedor = () => {
                             style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                         />
                     </div>
+                    
+                    {/* 3. Novo input para o Slug */}
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: '2', minWidth: '200px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>Slug*</label>
+                        <input 
+                            type="text" name="slug" required value={formData.slug} onChange={handleChange}
+                            placeholder="Ex: maria-joias"
+                            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                    </div>
+
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
                         <button type="submit" disabled={loading} style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#D4AF37', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
                             <FiSave /> {loading ? 'Salvando...' : 'Vincular'}
@@ -121,19 +135,23 @@ const CadastrarRevendedor = () => {
                                 <th>ID (Keycloak)</th>
                                 <th>Nome</th>
                                 <th>E-mail</th>
+                                {/* 4. Adicionado cabeçalho do Slug na tabela */}
+                                <th>Slug</th>
                                 <th>Status</th>
                                 <th className="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {revendedores.length === 0 ? (
-                                <tr><td colSpan="5" className="text-center">Nenhum revendedor vinculado.</td></tr>
+                                <tr><td colSpan="6" className="text-center">Nenhum revendedor vinculado.</td></tr>
                             ) : (
                                 revendedores.map(rev => (
                                     <tr key={rev.id}>
                                         <td style={{ fontSize: '12px', color: '#666' }}>{rev.id}</td>
                                         <td><strong>{rev.nome}</strong></td>
                                         <td>{rev.email}</td>
+                                        {/* 5. Exibição do Slug na tabela */}
+                                        <td style={{ color: '#0056b3' }}>{rev.slug}</td>
                                         <td>
                                             <span style={{ background: rev.ativo ? '#e8f5e9' : '#ffebee', color: rev.ativo ? '#2e7d32' : '#c62828', padding: '4px 8px', borderRadius: '12px', fontSize: '12px' }}>
                                                 {rev.ativo ? 'Ativo' : 'Inativo'}

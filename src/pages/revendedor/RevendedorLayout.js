@@ -13,6 +13,7 @@ import {
   FiMenu 
 } from 'react-icons/fi';
 import keycloak from '../../config/keycloak';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const RevendedorLayout = () => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -75,6 +76,12 @@ const RevendedorLayout = () => {
           <NavLink to="/revendedor/financeiro" className="nav-item-single" title="Acerto e Lucro">
             <FiDollarSign size={20} />
             <span className="nav-text">Meu Lucro</span>
+          </NavLink>
+         
+          {/* BOTÃO DIRETO DO WHATSAPP */}
+          <NavLink to="/revendedor/whatsapp" className="nav-item-single" title="Conexão WhatsApp">
+            <FaWhatsapp size={20} />
+            <span className="nav-text">Conexão WhatsApp</span>
           </NavLink>
 
         </nav>

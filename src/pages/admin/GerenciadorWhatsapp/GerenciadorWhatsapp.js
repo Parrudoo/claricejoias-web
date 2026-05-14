@@ -1,56 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { evolutionService } from '../../../services/evolutionService';
+import { useAuth } from '../../../context/AuthProvider';
 
+const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
+    const { keycloakData } = useAuth();
+    
+    // Cria um nome único e padronizado para a revendedora baseado no login dela do Keycloak
+    // Remove caracteres especiais que poderiam quebrar a URL da Evolution API
+    const usernameLimpo = keycloakData?.preferred_username?.replace(/[^a-zA-Z0-9]/g, '') || 'user';
+    const nomeInstanciaRevendedor = `rev_${usernameLimpo}`;
 
-const GerenciadorWhatsapp = () => {
     const [instancias, setInstancias] = useState([]);
     const [nomeInstancia, setNomeInstancia] = useState('');
     const [qrCodeBase64, setQrCodeBase64] = useState('');
     const [loading, setLoading] = useState(false);
     const [mensagem, setMensagem] = useState('');
 
-    // Carrega as instâncias assim que a tela abre
     useEffect(() => {
+        // Se for revendedor, o nome da instância é gerado automaticamente e não pode ser mudado
+        if (isRevendedor) {
+            setNomeInstancia(nomeInstanciaRevendedor);
+        }
         carregarInstancias();
-    }, []);
+    }, [isRevendedor, nomeInstanciaRevendedor]);
 
     const carregarInstancias = async () => {
         try {
             const data = await evolutionService.listarInstancias();
-
-            // Garante que, se o Java mandar como texto, o React transforma em Array (JSON)
             const arrayInstancias = typeof data === 'string' ? JSON.parse(data) : data;
 
-            setInstancias(arrayInstancias || []);
+            if (isRevendedor) {
+                // Filtra para o Revendedor ver APENAS a instância dele
+                setInstancias(arrayInstancias.filter(inst => inst.instance.instanceName === nomeInstanciaRevendedor));
+            } else {
+                // Admin vê a lista completa do servidor
+                setInstancias(arrayInstancias || []);
+            }
         } catch (error) {
-            // Agora imprimimos o erro real para saber se o bloqueio é de rede/CORS
             console.error("Erro ao carregar lista de instâncias:", error);
-            setMensagem("Erro ao carregar as instâncias. Verifique o console (F12).");
+            setMensagem("Erro ao carregar as instâncias. Verifique sua conexão com a Evolution API.");
         }
     };
 
-
-    // Função para Desconectar (Logout) uma instância
-    const handleDesconectar = async (nomeParaDesconectar) => {
-        if (!window.confirm(`Deseja realmente desconectar o WhatsApp da instância "${nomeParaDesconectar}"?`)) return;
-
-        try {
-            setMensagem(`Desconectando a instância ${nomeParaDesconectar}...`);
-            await evolutionService.desconectarInstancia(nomeParaDesconectar);
-            setMensagem(`Instância "${nomeParaDesconectar}" desconectada com sucesso!`);
-
-            // Limpa o QR Code caso ele esteja aberto
-            setQrCodeBase64('');
-
-            // Recarrega a lista para o status mudar de "open" para outra coisa
-            carregarInstancias();
-        } catch (error) {
-            setMensagem(`Erro ao desconectar a instância ${nomeParaDesconectar}.`);
-        }
-    };
-
-
-    // Função para criar a instância
     const handleCriarInstancia = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -59,25 +50,24 @@ const GerenciadorWhatsapp = () => {
         try {
             const payload = {
                 instanceName: nomeInstancia,
-                token: "claricejoias", // Use um padrão seguro
+                token: "claricejoias", // Token de segurança interno
                 qrcode: true,
                 integration: "WHATSAPP-BAILEYS"
             };
 
             await evolutionService.criarInstancia(payload);
             setMensagem('Instância criada com sucesso!');
-            setNomeInstancia('');
+            
+            if (!isRevendedor) {
+                setNomeInstancia(''); // Limpa o campo apenas para o Admin
+            }
 
-            // Recarrega a lista para mostrar a nova instância
             await carregarInstancias();
-
-            // Já busca o QR Code dela automaticamente
             buscarQrCode(payload.instanceName);
 
         } catch (error) {
-            // Verifica se o erro foi de instância já existente
             if (error.response?.data?.message?.includes("already exists")) {
-                setMensagem('Atenção: Essa instância já existe.');
+                setMensagem('Atenção: Essa instância já existe no servidor.');
             } else {
                 setMensagem('Erro ao criar instância. Verifique o console.');
             }
@@ -86,7 +76,6 @@ const GerenciadorWhatsapp = () => {
         }
     };
 
-    // Função para buscar e exibir o QR Code de uma instância específica
     const buscarQrCode = async (nome) => {
         setMensagem(`Buscando QR Code para: ${nome}...`);
         try {
@@ -104,25 +93,45 @@ const GerenciadorWhatsapp = () => {
         }
     };
 
-    // Função para deletar (Apagar) uma instância da lista
+    const handleDesconectar = async (nomeParaDesconectar) => {
+        if (!window.confirm(`Deseja realmente desconectar o WhatsApp da instância "${nomeParaDesconectar}"?`)) return;
+
+        try {
+            setMensagem(`Desconectando a instância ${nomeParaDesconectar}...`);
+            await evolutionService.desconectarInstancia(nomeParaDesconectar);
+            setMensagem(`Instância "${nomeParaDesconectar}" desconectada com sucesso!`);
+            setQrCodeBase64('');
+            carregarInstancias();
+        } catch (error) {
+            setMensagem(`Erro ao desconectar a instância ${nomeParaDesconectar}.`);
+        }
+    };
+
     const handleDeletar = async (nomeParaDeletar) => {
         if (!window.confirm(`Tem certeza que deseja apagar a instância "${nomeParaDeletar}"?`)) return;
 
         try {
             await evolutionService.deletarInstancia(nomeParaDeletar);
             setMensagem(`Instância "${nomeParaDeletar}" apagada com sucesso!`);
-            setQrCodeBase64(''); // Limpa o QR Code da tela se estiver aberto
-
-            // Recarrega a lista para remover o item deletado da tela
+            setQrCodeBase64('');
             carregarInstancias();
         } catch (error) {
             setMensagem(`Erro ao apagar a instância ${nomeParaDeletar}.`);
         }
     };
 
+    // Verifica se o revendedor já tem a instância dele criada para ocultar o botão de "Criar"
+    const revendedorJaTemInstancia = isRevendedor && instancias.length > 0;
+
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <h2>Gerenciador de Conexão WhatsApp</h2>
+            <h2>{isRevendedor ? 'Meu WhatsApp de Atendimento' : 'Gerenciador de Conexão WhatsApp'}</h2>
+            
+            {isRevendedor && (
+                <p style={{ color: '#666' }}>
+                    Conecte o seu WhatsApp pessoal ou profissional para que o sistema envie os catálogos e cobranças automaticamente em seu nome.
+                </p>
+            )}
 
             {mensagem && (
                 <div style={{ padding: '10px', marginBottom: '15px', backgroundColor: '#e3f2fd', borderLeft: '4px solid #2196f3' }}>
@@ -130,36 +139,46 @@ const GerenciadorWhatsapp = () => {
                 </div>
             )}
 
-            {/* ÁREA DE CRIAÇÃO */}
-            <div style={{ marginBottom: '30px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <h3>Criar Nova Instância</h3>
-                <form onSubmit={handleCriarInstancia} style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                    <input
-                        type="text"
-                        value={nomeInstancia}
-                        onChange={(e) => setNomeInstancia(e.target.value)}
-                        placeholder="Ex: atendimento_site"
-                        required
-                        style={{ flex: 1, padding: '8px' }}
-                    />
-                    <button type="submit" disabled={loading} style={{ padding: '8px 15px', cursor: 'pointer' }}>
-                        {loading ? 'Criando...' : 'Criar e Conectar'}
-                    </button>
-                </form>
-            </div>
+            {/* ÁREA DE CRIAÇÃO (Oculta para o revendedor se a instância dele já existir) */}
+            {!revendedorJaTemInstancia && (
+                <div style={{ marginBottom: '30px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px' }}>
+                    <h3>{isRevendedor ? 'Iniciar Minha Conexão' : 'Criar Nova Instância'}</h3>
+                    <form onSubmit={handleCriarInstancia} style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+                        
+                        {isRevendedor ? (
+                            <span style={{ flex: 1, padding: '8px', background: '#f5f5f5', borderRadius: '4px', color: '#555' }}>
+                                Instância: <strong>{nomeInstancia}</strong>
+                            </span>
+                        ) : (
+                            <input
+                                type="text"
+                                value={nomeInstancia}
+                                onChange={(e) => setNomeInstancia(e.target.value)}
+                                placeholder="Ex: atendimento_matriz"
+                                required
+                                style={{ flex: 1, padding: '8px' }}
+                            />
+                        )}
+
+                        <button type="submit" disabled={loading} style={{ padding: '8px 15px', cursor: 'pointer', backgroundColor: '#D4AF37', border: 'none', color: '#fff', borderRadius: '4px', fontWeight: 'bold' }}>
+                            {loading ? 'Processando...' : 'Criar e Conectar'}
+                        </button>
+                    </form>
+                </div>
+            )}
 
             {/* ÁREA DO QR CODE ATIVO */}
             {qrCodeBase64 && (
                 <div style={{ textAlign: 'center', marginBottom: '30px', border: '2px dashed #4caf50', padding: '20px', borderRadius: '8px' }}>
                     <h3>Leia o QR Code com o seu WhatsApp</h3>
-                    <p>Para a instância que você acabou de selecionar/criar.</p>
+                    <p>Abra o WhatsApp no celular {'>'} Aparelhos Conectados {'>'} Conectar um Aparelho.</p>
                     <img
                         src={qrCodeBase64}
                         alt="QR Code WhatsApp"
                         style={{ width: '250px', height: '250px' }}
                     />
                     <br />
-                    <button onClick={() => setQrCodeBase64('')} style={{ marginTop: '15px', padding: '8px 15px' }}>
+                    <button onClick={() => setQrCodeBase64('')} style={{ marginTop: '15px', padding: '8px 15px', cursor: 'pointer' }}>
                         Fechar QR Code
                     </button>
                 </div>
@@ -167,7 +186,7 @@ const GerenciadorWhatsapp = () => {
 
             {/* LISTAGEM DAS INSTÂNCIAS */}
             <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <h3>Instâncias Existentes</h3>
+                <h3>{isRevendedor ? 'Status da Conexão' : 'Instâncias Existentes'}</h3>
                 {instancias.length === 0 ? (
                     <p>Nenhuma instância encontrada.</p>
                 ) : (
@@ -186,11 +205,13 @@ const GerenciadorWhatsapp = () => {
                                         <strong>{inst.instance.instanceName}</strong>
                                     </td>
                                     <td style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
-                                        {inst.instance.status}
+                                        {inst.instance.status === 'open' ? (
+                                            <span style={{ color: '#27ae60', fontWeight: 'bold' }}>Conectado</span>
+                                        ) : (
+                                            <span style={{ color: '#e74c3c', fontWeight: 'bold' }}>Desconectado</span>
+                                        )}
                                     </td>
                                     <td style={{ padding: '10px', borderBottom: '1px solid #ddd', display: 'flex', gap: '10px' }}>
-
-                                        {/* Se NÃO estiver conectado (status diferente de "open"), mostra botão de Conectar */}
                                         {inst.instance.status !== 'open' && (
                                             <button
                                                 onClick={() => buscarQrCode(inst.instance.instanceName)}
@@ -200,7 +221,6 @@ const GerenciadorWhatsapp = () => {
                                             </button>
                                         )}
 
-                                        {/* Se ESTIVER conectado (status "open"), mostra o botão de Desconectar */}
                                         {inst.instance.status === 'open' && (
                                             <button
                                                 onClick={() => handleDesconectar(inst.instance.instanceName)}
@@ -210,7 +230,7 @@ const GerenciadorWhatsapp = () => {
                                             </button>
                                         )}
 
-                                        {/* Botão de Apagar sempre disponível */}
+                                        {/* Permite apagar a instância (O admin pode apagar qualquer uma, o revendedor pode resetar a própria) */}
                                         <button
                                             onClick={() => handleDeletar(inst.instance.instanceName)}
                                             style={{ padding: '5px 10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}

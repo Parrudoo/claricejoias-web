@@ -32,6 +32,7 @@ import DistribuirEstoque from './pages/estoque/DistribuirEstoque';
 import RevendedorLayout from './pages/revendedor/RevendedorLayout';
 import MaletaRevendedora from './pages/revendedor/MaletaRevendedora';
 import ClientesRevendedora from './pages/revendedor/ClientesRevendedora';
+import FinanceiroRevendedora from './pages/revendedor/FinanceiroRevendedora';
 
 
 const Loading = () => <div className="carregando">Iniciando sistema de segurança...</div>;
@@ -124,6 +125,8 @@ function App() {
                   <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
                   <Route path="clientes" element={<ClientesDashboard isRevendedor={true} />} />
                   <Route path="vendas" element={<ListarVendas isRevendedor={true} />} />
+                  <Route path="financeiro" element={<FinanceiroRevendedora isRevendedor={true} />} />
+                  <Route path="whatsapp" element={<GerenciadorWhatsapp isRevendedor={true} />} />
                   {/* Conforme você for criando as telas da revendedora, basta descomentar e adicionar aqui: */}
                   {/* <Route path="pdv" element={<TelaPDV />} /> */}
                   {/* <Route path="maleta" element={<MaletaRevendedora />} /> */}
