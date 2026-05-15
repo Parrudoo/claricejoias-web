@@ -22,7 +22,7 @@ const ClientesRevendedora = () => {
     const carregarClientes = async () => {
         try {
             setLoading(true);
-            const dados = await ClienteService.listarMeusClientes(usuarioId);
+            const dados = await ClienteService.listarMeusClientes();
             
             // Trava de segurança para paginação/arrays
             if (Array.isArray(dados)) {

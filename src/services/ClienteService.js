@@ -48,8 +48,8 @@ export const ClienteService = {
         }
     },
 
-    listarMeusClientes: async (revendedorId) => {
-        const response = await api.get(`/clientes/revendedor/${revendedorId}`);
+    listarMeusClientes: async () => {
+        const response = await api.get(`/clientes/revendedor`);
         return response.data;
     }
 };

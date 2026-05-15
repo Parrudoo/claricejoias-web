@@ -15,23 +15,23 @@ export const evolutionService = {
     },
 
     // Busca o QR Code em Base64 para conectar o celular
-    conectarInstancia: async (nomeInstancia) => {
+    conectarInstancia: async () => {
         try {
-            const resposta = await api.get(`/whatsapp/instances/${nomeInstancia}/connect`);
+            const resposta = await api.get(`/whatsapp/instances/my-instance/connect`);
             return resposta.data;
         } catch (erro) {
-            console.error(`Erro ao conectar a instância ${nomeInstancia}:`, erro);
+            console.error(`Erro ao conectar a instância:`, erro);
             throw erro;
         }
     },
 
     // Deleta a instância do servidor da Evolution
-    deletarInstancia: async (nomeInstancia) => {
+    deletarInstancia: async () => {
         try {
-            const resposta = await api.delete(`/whatsapp/instances/${nomeInstancia}`);
+            const resposta = await api.delete(`/whatsapp/instances/my-instance`);
             return resposta.data;
         } catch (erro) {
-            console.error(`Erro ao deletar a instância ${nomeInstancia}:`, erro);
+            console.error(`Erro ao deletar a instância`, erro);
             throw erro;
         }
     },
@@ -61,7 +61,7 @@ export const evolutionService = {
     desconectarInstancia: async (nomeInstancia) => {
         try {
           // Ajuste a URL se não estiver usando /api no baseURL do axios
-          const resposta = await api.delete(`/whatsapp/instances/${nomeInstancia}/logout`);
+          const resposta = await api.delete(`/whatsapp/instances/my-instance/logout`);
           return resposta.data;
         } catch (erro) {
           console.error(`Erro ao desconectar a instância ${nomeInstancia}:`, erro);
