@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMaleta } from '../context/MaletaContext';
 import { FiArrowLeft, FiShield, FiSmartphone, FiCheckCircle, FiCreditCard, FiMessageCircle, FiLock, FiUserCheck } from 'react-icons/fi';
 import { MdOutlinePix } from 'react-icons/md';
 import { leadService } from '../services/leadService';
 import { ImagemService } from '../services/ImagemService';
-import { useAuth } from '../context/AuthProvider'; 
-import './Checkout.css'; 
+import { useAuth } from '../context/AuthProvider';
+import './Checkout.css';
 
 export default function Checkout() {
   const { itens, total } = useMaleta();
   const navigate = useNavigate();
-
+  const { slug } = useParams();
   // Puxando tudo de uma vez do seu AuthProvider!
   const { logado, keycloakData, dadosPessoais, carregando } = useAuth();
 
   // Estados do Fluxo de Steps
   const [step, setStep] = useState(1);
-  
+
   // Dados do Cliente
   const [whatsapp, setWhatsapp] = useState('');
   const [codigoOtp, setCodigoOtp] = useState('');
@@ -34,9 +34,9 @@ export default function Checkout() {
   useEffect(() => {
     if (logado && !carregando) {
       setStep(3); // Pula as etapas de OTP
-      
+
       setNome(keycloakData?.nomeCompleto || '');
-      
+
       // Pega o WhatsApp do banco (dadosPessoais) se existir. 
       // Se não, tenta pegar pelo e-mail falso do Keycloak (ex: 86999999999@clarice...)
       const numeroUser = dadosPessoais?.whatsapp || keycloakData?.email?.split('@')[0] || '';
@@ -79,28 +79,31 @@ export default function Checkout() {
     const whatsappLimpo = whatsapp.replace(/\D/g, '');
 
     try {
-      await leadService.salvar({ 
-        nome, 
-        whatsapp: whatsappLimpo, 
+      await leadService.salvar({
+        nome,
+        whatsapp: whatsappLimpo,
         formaPagamento,
         criarConta: !logado, // Se já está logado, NÃO tenta criar conta de novo
-        itens 
+        itens
       });
-      
+
       setLoading(false);
       alert(logado ? "Pedido enviado com sucesso! 🎉" : "Identidade confirmada e pedido enviado! 🎉 Olhe seu WhatsApp.");
-      navigate('/'); 
+      navigate('/');
     } catch (error) {
       setLoading(false);
-      
+
     }
   };
 
   return (
     <div className="checkout-container-ml">
-      
+
       <header className="checkout-header-seguro">
-        <button onClick={() => navigate('/')} className="btn-voltar-simples">
+        <button
+          onClick={() => navigate(slug ? `/${slug}` : '/')}
+          className="btn-voltar-simples"
+        >
           <FiArrowLeft /> Voltar à loja
         </button>
         <div className="selo-seguranca">
@@ -110,9 +113,9 @@ export default function Checkout() {
       </header>
 
       <div className="checkout-content">
-        
+
         <div className="checkout-steps">
-          
+
           {/* STEP 1: IDENTIFICAÇÃO */}
           <div className={`step-card ${step === 1 ? 'ativo' : step > 1 ? 'concluido' : 'bloqueado'}`}>
             <div className="step-header">
@@ -120,7 +123,7 @@ export default function Checkout() {
               <h3>Identificação</h3>
               {step > 1 && <FiCheckCircle className="icone-sucesso-step" />}
             </div>
-            
+
             {/* Se logado, exibe mensagem confirmando a sessão */}
             {logado && step > 1 ? (
               <div className="step-resumo-texto" style={{ color: '#00a650', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -134,9 +137,9 @@ export default function Checkout() {
                     <p className="step-descricao">Para sua segurança e confirmação de identidade, validaremos seu acesso via WhatsApp.</p>
                     <div className="input-group-moderno">
                       <FiSmartphone className="input-icon" />
-                      <input 
-                        type="tel" 
-                        placeholder="(DDD) 90000-0000" 
+                      <input
+                        type="tel"
+                        placeholder="(DDD) 90000-0000"
                         value={whatsapp}
                         onChange={(e) => setWhatsapp(e.target.value)}
                         required
@@ -162,20 +165,20 @@ export default function Checkout() {
               <h3>Código de Segurança</h3>
               {step > 2 && <FiCheckCircle className="icone-sucesso-step" />}
             </div>
-            
+
             {logado && step > 2 ? (
-               <div className="step-resumo-texto">
-                 Verificação automática concluída.
-               </div>
+              <div className="step-resumo-texto">
+                Verificação automática concluída.
+              </div>
             ) : (
               step === 2 && (
                 <form onSubmit={handleValidarCodigo} className="step-body fade-in">
                   <p className="step-descricao">Digite o código de 6 dígitos que enviamos para o seu WhatsApp agora mesmo.</p>
                   <div className="input-group-moderno input-codigo">
                     <FiLock className="input-icon" />
-                    <input 
-                      type="text" 
-                      placeholder="000000" 
+                    <input
+                      type="text"
+                      placeholder="000000"
                       maxLength="6"
                       value={codigoOtp}
                       onChange={(e) => setCodigoOtp(e.target.value.replace(/\D/g, ''))}
@@ -200,10 +203,10 @@ export default function Checkout() {
               <span className="step-number">3</span>
               <h3>Finalização e Pagamento</h3>
             </div>
-            
+
             {step === 3 && (
               <div className="step-body fade-in">
-                
+
                 {/* Mostra o Whats do cara bloqueado para leitura se ele já estiver logado */}
                 {logado && (
                   <div className="input-group-moderno mb-20" style={{ opacity: 0.7 }}>
@@ -214,9 +217,9 @@ export default function Checkout() {
 
                 <div className="input-group-moderno mb-20">
                   <label className="label-moderno">Como podemos te chamar?</label>
-                  <input 
-                    type="text" 
-                    placeholder="Seu nome completo" 
+                  <input
+                    type="text"
+                    placeholder="Seu nome completo"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     className="input-nome"
@@ -231,13 +234,13 @@ export default function Checkout() {
                     <strong>PIX</strong>
                     <span>Chave enviada no Whats</span>
                   </div>
-                  
+
                   <div className={`card-pagamento ${formaPagamento === 'cartao' ? 'selecionado' : ''}`} onClick={() => setFormaPagamento('cartao')}>
                     <FiCreditCard className="icone-pagamento" />
                     <strong>Cartão</strong>
                     <span>Link de pagamento</span>
                   </div>
-                  
+
                   <div className={`card-pagamento ${formaPagamento === 'negociar' ? 'selecionado' : ''}`} onClick={() => setFormaPagamento('negociar')}>
                     <FiMessageCircle className="icone-pagamento" />
                     <strong>Negociar</strong>

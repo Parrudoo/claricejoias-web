@@ -90,11 +90,11 @@ function App() {
                   {/* ========================================================= */}
                   {/* ROTAS PÚBLICAS DA LOJA */}
                   {/* ========================================================= */}
-                  <Route path="/" element={<main className="conteudo-principal"><Catalogo /></main>} />
-                  <Route path="/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
+                  {/* <Route path="/" element={<main className="conteudo-principal"><Catalogo /></main>} /> */}
+                  <Route path="/:slug?/checkout" element={<main className="conteudo-principal"><Checkout /></main>} />
                   
                   {/* Rota dinâmica do revendedor. Ex: /maria-silva */}
-                  <Route path="/:slug" element={<main className="conteudo-principal"><Catalogo /></main>} />
+                 <Route path="/:slug?" element={<main className="conteudo-principal"><Catalogo /></main>} />
 
                   {/* ========================================================= */}
                   {/* ÁREA DO CLIENTE (MINHA CONTA) */}

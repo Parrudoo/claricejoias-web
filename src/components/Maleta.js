@@ -14,9 +14,16 @@ export default function Maleta() {
   if (!carrinhoAberto) return null;
 
   const finalizar = () => {
-    navigate('/checkout');
+    if (slug) {
+      // Se existe um slug (ex: karolbarcelar), vai para o checkout da revendedora
+      navigate(`/${slug}/checkout`);
+    } else {
+      // Se não tem slug (ex: loja principal oficial), vai para o checkout normal
+      navigate('/checkout');
+    }
+
     setCarrinhoAberto(false);
-  }
+  };
 
   const handleRemoverItem = (joia) => {
     const revendedorId = lojaRevendedor ? lojaRevendedor.id : null;
