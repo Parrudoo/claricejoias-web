@@ -8,10 +8,26 @@ export const CarrinhoService = {
     },
 
     // Adiciona 1 ou mais itens e retorna o carrinho atualizado
-    adicionarItem: async (produtoId, quantidade = 1) => {
-        const response = await api.post(`/carrinho/adicionar/${produtoId}?quantidade=${quantidade}`);
-        return response.data;
-    },
+  adicionarItem: async (produtoId, quantidade = 1, revendedorId = null) => {
+    // 1. Monta a URL básica
+    let url = `/carrinho/adicionar/${produtoId}?quantidade=${quantidade}`;
+    
+    // 2. Se houver uma revendedora, adiciona o parâmetro na URL
+    if (revendedorId) {
+        url += `&revendedorId=${revendedorId}`;
+    }
+
+    // ==========================================
+    // 🔍 PRINT DA URL DO CARRINHO (VEJA NO CONSOLE DO F12)
+    // ==========================================
+    console.log("🚀 URL ENVIADA PARA O AXIOS:", url);
+    console.log("📌 ID DO REVENDEDOR PASSADO:", revendedorId);
+    // ==========================================
+
+    // 3. Faz o post passando o corpo vazio
+    const response = await api.post(url, {});
+    return response.data;
+},
 
     // Remove a joia do carrinho e retorna atualizado
     removerItem: async (produtoId) => {

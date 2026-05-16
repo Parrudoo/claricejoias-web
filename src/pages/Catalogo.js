@@ -21,11 +21,12 @@ import { CatalogoService } from '../services/CatalogoService'; // <-- NOVO IMPOR
 
 // Estilos
 import './Catalogo.css';
+import { useLoja } from '../context/LojaContext';
 
 // ============================================================================
 // RECEBE O SLUG COMO PROP (Passado pelo App.js)
 // ============================================================================
-export default function Catalogo({ slug }) {
+export default function Catalogo() {
     const { adicionarItem, itens, setCarrinhoAberto, carrinhoAberto } = useMaleta();
     const qtdTotal = itens.reduce((acc, curr) => acc + curr.quantidade, 0);
 
@@ -39,7 +40,7 @@ export default function Catalogo({ slug }) {
 
     const [produtoSelecionado, setProdutoSelecionado] = useState(null);
     const [fotoDestaque, setFotoDestaque] = useState(null);
-
+    const { slug, revendedor: lojaRevendedor } = useLoja();
     const [modalGuiaAberto, setModalGuiaAberto] = useState(false);
     const [dadosLead, setDadosLead] = useState({ nome: '', whatsapp: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,7 +48,7 @@ export default function Catalogo({ slug }) {
     // Novos estados do Medidor e Botão Flutuante
     const [mostrarMedidor, setMostrarMedidor] = useState(false);
     const [visitanteJaEhLead, setVisitanteJaEhLead] = useState(false);
-    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false); 
+    const [mostrarBotaoGuia, setMostrarBotaoGuia] = useState(false);
 
     const API_BASE_URL = 'http://localhost:8080';
 
@@ -74,6 +75,14 @@ export default function Catalogo({ slug }) {
         }
     };
 
+    const handleAdicionarItem = (joia) => {
+    
+        const revendedorId = lojaRevendedor ? lojaRevendedor.id : null;
+
+        // Passa a joia e o revendedorId como segundo parâmetro para o MaletaContext
+        adicionarItem(joia, revendedorId);
+    };
+
     useEffect(() => {
         if (bannersAtivos.length <= 1) return;
         const timerSlide = setInterval(() => {
@@ -84,26 +93,23 @@ export default function Catalogo({ slug }) {
 
     const carregarDadosVitrine = async () => {
         setLoading(true);
-        
+
         try {
-            // 1. CHECA SE É LOJA DE REVENDEDORA OU LOJA MATRIZ
-            if (slug) {
-                const resPerfil = await CatalogoService.getPerfil(slug);
-                setPerfilRevendedor(resPerfil); // É o data puro, conforme ajustamos
-                localStorage.setItem('revendedorIdAtivo', resPerfil.id);
-            } else {
-                setPerfilRevendedor(null);
+            // Se houver slug, o contexto já buscou o revendedor. Vamos apenas salvar no localStorage por segurança
+            if (slug && lojaRevendedor) {
+                localStorage.setItem('revendedorIdAtivo', lojaRevendedor.id);
+            } else if (!slug) {
                 localStorage.removeItem('revendedorIdAtivo');
             }
 
-            // 2. BUSCA AS CATEGORIAS JÁ CRUZANDO COM A MALETA (Se tiver slug)
+            // BUSCA AS CATEGORIAS PASSANDO O SLUG (que veio do contexto)
             const dadosCategorias = await CategoriaService.listarTodas(slug);
             setAcervo(dadosCategorias);
         } catch (error) {
             console.error("Erro ao buscar as joias da vitrine:", error);
         }
 
-        // 3. SÓ CARREGA BANNERS SE FOR A LOJA MATRIZ
+        // SÓ CARREGA BANNERS SE FOR A LOJA MATRIZ
         if (!slug) {
             try {
                 const dadosBanners = await BannerService.listarAtivos();
@@ -128,7 +134,7 @@ export default function Catalogo({ slug }) {
 
     const dadosMenu = acervo
         .map(cat => {
-            const subcategoriasComProdutos = cat.subcategorias 
+            const subcategoriasComProdutos = cat.subcategorias
                 ? cat.subcategorias.filter(sub => sub.itens && sub.itens.length > 0 || sub.produtos && sub.produtos.length > 0)
                 : [];
             return {
@@ -170,9 +176,9 @@ export default function Catalogo({ slug }) {
         .map(cat => {
             const subcategoriasComProdutos = cat.subcategorias
                 ? cat.subcategorias.filter(sub => {
-                      const listaProdutos = sub.produtos || sub.itens || [];
-                      return listaProdutos.length > 0;
-                  })
+                    const listaProdutos = sub.produtos || sub.itens || [];
+                    return listaProdutos.length > 0;
+                })
                 : [];
             return {
                 ...cat,
@@ -283,7 +289,7 @@ export default function Catalogo({ slug }) {
                                             <CardItem
                                                 key={joia.id}
                                                 joia={joia}
-                                                adicionarItem={adicionarItem}
+                                                adicionarItem={handleAdicionarItem}
                                                 abrirDetalhes={() => abrirDetalhes(joia)}
                                             />
                                         ))}

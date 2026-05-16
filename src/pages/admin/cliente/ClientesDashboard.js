@@ -99,7 +99,7 @@ const ClientesDashboard = () => {
         if (venda.parcelas && Array.isArray(venda.parcelas)) {
           venda.parcelas.forEach(parcela => {
 
-            // 👈 MUDANÇA AQUI: Agora ele aceita PENDENTE ou ATRASADA
+            //  MUDANÇA AQUI: Agora ele aceita PENDENTE ou ATRASADA
             if (parcela.status === 'PENDENTE' || parcela.status === 'ATRASADA') {
               valorTotalPendente += parcela.valor;
 
@@ -176,6 +176,7 @@ const ClientesDashboard = () => {
               <tr>
                 <th>Nome</th>
                 <th>WhatsApp</th>
+                <th>Revendedor</th> {/* NOVA COLUNA AQUI */}
                 <th>Status / Saldo</th>
                 <th>Última Cobrança</th>
                 <th>Ações</th>
@@ -183,7 +184,8 @@ const ClientesDashboard = () => {
             </thead>
             <tbody>
               {clientesFiltrados.length === 0 ? (
-                <tr><td colSpan="5" className="empty-text">Nenhum cliente encontrado.</td></tr>
+                /* colSpan alterado de 5 para 6 */
+                <tr><td colSpan="6" className="empty-text">Nenhum cliente encontrado.</td></tr>
               ) : (
                 clientesFiltrados.map(cliente => {
                   const statusReal = calcularStatusReal(cliente);
@@ -193,6 +195,15 @@ const ClientesDashboard = () => {
                       <tr>
                         <td className="font-semibold">{cliente.nome}</td>
                         <td>{cliente.telefone}</td>
+                        
+                        {/* NOVO DADO DA COLUNA AQUI */}
+                        <td>
+                          {cliente.nomeRevendedor ? (
+                            <span className="text-gray-700">{cliente.nomeRevendedor}</span>
+                          ) : (
+                            <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '12px' }}>Não vinculado</span>
+                          )}
+                        </td>
 
                         <td>
                           <span className={`badge ${statusReal.classeCss}`} title={`Dívida total: R$ ${statusReal.valorTotal.toFixed(2).replace('.', ',')}`}>
@@ -233,7 +244,8 @@ const ClientesDashboard = () => {
 
                       {clienteExpandido === cliente.id && (
                         <tr className="details-expanded-row">
-                          <td colSpan="5" className="details-cell">
+                          {/* colSpan alterado de 5 para 6 para alinhar corretamente com a nova estrutura */}
+                          <td colSpan="6" className="details-cell">
                             <div className="details-content-box">
                               <h4 className="details-title">Extrato de Movimentações</h4>
 
@@ -242,6 +254,7 @@ const ClientesDashboard = () => {
                               ) : (
                                 detalhesCompras[cliente.id] && detalhesCompras[cliente.id].length > 0 ? (
                                   <ul className="details-purchase-list">
+                                    {/* ... SEU CÓDIGO DE DETALHES INTACTO ... */}
                                     {detalhesCompras[cliente.id].map((compra, index) => {
                                       const dataCompra = compra.dataVenda || compra.data;
                                       const valorTotalCompra = compra.total || compra.valor;

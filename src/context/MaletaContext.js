@@ -79,10 +79,11 @@ export const MaletaProvider = ({ children }) => {
   // 4. AÇÕES DA MALETA (Aqui o banco de dados trabalha de verdade)
   // =======================================================
   
-  const adicionarItem = async (joia) => {
+  const adicionarItem = async (joia,revendedorId) => {
+  console.log(revendedorId)
     try {
       // É AQUI que o Java realmente dá o INSERT e cria o Carrinho se ele não existia!
-      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1);
+      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1,revendedorId);
       processarDadosCarrinho(carrinhoAtualizado);
       setCarrinhoAberto(true);
     } catch (error) {

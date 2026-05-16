@@ -6,12 +6,6 @@ import './CardItem.css';
 export function CardItem({ joia, adicionarItem }) {
   
   const [imgAtiva, setImgAtiva] = useState(0);
-  // 👇 PRINT COMPLETO PARA DEBUG
-  console.log("--- DEBUG PRODUTO ---");
-  console.log("Código:", joia.codigo);
-  console.log("Imagens (Array):", joia.imagens);
-  console.log("PathImg (Fallback):", joia.pathImg);
-  console.log("Objeto Inteiro:", joia);
 
 
   
