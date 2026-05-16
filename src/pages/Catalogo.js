@@ -53,6 +53,12 @@ export default function Catalogo() {
     const API_BASE_URL = 'http://localhost:8080';
 
     useEffect(() => {
+        // REGRA NOVA: Se tem slug na URL, mas o contexto ainda não 
+        // terminou de baixar o revendedor do banco de dados, ESPERA.
+        if (slug && !lojaRevendedor) {
+            return; 
+        }
+
         carregarDadosVitrine();
         checarStatusLead();
 
@@ -61,7 +67,9 @@ export default function Catalogo() {
         }, 10000);
 
         return () => clearTimeout(timerBotao);
-    }, [slug]); // <-- Recarrega se o slug mudar
+        
+    //IMPORTANTE: Adicione o lojaRevendedor no array aqui embaixo!
+    }, [slug, lojaRevendedor]);
 
     const checarStatusLead = async () => {
         try {
@@ -74,14 +82,7 @@ export default function Catalogo() {
             console.error("Erro ao verificar status do visitante:", error);
         }
     };
-
-    const handleAdicionarItem = (joia) => {
-    
-        const revendedorId = lojaRevendedor ? lojaRevendedor.id : null;
-
-        // Passa a joia e o revendedorId como segundo parâmetro para o MaletaContext
-        adicionarItem(joia, revendedorId);
-    };
+   
 
     useEffect(() => {
         if (bannersAtivos.length <= 1) return;
@@ -96,8 +97,10 @@ export default function Catalogo() {
 
         try {
             // Se houver slug, o contexto já buscou o revendedor. Vamos apenas salvar no localStorage por segurança
-            if (slug && lojaRevendedor) {
+            console.log('caiu aqui',lojaRevendedor)
+            if (slug && lojaRevendedor) {                
                 localStorage.setItem('revendedorIdAtivo', lojaRevendedor.id);
+                setPerfilRevendedor(lojaRevendedor);
             } else if (!slug) {
                 localStorage.removeItem('revendedorIdAtivo');
             }
@@ -289,7 +292,7 @@ export default function Catalogo() {
                                             <CardItem
                                                 key={joia.id}
                                                 joia={joia}
-                                                adicionarItem={handleAdicionarItem}
+                                                adicionarItem={adicionarItem}
                                                 abrirDetalhes={() => abrirDetalhes(joia)}
                                             />
                                         ))}

@@ -2,13 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { ImagemService } from '../services/ImagemService';
 import './CardItem.css';
+import { useLoja } from '../context/LojaContext';
 
 export function CardItem({ joia, adicionarItem }) {
-  
+
   const [imgAtiva, setImgAtiva] = useState(0);
+  const { slug, revendedor: lojaRevendedor } = useLoja();
 
-
-  
   const fotos = useMemo(() => {
     if (joia.imagens && joia.imagens.length > 0) {
       return joia.imagens.map(img => ImagemService.getUrl(img));
@@ -46,12 +46,12 @@ export function CardItem({ joia, adicionarItem }) {
 
       <div className="info-joia">
         <span className="codigo-joia">Codigo: {joia.codigo}</span>
-        
+
         <h4>{joia.nome}</h4>
         <p className="material-joia">{joia.material}</p>
-        
+
         <span className="preco">R$ {joia.preco?.toFixed(2).replace('.', ',')}</span>
-        
+
         <button className="btn-add" onClick={() => adicionarItem(joia)}>
           Adicionar à Maleta
         </button>

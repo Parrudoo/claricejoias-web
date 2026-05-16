@@ -4,17 +4,30 @@ import { FiX, FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
 import { ImagemService } from '../services/ImagemService'; // 👈 Importa o Serviço
 import { useNavigate } from 'react-router-dom';
 import './Maleta.css';
+import { useLoja } from '../context/LojaContext';
 
 export default function Maleta() {
   const { itens, total, removerItem, alterarQuantidade, carrinhoAberto, setCarrinhoAberto } = useMaleta();
   const navigate = useNavigate();
-  
+  const { slug, revendedor: lojaRevendedor } = useLoja();
+
   if (!carrinhoAberto) return null;
 
   const finalizar = () => {
     navigate('/checkout');
     setCarrinhoAberto(false);
   }
+
+  const handleRemoverItem = (joia) => {
+    const revendedorId = lojaRevendedor ? lojaRevendedor.id : null;
+    console.log('teste', revendedorId)
+    removerItem(joia, revendedorId);
+  };
+
+  const handleAlterarQuantidade = (joia, qtd) => {
+    const revendedorId = lojaRevendedor ? lojaRevendedor.id : null;
+    alterarQuantidade(joia, qtd, revendedorId);
+  };
 
   return (
     <div className="maleta-overlay" onClick={() => setCarrinhoAberto(false)}>
@@ -34,21 +47,21 @@ export default function Maleta() {
 
               return (
                 <div key={item.id} className="item-carrinho">
-                  
+
                   {/* 👇 Usando o serviço de imagens profissional 👇 */}
-                  <img 
-                    src={ImagemService.getUrl(foto)} 
-                    alt={item.nome} 
+                  <img
+                    src={ImagemService.getUrl(foto)}
+                    alt={item.nome}
                   />
-                  
+
                   <div className="item-detalhes">
                     <h4>{item.nome}</h4>
                     <p>R$ {item.preco ? item.preco.toFixed(2).replace('.', ',') : '0,00'}</p>
                     <div className="controles">
-                      <button onClick={() => alterarQuantidade(item.id, -1)}><FiMinus /></button>
+                      <button onClick={() => handleAlterarQuantidade(item.id, -1)}><FiMinus /></button>
                       <span>{item.quantidade}</span>
-                      <button onClick={() => alterarQuantidade(item.id, 1)}><FiPlus /></button>
-                      <button className="remover" onClick={() => removerItem(item.id)}><FiTrash2 /></button>
+                      <button onClick={() => handleAlterarQuantidade(item.id, 1)}><FiPlus /></button>
+                      <button className="remover" onClick={() => handleRemoverItem(item.id)}><FiTrash2 /></button>
                     </div>
                   </div>
                 </div>

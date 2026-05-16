@@ -25,8 +25,7 @@ export const LojaProvider = ({ children }) => {
   const [carregandoLoja, setCarregandoLoja] = useState(false);
 
   useEffect(() => {
-    console.log("Slug capturado pela URL:", slug);
-
+    
     const buscarRevendedor = async () => {
       if (!slug) {
         setRevendedor(null);

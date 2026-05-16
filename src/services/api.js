@@ -23,28 +23,33 @@ const api = axios.create({
 });
 
 // =======================================================================
-// INTERCEPTOR DE REQUISIÇÃO (Envia o ID do Visitante e o Token de Login)
+// INTERCEPTOR DE REQUISIÇÃO
 // =======================================================================
 api.interceptors.request.use(
     async (config) => {
-        //  INJETA O ID DO VISITANTE EM TODAS AS REQUISIÇÕES
+        // 1. INJETA O ID DO VISITANTE
         config.headers['X-Visitor-ID'] = visitorId;
 
-        // Se o usuário já tiver feito login, envia o Token do Keycloak também
+        // 2. INJETA O REVENDEDOR NA URL EM TODAS AS REQUISIÇÕES (GET, POST, DELETE, etc.)
+        const revendedorId = localStorage.getItem('revendedorIdAtivo');
+        if (revendedorId) {
+            config.params = {
+                ...config.params,
+                revendedorId: revendedorId
+            };
+        }
+
+        // 3. INJETA O TOKEN DO KEYCLOAK
         if (keycloak.authenticated) {
             try {
-                // Atualiza o token se ele for expirar nos próximos 30 segundos
                 await keycloak.updateToken(30);
                 config.headers.Authorization = `Bearer ${keycloak.token}`;
-                //  A PEÇA QUE FALTA: Injeta o ID do usuário para o seu CarrinhoController
-                // O 'subject' é o UUID do Keycloak que você salva no banco como 'usuarioId'
-                // config.headers['X-Usuario-ID'] = keycloak.subject;
             } catch (error) {
                 console.error("Falha ao atualizar o token do Keycloak:", error);
-                // Opcional: Forçar logout se o refresh falhar
                 keycloak.login();
             }
         }
+        
         return config;
     },
     (error) => {

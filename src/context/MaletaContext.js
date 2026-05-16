@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { CarrinhoService } from '../services/CarrinhoService';
 import { useAuth } from './AuthProvider'; // Integração com o Keycloak/Login
+import { useLoja } from './LojaContext';
 
 const MaletaContext = createContext();
 
@@ -8,12 +9,13 @@ export const MaletaProvider = ({ children }) => {
   const [itens, setItens] = useState([]);
   const [total, setTotal] = useState(0);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
-  
+
   // Ref para controlar o disparo duplo do React Strict Mode
   const carrinhoJaCarregado = useRef(false);
+  const { slug, revendedor: lojaRevendedor } = useLoja();
 
   // Puxamos os estados do sistema de autenticação
-  const { logado, sincronizando } = useAuth(); 
+  const { logado, sincronizando } = useAuth();
 
   // =======================================================
   // 1. PROCESSADOR DE DADOS (Transforma DTO do Java pro React)
@@ -21,9 +23,9 @@ export const MaletaProvider = ({ children }) => {
   const processarDadosCarrinho = (carrinhoDto) => {
     // Se o backend retornou null (204 No Content) ou vazio, limpamos a maleta
     if (!carrinhoDto || !carrinhoDto.itens || carrinhoDto.itens.length === 0) {
-        setItens([]);
-        setTotal(0);
-        return;
+      setItens([]);
+      setTotal(0);
+      return;
     }
 
     const itensFormatados = carrinhoDto.itens.map(itemDb => ({
@@ -35,7 +37,7 @@ export const MaletaProvider = ({ children }) => {
       imagens: itemDb.produto.imagens || [],
       quantidade: itemDb.quantidade
     }));
-    
+
     setItens(itensFormatados);
     setTotal(Number(carrinhoDto.valorTotal || 0));
   };
@@ -45,11 +47,11 @@ export const MaletaProvider = ({ children }) => {
   // =======================================================
   const carregarCarrinho = async () => {
     try {
+      // O Axios interceptor vai colocar o revendedorId automaticamente!
       const dados = await CarrinhoService.obterCarrinho();
       processarDadosCarrinho(dados);
     } catch (error) {
       console.error("Erro ao consultar a maleta no servidor:", error);
-      // Opcional: setItens([]) em caso de erro para não travar a tela
     }
   };
 
@@ -57,33 +59,37 @@ export const MaletaProvider = ({ children }) => {
   // 3. ORQUESTRAÇÃO DE CARREGAMENTO
   // =======================================================
   useEffect(() => {
-    // Regra 1: Se o AuthProvider ainda está decidindo o login, a maleta ESPERA.
+    // 1. Se a autenticação ainda está carregando, ESPERA.
     if (sincronizando) {
-        return; 
+      return;
     }
 
-    // Regra 2: Só busca se ainda não buscou nesta renderização 
+    // 2. Se a loja/revendedor ainda não carregou, ESPERA.
+    if (!lojaRevendedor) {
+      return;
+    }
+
+    // 3. Agora sim, com tudo carregado, buscamos a maleta!
     if (!carrinhoJaCarregado.current) {
-        carregarCarrinho();
-        carrinhoJaCarregado.current = true;
+      carregarCarrinho();
+      carrinhoJaCarregado.current = true;
     }
 
-    // Limpeza: Se o usuário logar/deslogar, resetamos o Ref para buscar o carrinho certo
     return () => {
-        carrinhoJaCarregado.current = false;
+      carrinhoJaCarregado.current = false;
     };
 
-  }, [sincronizando, logado]); // O gatilho de 'logado' garante que a maleta mescle sozinha!
+    // IMPORTANTE: Adicione lojaRevendedor aqui!
+  }, [sincronizando, logado, slug, lojaRevendedor]);
 
   // =======================================================
   // 4. AÇÕES DA MALETA (Aqui o banco de dados trabalha de verdade)
   // =======================================================
-  
-  const adicionarItem = async (joia,revendedorId) => {
-  console.log(revendedorId)
+
+  const adicionarItem = async (joia) => {
     try {
       // É AQUI que o Java realmente dá o INSERT e cria o Carrinho se ele não existia!
-      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1,revendedorId);
+      const carrinhoAtualizado = await CarrinhoService.adicionarItem(joia.id, 1);
       processarDadosCarrinho(carrinhoAtualizado);
       setCarrinhoAberto(true);
     } catch (error) {
@@ -111,15 +117,15 @@ export const MaletaProvider = ({ children }) => {
   };
 
   return (
-    <MaletaContext.Provider value={{ 
-      itens, 
-      adicionarItem, 
-      removerItem, 
-      alterarQuantidade, 
-      total, 
-      carrinhoAberto, 
-      setCarrinhoAberto, 
-      carregarCarrinho 
+    <MaletaContext.Provider value={{
+      itens,
+      adicionarItem,
+      removerItem,
+      alterarQuantidade,
+      total,
+      carrinhoAberto,
+      setCarrinhoAberto,
+      carregarCarrinho
     }}>
       {children}
     </MaletaContext.Provider>

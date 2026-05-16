@@ -15,7 +15,7 @@ export const authService = {
     }
   },
 
-  // 👇 NOVO ENDPOINT: RECUPERAÇÃO DE SENHA VIA WHATSAPP
+  // NOVO ENDPOINT: RECUPERAÇÃO DE SENHA VIA WHATSAPP
   solicitarRecuperacaoSenha: async (whatsapp) => {
     try {
       // Como o backend usa @RequestParam, passamos via "params" no Axios
