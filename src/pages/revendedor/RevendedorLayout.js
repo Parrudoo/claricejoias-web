@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 // import './AdminLayout.css'; 
 
@@ -10,16 +10,37 @@ import {
   FiFileText, 
   FiDollarSign, 
   FiLogOut, 
-  FiMenu 
+  FiMenu,
+  FiExternalLink // Novo ícone para o botão da loja
 } from 'react-icons/fi';
 import keycloak from '../../config/keycloak';
 import { FaWhatsapp } from 'react-icons/fa';
 
+// Importa o serviço novo que criamos para buscar os dados da revendedora no banco
+import { RevendedorService } from '../../services/RevendedorService'; 
+
 const RevendedorLayout = () => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [meuSlug, setMeuSlug] = useState(null); // Estado para guardar o slug real
   
   const nomeUsuario = keycloak.tokenParsed?.preferred_username || 'Revendedora';
   const inicialUsuario = nomeUsuario.charAt(0).toUpperCase();
+
+  // Busca os dados da revendedora no banco de dados assim que ela loga
+  useEffect(() => {
+    const buscarDadosPerfil = async () => {
+      try {
+        const dados = await RevendedorService.getMeuPerfil();
+        if (dados && dados.slug) {
+          setMeuSlug(dados.slug);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar perfil no layout:", error);
+      }
+    };
+
+    buscarDadosPerfil();
+  }, []);
 
   const toggleSidebar = () => {
     setIsExpanded(!isExpanded);
@@ -28,7 +49,13 @@ const RevendedorLayout = () => {
   const handleSair = () => {
     localStorage.removeItem('@ClariceJoias_Token');
     localStorage.removeItem('@ClariceJoias_RefreshToken');
-    keycloak.logout({ redirectUri: window.location.origin });
+
+    // Monta a URL dinâmica baseada no slug que veio do BANCO DE DADOS
+    const urlRedirecionamento = meuSlug 
+      ? `${window.location.origin}/${meuSlug}` 
+      : window.location.origin;
+
+    keycloak.logout({ redirectUri: urlRedirecionamento });
   };
 
   return (
@@ -78,7 +105,6 @@ const RevendedorLayout = () => {
             <span className="nav-text">Meu Lucro</span>
           </NavLink>
          
-          {/* BOTÃO DIRETO DO WHATSAPP */}
           <NavLink to="/revendedor/whatsapp" className="nav-item-single" title="Conexão WhatsApp">
             <FaWhatsapp size={20} />
             <span className="nav-text">Conexão WhatsApp</span>
@@ -103,15 +129,37 @@ const RevendedorLayout = () => {
             <div className="topbar-titulo">Área da Revendedora</div>
           </div>
 
-          <div className="topbar-perfil">
-            <div className="avatar" style={{ backgroundColor: '#D4AF37' }}>{inicialUsuario}</div>
-            <span>{nomeUsuario}</span>
+          <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+            {/* BOTÃO PARA VISITAR A LOJA (Aparece assim que o slug é carregado) */}
+            {meuSlug && (
+              <a 
+                href={`/${meuSlug}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                title="Visitar minha loja"
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '8px', 
+                  color: '#D4AF37', textDecoration: 'none', fontWeight: 'bold',
+                  border: '1px solid #D4AF37', padding: '6px 12px', borderRadius: '6px'
+                }}
+              >
+                <FiExternalLink size={18} />
+                Minha Loja
+              </a>
+            )}
+
+            <div className="topbar-perfil" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="avatar" style={{ backgroundColor: '#D4AF37', width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold' }}>
+                {inicialUsuario}
+              </div>
+              <span>{nomeUsuario}</span>
+            </div>
           </div>
         </header>
         
         <div className="admin-page-content">
-          {/* Aqui as rotas filhas da revendedora serão renderizadas */}
-          <Outlet /> 
+          {/* O Outlet passa o meuSlug como contexto para as telas filhas! */}
+          <Outlet context={{ meuSlug }} /> 
         </div>
       </main>
     </div>
