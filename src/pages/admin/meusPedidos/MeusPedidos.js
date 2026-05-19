@@ -7,11 +7,12 @@ import './MeusPedidos.css';
 import { useAuth } from '../../../context/AuthProvider';
 import { ImagemService } from '../../../services/ImagemService';
 import { PedidoService } from '../../../services/pedidoService';
+import { useLoja } from '../../../context/LojaContext';
 
 export default function MeusPedidos() {
   const navigate = useNavigate();
   const { logado, carregando } = useAuth(); 
-  
+  const { slug, revendedor: lojaRevendedor } = useLoja();
   const [pedidos, setPedidos] = useState([]);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [pedidoExpandido, setPedidoExpandido] = useState(null);
@@ -79,7 +80,7 @@ export default function MeusPedidos() {
   return (
     <div className="pedidos-container">
       <header className="pedidos-header">
-        <button onClick={() => navigate('/')} className="btn-voltar-simples">
+        <button onClick={() => navigate(slug ? `/${slug}` : '/')} className="btn-voltar-simples">
           <FiArrowLeft /> Voltar à loja
         </button>
         <div className="pedidos-titulo">

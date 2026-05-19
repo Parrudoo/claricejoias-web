@@ -38,7 +38,6 @@ export const LojaProvider = ({ children }) => {
         
         // Chamada real à sua API usando o CatalogoService!
         const dados = await CatalogoService.getPerfil(slug);
-        console.log(dados)
         setRevendedor(dados);
       } catch (error) {
         console.error("Erro ao buscar loja do revendedor:", error);

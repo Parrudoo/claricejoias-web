@@ -99,16 +99,16 @@ function App() {
                   {/* ========================================================= */}
                   {/* ÁREA DO CLIENTE (MINHA CONTA) */}
                   {/* ========================================================= */}
-                  <Route path="/minha-conta" element={<RotaProtegida><MinhaContaLayout /></RotaProtegida>}>
-                    <Route index element={<Navigate to="/minha-conta/pedidos" replace />} />
+                  <Route path="/:slug?/minha-conta" element={<RotaProtegida><MinhaContaLayout /></RotaProtegida>}>
+                    {/* AJUSTE AQUI: Mudado de "/minha-conta/pedidos" para "pedidos" para usar caminho relativo e preservar o slug */}
+                    <Route index element={<Navigate to="pedidos" replace />} />
                     <Route path="pedidos" element={<MeusPedidos />} />
                   </Route>
-
                   {/* ========================================================= */}
                   {/* ÁREA DA REVENDEDORA */}
                   {/* ========================================================= */}
-                  <Route path="/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
-                    <Route index element={<Navigate to="/revendedor/dashboard" replace />} />
+                  <Route path="/:slug?/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
+                    <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardRevendedora />} />
                     <Route path="pdv" element={<TelaPDV isRevendedor={true} />} />
                     <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />

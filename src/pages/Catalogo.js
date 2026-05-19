@@ -96,8 +96,7 @@ export default function Catalogo() {
         setLoading(true);
 
         try {
-            // Se houver slug, o contexto já buscou o revendedor. Vamos apenas salvar no localStorage por segurança
-            console.log('caiu aqui',lojaRevendedor)
+            
             if (slug && lojaRevendedor) {                
                 localStorage.setItem('revendedorIdAtivo', lojaRevendedor.id);
                 setPerfilRevendedor(lojaRevendedor);
@@ -419,7 +418,7 @@ export default function Catalogo() {
                 </div>
 
                 <div className="rodape-copyright">
-                    <p>&copy; {new Date().getFullYear()} Elegance Joias. Todos os direitos reservados.</p>
+                    <p>&copy; {new Date().getFullYear()} Clarice Joias. Todos os direitos reservados.</p>
                 </div>
             </footer>
         </div>

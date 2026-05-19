@@ -7,13 +7,14 @@ import { leadService } from '../services/leadService';
 import { ImagemService } from '../services/ImagemService';
 import { useAuth } from '../context/AuthProvider';
 import './Checkout.css';
+import { useLoja } from '../context/LojaContext';
 
 export default function Checkout() {
   const { itens, total } = useMaleta();
   const navigate = useNavigate();
-  const { slug } = useParams();
   // Puxando tudo de uma vez do seu AuthProvider!
   const { logado, keycloakData, dadosPessoais, carregando } = useAuth();
+  const { slug } = useLoja();
 
   // Estados do Fluxo de Steps
   const [step, setStep] = useState(1);
@@ -27,7 +28,7 @@ export default function Checkout() {
 
   // Redireciona se o carrinho estiver vazio
   useEffect(() => {
-    if (itens.length === 0) navigate('/');
+    if (itens.length === 0) navigate(slug ? `/${slug}` : '/');
   }, [itens, navigate]);
 
   // SE LOGADO: Pula para o passo 3 e preenche os dados
@@ -89,7 +90,7 @@ export default function Checkout() {
 
       setLoading(false);
       alert(logado ? "Pedido enviado com sucesso! 🎉" : "Identidade confirmada e pedido enviado! 🎉 Olhe seu WhatsApp.");
-      navigate('/');
+      navigate(slug ? `/${slug}`: '/');
     } catch (error) {
       setLoading(false);
 

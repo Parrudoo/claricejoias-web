@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 // import './AdminLayout.css'; 
 
-import { 
-  FiHome, 
-  FiShoppingCart, 
-  FiBriefcase, 
-  FiUsers, 
-  FiFileText, 
-  FiDollarSign, 
-  FiLogOut, 
+import {
+  FiHome,
+  FiShoppingCart,
+  FiBriefcase,
+  FiUsers,
+  FiFileText,
+  FiDollarSign,
+  FiLogOut,
   FiMenu,
-  FiExternalLink // Novo ícone para o botão da loja
+  FiExternalLink, // Novo ícone para o botão da loja
+  FiArrowRight
 } from 'react-icons/fi';
 import keycloak from '../../config/keycloak';
 import { FaWhatsapp } from 'react-icons/fa';
 
 // Importa o serviço novo que criamos para buscar os dados da revendedora no banco
-import { RevendedorService } from '../../services/RevendedorService'; 
+import { RevendedorService } from '../../services/RevendedorService';
+import { useLoja } from '../../context/LojaContext';
 
 const RevendedorLayout = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [meuSlug, setMeuSlug] = useState(null); // Estado para guardar o slug real
-  
+  const {slug} = useLoja();
+  const navigate = useNavigate();
+
   const nomeUsuario = keycloak.tokenParsed?.preferred_username || 'Revendedora';
   const inicialUsuario = nomeUsuario.charAt(0).toUpperCase();
 
@@ -49,18 +53,21 @@ const RevendedorLayout = () => {
   const handleSair = () => {
     localStorage.removeItem('@ClariceJoias_Token');
     localStorage.removeItem('@ClariceJoias_RefreshToken');
+    console.log(slug)
 
     // Monta a URL dinâmica baseada no slug que veio do BANCO DE DADOS
-    const urlRedirecionamento = meuSlug 
-      ? `${window.location.origin}/${meuSlug}` 
+    // Monta a URL dinâmica baseada no slug que veio do BANCO DE DADOS
+    const urlRedirecionamento = meuSlug
+      ? `${window.location.origin}/${meuSlug}`
       : window.location.origin;
 
+    // Passa a URL absoluta construída para o Keycloak fazer o redirecionamento externo
     keycloak.logout({ redirectUri: urlRedirecionamento });
   };
 
   return (
     <div className={`admin-container ${isExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
-      
+
       <aside className="admin-sidebar">
         <div className="sidebar-logo">
           {isExpanded ? (
@@ -74,7 +81,7 @@ const RevendedorLayout = () => {
         </div>
 
         <nav className="sidebar-nav">
-          
+
           <NavLink to="/revendedor/dashboard" className="nav-item-single" title="Meu Resumo">
             <FiHome size={20} />
             <span className="nav-text">Meu Resumo</span>
@@ -104,7 +111,7 @@ const RevendedorLayout = () => {
             <FiDollarSign size={20} />
             <span className="nav-text">Meu Lucro</span>
           </NavLink>
-         
+
           <NavLink to="/revendedor/whatsapp" className="nav-item-single" title="Conexão WhatsApp">
             <FaWhatsapp size={20} />
             <span className="nav-text">Conexão WhatsApp</span>
@@ -132,18 +139,16 @@ const RevendedorLayout = () => {
           <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
             {/* BOTÃO PARA VISITAR A LOJA (Aparece assim que o slug é carregado) */}
             {meuSlug && (
-              <a 
-                href={`/${meuSlug}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <a
+                href={`/${meuSlug}`}
                 title="Visitar minha loja"
-                style={{ 
-                  display: 'flex', alignItems: 'center', gap: '8px', 
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
                   color: '#D4AF37', textDecoration: 'none', fontWeight: 'bold',
                   border: '1px solid #D4AF37', padding: '6px 12px', borderRadius: '6px'
                 }}
               >
-                <FiExternalLink size={18} />
+                <FiArrowRight size={18} />
                 Minha Loja
               </a>
             )}
@@ -156,10 +161,10 @@ const RevendedorLayout = () => {
             </div>
           </div>
         </header>
-        
+
         <div className="admin-page-content">
           {/* O Outlet passa o meuSlug como contexto para as telas filhas! */}
-          <Outlet context={{ meuSlug }} /> 
+          <Outlet context={{ meuSlug }} />
         </div>
       </main>
     </div>

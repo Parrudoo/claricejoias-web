@@ -6,10 +6,11 @@ import { authService } from '../services/authService'; // 👈 Importamos o serv
 import './Menu.css';
 import WhatsAppInput from './WhatsAppInput';
 import { useNavigate } from 'react-router-dom';
+import { useLoja } from '../context/LojaContext';
 
 export function Menu({ categorias, aoClicarCategoria }) {
   const { logado, keycloakData, ehAdmin, login, logout } = useAuth();
-const navigate = useNavigate();
+  const navigate = useNavigate();
   // ==========================================
   // ESTADOS DO MODAL DE CADASTRO (STEPS)
   // ==========================================
@@ -38,7 +39,8 @@ const navigate = useNavigate();
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
-  const isDragging = useRef(false); 
+  const isDragging = useRef(false);
+  const { slug, revendedor: lojaRevendedor } = useLoja();
 
   const primeiroNome = keycloakData?.primeiroNome || 'Cliente';
 
@@ -48,7 +50,7 @@ const navigate = useNavigate();
       if (!menuRef.current) return;
       const nav = menuRef.current;
       const larguraOriginal = isRoleta ? nav.scrollWidth / 3 : nav.scrollWidth;
-      
+
       if (larguraOriginal > nav.clientWidth) {
         setIsRoleta(true);
       } else {
@@ -66,8 +68,8 @@ const navigate = useNavigate();
     }
   }, [isRoleta]);
 
-  const categoriasParaRenderizar = isRoleta 
-    ? [...categorias, ...categorias, ...categorias] 
+  const categoriasParaRenderizar = isRoleta
+    ? [...categorias, ...categorias, ...categorias]
     : categorias;
 
   const handleScroll = () => {
@@ -102,10 +104,11 @@ const navigate = useNavigate();
   const fecharModalRecuperar = () => setModalRecuperarAberto(false);
 
   const handleMinhaConta = () => {
+    console.log(slug)
     if (ehAdmin) {
-      navigate('/admin'); // Leva o admin para o painel administrativo
+      navigate('/admin'); // Leva o admin para o painel administrativo    
     } else {
-      navigate('/minha-conta'); // Leva o cliente para a área de "Minha Conta"
+      navigate(slug ? `/${slug}/minha-conta` : '/minha-conta'); // Leva o cliente para a área de "Minha Conta"
     }
   };
 
@@ -152,7 +155,7 @@ const navigate = useNavigate();
         email: formData.email,
         whatsapp: whatsappLimpo,
         criarConta: true,
-        itens: [] 
+        itens: []
       });
 
       setLoading(false);
@@ -212,10 +215,10 @@ const navigate = useNavigate();
 
   const handleMouseMove = (e) => {
     if (!isDown.current) return;
-    isDragging.current = true; 
+    isDragging.current = true;
     e.preventDefault();
     const x = e.pageX - menuRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5; 
+    const walk = (x - startX.current) * 1.5;
     menuRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
@@ -227,8 +230,8 @@ const navigate = useNavigate();
       const submenuWidth = submenu.offsetWidth || 180;
       submenu.style.top = `${rect.bottom}px`;
       let calculatedLeft = rect.left;
-      if (calculatedLeft + submenuWidth > window.innerWidth) calculatedLeft = window.innerWidth - submenuWidth - 15; 
-      if (calculatedLeft < 15) calculatedLeft = 15; 
+      if (calculatedLeft + submenuWidth > window.innerWidth) calculatedLeft = window.innerWidth - submenuWidth - 15;
+      if (calculatedLeft < 15) calculatedLeft = 15;
       submenu.style.left = `${calculatedLeft}px`;
     }
   };
@@ -265,14 +268,14 @@ const navigate = useNavigate();
           </div>
         </div>
 
-        <nav 
+        <nav
           className="secao-categorias"
           ref={menuRef}
           onMouseDown={handleMouseDown}
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          onScroll={handleScroll} 
+          onScroll={handleScroll}
         >
           <ul className="menu-lista">
             {categoriasParaRenderizar.map((cat, i) => (
@@ -327,10 +330,10 @@ const navigate = useNavigate();
                   <p style={{ fontSize: '13px', color: '#666', marginBottom: '15px', textAlign: 'center' }}>
                     Para sua segurança, valide seu número de WhatsApp.
                   </p>
-                  <WhatsAppInput 
-                    required={true} 
-                    value={formData.whatsapp} 
-                    onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })} 
+                  <WhatsAppInput
+                    required={true}
+                    value={formData.whatsapp}
+                    onChange={(valorMascarado) => setFormData({ ...formData, whatsapp: valorMascarado })}
                   />
                   <button type="submit" className="btn-auth-submit" disabled={loading || formData.whatsapp.length < 10}>
                     {loading ? 'Enviando código...' : 'Receber código de acesso'}
@@ -346,9 +349,9 @@ const navigate = useNavigate();
                   <div className="auth-form-group">
                     <div className="input-with-icon">
                       <FiLock className="icon-inside" />
-                      <input 
-                        type="text" 
-                        placeholder="000000" 
+                      <input
+                        type="text"
+                        placeholder="000000"
                         maxLength="6"
                         value={codigoOtp}
                         onChange={(e) => setCodigoOtp(e.target.value.replace(/\D/g, ''))}
@@ -408,10 +411,10 @@ const navigate = useNavigate();
 
             <form onSubmit={handleRecuperarSenha} className="fade-in">
               <div style={{ marginBottom: '20px' }}>
-                <WhatsAppInput 
-                  required={true} 
-                  value={whatsAppRecuperar} 
-                  onChange={(valorMascarado) => setWhatsAppRecuperar(valorMascarado)} 
+                <WhatsAppInput
+                  required={true}
+                  value={whatsAppRecuperar}
+                  onChange={(valorMascarado) => setWhatsAppRecuperar(valorMascarado)}
                 />
               </div>
 
