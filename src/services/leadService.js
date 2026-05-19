@@ -95,6 +95,56 @@ export const leadService = {
       console.error("Erro ao validar código:", erro);
       throw erro;
     }
+  },
+
+  // ==================================================
+  //  NOVOS ENDPOINTS: GESTÃO DO PAINEL DE LEADS (CRM)
+  // ==================================================
+
+  // Busca todos os detalhes de um lead específico (para abrir um Modal de Detalhes)
+  buscarPorId: async (id) => {
+    try {
+      const resposta = await api.get(`/leads/${id}`);
+      return resposta.data;
+    } catch (erro) {
+      console.error(`Erro ao buscar detalhes do lead ${id}:`, erro);
+      throw erro;
+    }
+  },
+
+  // Atualiza os dados de contato do Lead (Nome, WhatsApp, E-mail)
+  atualizarLead: async (id, dadosAtualizacao) => {
+    try {
+      // dadosAtualizacao deve ser um objeto: { nome: "...", whatsapp: "...", email: "..." }
+      const resposta = await api.put(`/leads/${id}`, dadosAtualizacao);
+      return resposta.data;
+    } catch (erro) {
+      console.error(`Erro ao atualizar lead ${id}:`, erro);
+      throw erro;
+    }
+  },
+
+  // Busca os dados para alimentar os cards do topo do Dashboard (Totais, Conversão, etc)
+  obterMetricas: async () => {
+    try {
+      const resposta = await api.get('/leads/metricas');
+      return resposta.data;
+    } catch (erro) {
+      console.error("Erro ao obter métricas de leads:", erro);
+      throw erro;
+    }
+  },
+
+  // Registra no banco de dados que o vendedor enviou uma mensagem (Email, WhatsApp) para manter o histórico
+  registrarHistoricoMensagem: async (id, dadosMensagem) => {
+    try {
+      // dadosMensagem deve ser um objeto: { mensagem: "Olá...", tipo: "WHATSAPP" }
+      const resposta = await api.post(`/leads/${id}/mensagens`, dadosMensagem);
+      return resposta.data; // Provavelmente retorna vazio (201 Created), mas evitamos erro se retornar algo
+    } catch (erro) {
+      console.error(`Erro ao registrar histórico de mensagem para o lead ${id}:`, erro);
+      throw erro;
+    }
   }
 
 };

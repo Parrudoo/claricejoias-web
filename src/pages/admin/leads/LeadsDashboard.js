@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight, FiClock, FiX } from 'react-icons/fi';
+import { FiClock, FiX, FiMessageCircle, FiCheck, FiPower } from 'react-icons/fi';
 import Paginacao from '../../../components/paginacao/Paginacao';
 import { leadService } from '../../../services/leadService';
 import './LeadsDashboard.css';
@@ -12,13 +12,11 @@ const LeadsDashboard = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Estados para o Modal de Histórico
+  // Estados Modal e Fila
   const [isModalAberto, setIsModalAberto] = useState(false);
   const [leadSelecionadoParaHistorico, setLeadSelecionadoParaHistorico] = useState(null);
-  
-  // 👇 Controle de bloqueio dos botões
   const [enviandoMensagemId, setEnviandoMensagemId] = useState(null);
-  const [leadsNaFila, setLeadsNaFila] = useState([]); // Guarda quem já foi pra fila na sessão atual
+  const [leadsNaFila, setLeadsNaFila] = useState([]);
 
   useEffect(() => {
     fetchLeads(currentPage);
@@ -31,16 +29,13 @@ const LeadsDashboard = () => {
       if (data && data.content) {
         setLeads(data.content);
         setTotalPages(data.totalPages);
-      } else if (Array.isArray(data)) {
-        setLeads(data);
-        setTotalPages(1);
       } else {
-        setLeads([]);
+        setLeads(Array.isArray(data) ? data : []);
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Erro ao buscar leads", error);
-      alert("Não foi possível carregar os leads.");
-      setLeads([]); 
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -65,192 +60,162 @@ const LeadsDashboard = () => {
   };
 
   const dispararWhatsapp = async (lead) => {
-    // Evita clique duplo acidental se já estiver enviando ou na fila
     if (enviandoMensagemId === lead.id || leadsNaFila.includes(lead.id)) return;
-    
-    const texto = `Olá ${lead.nome}! Aqui é da Clarice Joias. Vimos que você se interessou por nossas joias. Temos uma oferta especial liberada para você hoje! Gostaria de conferir?`;
 
     try {
       setEnviandoMensagemId(lead.id);
-      
-      // Chamada para o backend agendar na fila
-      await leadService.dispararWhatsapp(lead.id, texto);
-      
-      // Se deu sucesso, marca visualmente como agendado
+      await leadService.dispararWhatsapp(lead.id);
       setLeadsNaFila(prev => [...prev, lead.id]);
-      
     } catch (error) {
-      let mensagemErro = `Falha ao agendar mensagem para ${lead.nome}.`;
-      if (error.response && error.response.data) {
-        if (typeof error.response.data === 'string') {
-          mensagemErro = error.response.data;
-        } else if (error.response.data.message) {
-          mensagemErro = error.response.data.message;
-        } else if (error.response.data.error) {
-          mensagemErro = error.response.data.error;
-        }
-      }
-      // alert(mensagemErro);
+      console.error("Falha ao agendar mensagem.", error);
     } finally {
       setEnviandoMensagemId(null);
     }
   };
 
-  const abrirModalHistorico = (lead) => {
-    setLeadSelecionadoParaHistorico(lead);
-    setIsModalAberto(true);
+  const calcularResumoCarrinho = (itens) => {
+    if (!itens || itens.length === 0) return { qtd: 0, total: 0 };
+    const qtd = itens.reduce((acc, item) => acc + item.quantidade, 0);
+    const total = itens.reduce((acc, item) => acc + (item.quantidade * item.precoMomento), 0);
+    return { qtd, total };
   };
 
-  const fecharModal = () => {
-    setIsModalAberto(false);
-    setLeadSelecionadoParaHistorico(null);
-  };
-
-  if (loading) return <div className="mensagem-sistema">Carregando leads do sistema...</div>;
+  if (loading) return <div className="mensagem-sistema">Carregando leads...</div>;
 
   return (
     <div className="leads-container">
-      <h1 className="leads-title">Gerenciamento de Leads</h1>
+      <div className="leads-header">
+        <h1 className="leads-title">Leads & CRM</h1>
+      </div>
 
       <div className="leads-table-wrapper">
-        <table className="leads-table">
+        <table className="leads-table minimalistic-table">
           <thead>
             <tr>
               <th>Cliente</th>
-              <th>Interesse</th>
+              <th>Carrinho</th>
               <th>Status</th>
-              <th style={{ textAlign: 'center' }}>Ações</th>
+              <th style={{ textAlign: 'right' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
             {leads.length === 0 ? (
               <tr>
-                <td colSpan="4" className="mensagem-sistema">Nenhum lead encontrado.</td>
+                <td colSpan="4" className="mensagem-sistema">Nenhum lead no momento.</td>
               </tr>
             ) : (
-              leads.map((lead) => (
-                <tr key={lead.id} className={!lead.ativo ? 'inativo' : ''}>
-                  <td>
-                    <p className="lead-nome">{lead.nome}</p>
-                    <p className="lead-contato">{lead.whatsapp}</p>
-                    <p className="lead-contato">{lead.email}</p>
-                    {lead.historicoDisparos && lead.historicoDisparos.length > 0 && (
-                      <p className="lead-ultimo-disparo" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
-                        <FiClock style={{ marginRight: '4px' }}/>
-                        Último envio: {new Date(lead.historicoDisparos[lead.historicoDisparos.length - 1].dataHoraDisparo).toLocaleDateString()}
-                      </p>
-                    )}
-                  </td>
+              leads.map((lead) => {
+                const resumoCarrinho = calcularResumoCarrinho(lead.itens);
 
-                  <td>
-                    {lead.itens && lead.itens.length > 0 ? (
-                      <ul className="lead-itens-lista">
-                        {lead.itens.map((item, index) => (
-                          <li key={index}>
-                            <span className="item-qtd">{item.quantidade}x</span> {item.produto?.nome}
-                            <span className="item-preco">(R$ {item.precoMomento?.toFixed(2)})</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className="carrinho-vazio">Carrinho vazio / Sem itens</span>
-                    )}
-                  </td>
+                return (
+                  <tr key={lead.id} className={!lead.ativo ? 'inativo' : ''}>
+                    {/* COLUNA 1: CLIENTE */}
+                    <td>
+                      <div className="lead-info-compact">
+                        <strong>{lead.nome}</strong>
+                        <span>{lead.whatsapp}</span>
+                        {/* NOVA LINHA: Exibe a tag do revendedor se existir */}
+                        {lead.nomeRevendedor ? (
+                          <span className="lead-revendedor">Loja: {lead.nomeRevendedor}</span>
+                        ) : (
+                          <span className="lead-revendedor matriz">Loja Matriz</span>
+                        )}
+                      </div>
+                    </td>
 
-                  <td>
-                    {lead.comprou ? (
-                      <span className="badge badge-comprou">Comprou</span>
-                    ) : (
-                      <span className="badge badge-pendente">Pendente</span>
-                    )}
-                    {!lead.ativo && (
-                      <span className="badge badge-inativo">Inativo</span>
-                    )}
-                  </td>
-
-                  <td>
-                    <div className="acoes-container">
-                      
-                      {/* 👇 BOTÃO DE DISPARO ATUALIZADO */}
-                      <button
-                        onClick={() => dispararWhatsapp(lead)}
-                        className={`btn-acao ${leadsNaFila.includes(lead.id) ? 'btn-cinza' : 'btn-azul'}`}
-                        disabled={!lead.ativo || enviandoMensagemId === lead.id || leadsNaFila.includes(lead.id)}
-                      >
-                        {enviandoMensagemId === lead.id 
-                          ? 'Agendando...' 
-                          : leadsNaFila.includes(lead.id) 
-                            ? 'Na Fila ⏳' 
-                            : 'Disparar Whatsapp'}
-                      </button>
-
-                      <button
-                        onClick={() => abrirModalHistorico(lead)}
-                        className="btn-acao btn-cinza"
-                        title="Ver histórico de mensagens"
-                      >
-                        <FiClock /> Histórico
-                      </button>
-
-                      {!lead.comprou && lead.ativo && (
-                        <button
-                          onClick={() => marcarComoComprado(lead.id)}
-                          className="btn-acao btn-verde"
-                        >
-                          Marcar Compra
-                        </button>
+                    {/* COLUNA 2: RESUMO DO CARRINHO */}
+                    <td>
+                      {resumoCarrinho.qtd > 0 ? (
+                        <div className="carrinho-resumo">
+                          <span className="carrinho-qtd">{resumoCarrinho.qtd} item(ns)</span>
+                          <span className="carrinho-valor">R$ {resumoCarrinho.total.toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <span className="carrinho-vazio">-</span>
                       )}
+                    </td>
 
-                      <button
-                        onClick={() => alternarStatus(lead.id)}
-                        className={`btn-acao ${lead.ativo ? 'btn-vermelho' : 'btn-cinza'}`}
-                      >
-                        {lead.ativo ? 'Desativar' : 'Reativar'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    {/* COLUNA 3: STATUS SIMPLIFICADO */}
+                    <td>
+                      <div className="status-badges">
+                        {lead.comprou ? (
+                          <span className="badge badge-comprou">Cliente</span>
+                        ) : (
+                          <span className="badge badge-pendente">Pendente</span>
+                        )}
+                        {!lead.ativo && <span className="badge badge-inativo">Inativo</span>}
+                      </div>
+                    </td>
+
+                
+                   {/* COLUNA 4: AÇÕES FOCADAS */}
+                    {/* COLUNA 4: AÇÕES FOCADAS */}
+                    {/* 👇 O td fica sem nenhuma classe especial para não quebrar a borda */}
+                    <td>
+                      {/* 👇 A div flexbox volta para cá, abraçando tudo! */}
+                      <div className="acoes-compactas">
+                        
+                        {/* Botão Principal: WhatsApp */}
+                        <button
+                          onClick={() => dispararWhatsapp(lead)}
+                          className={`btn-icon-text ${leadsNaFila.includes(lead.id) ? 'agendado' : 'whatsapp'}`}
+                          disabled={!lead.ativo || enviandoMensagemId === lead.id || leadsNaFila.includes(lead.id)}
+                          title="Chamar no WhatsApp"
+                        >
+                          <FiMessageCircle />
+                          {leadsNaFila.includes(lead.id) ? 'Na Fila' : 'Chamar'}
+                        </button>
+
+                        {/* Botões Secundários: Ícones */}
+                        <div className="acoes-secundarias">
+                          {!lead.comprou && lead.ativo && (
+                            <button onClick={() => marcarComoComprado(lead.id)} className="btn-icon check" title="Marcar como Comprou">
+                              <FiCheck />
+                            </button>
+                          )}
+
+                          <button onClick={() => { setLeadSelecionadoParaHistorico(lead); setIsModalAberto(true); }} className="btn-icon historico" title="Histórico">
+                            <FiClock />
+                          </button>
+
+                          <button onClick={() => alternarStatus(lead.id)} className="btn-icon toggle" title={lead.ativo ? "Desativar" : "Reativar"}>
+                            <FiPower />
+                          </button>
+                        </div>
+                        
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      <Paginacao
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      <Paginacao currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
-      {/* MODAL DE HISTÓRICO MANTIDO IGUAL */}
+      {/* MODAL DE HISTÓRICO - Mantido limpo */}
       {isModalAberto && leadSelecionadoParaHistorico && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content small-modal">
             <div className="modal-header">
-              <h2>Histórico de Disparos - {leadSelecionadoParaHistorico.nome}</h2>
-              <button onClick={fecharModal} className="btn-fechar-modal"><FiX size={24} /></button>
+              <h2>Histórico de {leadSelecionadoParaHistorico.nome.split(' ')[0]}</h2>
+              <button onClick={() => setIsModalAberto(false)} className="btn-fechar-modal"><FiX size={20} /></button>
             </div>
-            
+
             <div className="modal-body">
-              {!leadSelecionadoParaHistorico.historicoDisparos || leadSelecionadoParaHistorico.historicoDisparos.length === 0 ? (
-                <p className="mensagem-sistema">Nenhum disparo registrado para este lead ainda.</p>
+              {!leadSelecionadoParaHistorico.historicoDisparos?.length ? (
+                <p className="mensagem-sistema">Sem interações registradas.</p>
               ) : (
-                <table className="historico-table">
-                  <thead>
-                    <tr>
-                      <th>Data e Hora</th>
-                      <th>Operador</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leadSelecionadoParaHistorico.historicoDisparos.map((hist, idx) => (
-                      <tr key={idx}>
-                        <td>{new Date(hist.dataHoraDisparo).toLocaleString('pt-BR')}</td>
-                        <td>{hist.operador || 'Sistema / Batch'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <ul className="timeline-simples">
+                  {leadSelecionadoParaHistorico.historicoDisparos.map((hist, idx) => (
+                    <li key={idx}>
+                      <span className="timeline-data">{new Date(hist.dataHoraDisparo).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="timeline-evento">Mensagem disparada</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </div>
