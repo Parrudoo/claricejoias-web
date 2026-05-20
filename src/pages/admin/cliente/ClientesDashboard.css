@@ -325,3 +325,45 @@
   font-weight: 400;
   margin-top: 2px;
 }
+
+/* =========================================================
+   CORREÇÃO DA QUEBRA DE LINHAS NAS CÉLULAS
+   ========================================================= */
+
+/* 1. Remove qualquer borda extra que venha das divs internas */
+.history-cell, 
+.action-buttons-group {
+    border: none !important;
+    border-bottom: none !important;
+}
+
+/* 2. Força a tabela a desenhar as bordas apenas na linha (<tr>) 
+      e desliga as bordas individuais de todas as <td>, para evitar sobreposições */
+.dashboard-table tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Como aplicamos a borda no TR acima, removemos a borda individual de cada TD */
+.dashboard-table td {
+    border-bottom: none; 
+}
+
+/* 3. Garante o alinhamento vertical perfeito */
+.dashboard-table td, 
+.dashboard-table th {
+    vertical-align: middle; 
+}
+
+/* 4. Remove a borda da última linha para ficar limpo */
+.dashboard-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Se as colunas "Última Cobrança" e "Ações" estiverem usando Flexbox
+   como container principal dentro do <td>, o align-items: center as mantém alinhadas. */
+.history-cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza o conteúdo verticalmente na célula */
+    height: 100%;            /* Faz a div ocupar todo o espaço da td */
+}

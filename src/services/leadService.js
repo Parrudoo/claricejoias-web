@@ -13,9 +13,17 @@ export const leadService = {
   },
 
   // ATUALIZADO: Agora suporta a paginação que você colocou no LeadsDashboard
-  listarTodos: async (page = 0, size = 10) => {
+  listarTodos: async (page = 0, size = 10, busca = '') => {
     try {
-      const resposta = await api.get(`/leads?page=${page}&size=${size}`);
+      // Montamos a URL base com a paginação
+      let url = `/leads?page=${page}&size=${size}`;
+
+      // Se o usuário digitou algo no filtro, adicionamos na URL
+      if (busca && busca.trim() !== '') {
+        url += `&busca=${encodeURIComponent(busca)}`;
+      }
+
+      const resposta = await api.get(url);
       return resposta.data;
     } catch (erro) {
       console.error("Erro ao listar leads:", erro);
@@ -58,7 +66,7 @@ export const leadService = {
   dispararWhatsapp: async (id) => {
     try {
       const resposta = await api.post('/mensagens/disparar', {
-        leadId: id        
+        leadId: id
       });
       return resposta.data;
     } catch (erro) {

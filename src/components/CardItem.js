@@ -4,7 +4,8 @@ import { ImagemService } from '../services/ImagemService';
 import './CardItem.css';
 import { useLoja } from '../context/LojaContext';
 
-export function CardItem({ joia, adicionarItem }) {
+// MUDANÇA: Recebendo abrirDetalhes nas props
+export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
 
   const [imgAtiva, setImgAtiva] = useState(0);
   const { slug, revendedor: lojaRevendedor } = useLoja();
@@ -28,32 +29,55 @@ export function CardItem({ joia, adicionarItem }) {
   };
 
   return (
-    <div className="card-item">
-      <div className="slider-wrapper">
+    <div className="card-joia">
+      <div className="card-img-container" onClick={() => abrirDetalhes(joia)}>
+        {/* MUDANÇA: Usando a foto ativa do array em vez de joia.imagem fixa */}
+        <img src={fotos[imgAtiva]} alt={joia.nome} className="imagem-padrao-card" />
+        
+        {/* Renderiza as setinhas e pontinhos apenas se houver mais de 1 foto */}
         {fotos.length > 1 && (
           <>
-            <button className="seta esquerda" onClick={anterior}><FiChevronLeft /></button>
-            <button className="seta direita" onClick={proxima}><FiChevronRight /></button>
-            <div className="pontinhos">
-              {fotos.map((_, i) => (
-                <span key={i} className={`ponto ${i === imgAtiva ? 'ativo' : ''}`} />
+            <button className="seta-carrossel esquerda" onClick={anterior}>
+              <FiChevronLeft size={18} />
+            </button>
+            <button className="seta-carrossel direita" onClick={proxima}>
+              <FiChevronRight size={18} />
+            </button>
+
+            <div className="dots-container">
+              {fotos.map((_, index) => (
+                <span 
+                  key={index} 
+                  className={`dot ${index === imgAtiva ? 'ativo' : ''}`}
+                />
               ))}
             </div>
           </>
         )}
-        <img src={fotos[imgAtiva]} alt={joia.nome} className="img-principal" />
       </div>
 
-      <div className="info-joia">
-        <span className="codigo-joia">Codigo: {joia.codigo}</span>
+      <div className="card-sku">SKU T-BF-{joia.id}</div>
+      <h3 className="card-titulo">{joia.nome}</h3>
 
-        <h4>{joia.nome}</h4>
-        <p className="material-joia">{joia.material}</p>
+      <div className="card-estoque-tag">
+        <strong>CRISTAL</strong> <br />
+        Estoque: {joia.quantidade} | {joia.peso || '2g'}
+      </div>
 
-        <span className="preco">R$ {joia.preco?.toFixed(2).replace('.', ',')}</span>
+      <div className="card-footer">
+        <span className="card-preco">
+          R$ {joia.preco ? joia.preco.toFixed(2).replace('.', ',') : '0,00'}
+        </span>
 
-        <button className="btn-add" onClick={() => adicionarItem(joia)}>
-          Adicionar à Maleta
+        {/* Botão estilo Pill (Pílula) */}
+        <button 
+          className="btn-comprar-pill" 
+          onClick={(e) => {
+            e.stopPropagation(); // Evita abrir o modal de detalhes quando clica em comprar
+            adicionarItem(joia);
+          }}
+        >
+          Comprar
         </button>
       </div>
     </div>

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiBriefcase, FiPackage, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { FiBriefcase, FiPackage, FiArrowRight, FiCheckCircle, FiRefreshCcw } from 'react-icons/fi';
 import { RevendedorService } from '../../services/RevendedorService';
 import { EstoqueRevendedorService } from '../../services/EstoqueRevendedorService';
 import { ProdutoService } from '../../services/ProdutoService';
-
 
 const DistribuirEstoque = () => {
     const [revendedores, setRevendedores] = useState([]);
@@ -50,22 +49,18 @@ const DistribuirEstoque = () => {
         try {
             const dados = await EstoqueRevendedorService.listarMaleta(idRevendedor);
             
-            console.log("DADOS QUE VIERAM DO BACKEND:", dados);
             // TRAVA DE SEGURANÇA: 
-            // Verifica se 'dados' é um array. 
-            // Se o backend estiver usando paginação (Page), os dados estarão em 'dados.content'
             if (Array.isArray(dados)) {
                 setMaletaAtual(dados);
             } else if (dados && Array.isArray(dados.content)) {
                 setMaletaAtual(dados.content);
             } else {
-                setMaletaAtual([]); // Se vier qualquer outra coisa (null, objeto de erro), seta como array vazio
+                setMaletaAtual([]);
             }
-
         } catch (error) {
             console.error("Erro ao puxar maleta:", error);
             setErro('Erro ao carregar a maleta do revendedor.');
-            setMaletaAtual([]); // Zera a maleta em caso de erro na API
+            setMaletaAtual([]);
         }
     };
 
@@ -74,6 +69,9 @@ const DistribuirEstoque = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // ==========================================
+    // FUNÇÃO PARA ENVIAR PARA A MALETA
+    // ==========================================
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.revendedorId || !formData.produtoId || formData.quantidade <= 0) {
@@ -94,11 +92,54 @@ const DistribuirEstoque = () => {
             
             setSucesso('Produto transferido para a maleta com sucesso!');
             setFormData(prev => ({ ...prev, quantidade: 1, produtoId: '' }));
-            carregarMaleta(formData.revendedorId); // Atualiza a tabela da maleta na hora
-            carregarDadosIniciais(); // Atualiza o estoque central dos produtos no select
+            carregarMaleta(formData.revendedorId); 
+            carregarDadosIniciais(); 
             
         } catch (error) {
             setErro(error.response?.data || 'Erro ao transferir estoque. Verifique se há saldo no Estoque Central.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ==========================================
+    // NOVA FUNÇÃO: DEVOLVER PARA ESTOQUE CENTRAL
+    // ==========================================
+    const handleDevolver = async (produtoId, quantidadeAtual) => {
+        // Pede a quantidade ao usuário
+        const input = window.prompt(`Quantas unidades deseja devolver ao Estoque Central?\n(Máximo disponível na maleta: ${quantidadeAtual})`, "1");
+        
+        if (!input) return; // Se o usuário cancelar, não faz nada
+
+        const qtdParaDevolver = parseInt(input, 10);
+
+        if (isNaN(qtdParaDevolver) || qtdParaDevolver <= 0) {
+            alert("Quantidade inválida! Digite um número maior que zero.");
+            return;
+        }
+
+        if (qtdParaDevolver > quantidadeAtual) {
+            alert(`Você não pode devolver mais do que possui na maleta (${quantidadeAtual}).`);
+            return;
+        }
+
+        setLoading(true);
+        setErro('');
+        setSucesso('');
+
+        try {
+            await EstoqueRevendedorService.devolver({
+                revendedorId: formData.revendedorId,
+                produtoId: produtoId,
+                quantidade: qtdParaDevolver
+            });
+            
+            setSucesso(`Devolução de ${qtdParaDevolver} unidade(s) realizada com sucesso!`);
+            carregarMaleta(formData.revendedorId); // Atualiza a maleta
+            carregarDadosIniciais(); // Atualiza o saldo do estoque central no select
+            
+        } catch (error) {
+            setErro(error.response?.data || 'Erro ao tentar devolver produto ao estoque central.');
         } finally {
             setLoading(false);
         }
@@ -153,7 +194,7 @@ const DistribuirEstoque = () => {
 
                     <div style={{ display: 'flex' }}>
                         <button type="submit" disabled={loading} style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#D4AF37', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
-                            <FiArrowRight /> {loading ? 'Transferindo...' : 'Transferir p/ Maleta'}
+                            <FiArrowRight /> {loading ? 'Aguarde...' : 'Transferir p/ Maleta'}
                         </button>
                     </div>
                 </form>
@@ -172,12 +213,13 @@ const DistribuirEstoque = () => {
                                         <th>ID Produto</th>
                                         <th>Foto</th>
                                         <th>Nome da Joia</th>
-                                        <th className="text-center">Quantidade na Maleta</th>
+                                        <th className="text-center">Qtd. na Maleta</th>
+                                        <th className="text-center">Ações</th> {/* NOVA COLUNA */}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {maletaAtual.length === 0 ? (
-                                        <tr><td colSpan="4" className="text-center text-gray-500">A maleta desta vendedora está vazia.</td></tr>
+                                        <tr><td colSpan="5" className="text-center text-gray-500">A maleta desta vendedora está vazia.</td></tr>
                                     ) : (
                                         maletaAtual.map(item => (
                                             <tr key={item.id}>
@@ -194,6 +236,29 @@ const DistribuirEstoque = () => {
                                                     <span style={{ background: '#1a1a1a', color: '#D4AF37', padding: '4px 12px', borderRadius: '12px', fontWeight: 'bold' }}>
                                                         {item.quantidade} un.
                                                     </span>
+                                                </td>
+                                                <td className="text-center">
+                                                    {/* BOTÃO DE DEVOLUÇÃO */}
+                                                    <button 
+                                                        onClick={() => handleDevolver(item.produto.id, item.quantidade)}
+                                                        disabled={loading}
+                                                        style={{
+                                                            background: 'transparent',
+                                                            color: '#e63946',
+                                                            border: '1px solid #e63946',
+                                                            padding: '6px 12px',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 'bold'
+                                                        }}
+                                                        title="Devolver para o Estoque Central"
+                                                    >
+                                                        <FiRefreshCcw /> Devolver
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))

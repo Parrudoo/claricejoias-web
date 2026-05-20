@@ -22,3 +22,13 @@ button:hover {
   filter: brightness(1.2);
   transform: translateY(-2px);
 }
+
+/* Remove o espaço em branco/fundo transparente do iframe do Keycloak */
+iframe[src*="keycloak"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  border: none !important;
+  position: absolute !important;
+  visibility: hidden !important;
+}

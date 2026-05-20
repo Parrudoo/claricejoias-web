@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiClock, FiX, FiMessageCircle, FiCheck, FiPower } from 'react-icons/fi';
+import { FiClock, FiX, FiMessageCircle, FiCheck, FiPower, FiSearch } from 'react-icons/fi';
 import Paginacao from '../../../components/paginacao/Paginacao';
 import { leadService } from '../../../services/leadService';
 import './LeadsDashboard.css';
@@ -7,6 +7,9 @@ import './LeadsDashboard.css';
 const LeadsDashboard = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // NOVO: Estado para a busca
+  const [busca, setBusca] = useState('');
 
   // Estados da Paginação
   const [currentPage, setCurrentPage] = useState(0);
@@ -18,14 +21,16 @@ const LeadsDashboard = () => {
   const [enviandoMensagemId, setEnviandoMensagemId] = useState(null);
   const [leadsNaFila, setLeadsNaFila] = useState([]);
 
+  // ATUALIZADO: Passa o termo de busca atual quando a página muda
   useEffect(() => {
-    fetchLeads(currentPage);
+    fetchLeads(currentPage, busca);
   }, [currentPage]);
 
-  const fetchLeads = async (pageIndex) => {
+  // ATUALIZADO: Recebe o termoBusca e repassa para o service
+  const fetchLeads = async (pageIndex, termoBusca = '') => {
     try {
       setLoading(true);
-      const data = await leadService.listarTodos(pageIndex, 10);
+      const data = await leadService.listarTodos(pageIndex, 10, termoBusca);
       if (data && data.content) {
         setLeads(data.content);
         setTotalPages(data.totalPages);
@@ -39,6 +44,20 @@ const LeadsDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // NOVO: Dispara a busca e reseta para a página 0
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    setCurrentPage(0);
+    fetchLeads(0, busca);
+  };
+
+  // NOVO: Limpa o filtro e recarrega a lista original
+  const limparBusca = () => {
+    setBusca('');
+    setCurrentPage(0);
+    fetchLeads(0, '');
   };
 
   const alternarStatus = async (id) => {
@@ -80,12 +99,67 @@ const LeadsDashboard = () => {
     return { qtd, total };
   };
 
-  if (loading) return <div className="mensagem-sistema">Carregando leads...</div>;
+  if (loading && leads.length === 0) return <div className="mensagem-sistema">Carregando leads...</div>;
 
   return (
     <div className="leads-container">
       <div className="leads-header">
         <h1 className="leads-title">Leads & CRM</h1>
+      </div>
+
+      {/* NOVO: BARRA DE PESQUISA */}
+      <div className="dashboard-filters" style={{ marginBottom: '20px' }}>
+        <form onSubmit={handleBuscar} style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '600px' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <FiSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+            <input
+              type="text"
+              placeholder="Buscar por nome ou WhatsApp..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '10px 10px 10px 36px', 
+                borderRadius: '6px', 
+                border: '1px solid #d1d5db',
+                outline: 'none'
+              }}
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            style={{ 
+              padding: '10px 20px', 
+              borderRadius: '6px', 
+              backgroundColor: '#3b82f6', 
+              color: 'white', 
+              border: 'none', 
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            Buscar
+          </button>
+          
+          {busca && (
+            <button 
+              type="button" 
+              onClick={limparBusca}
+              style={{ 
+                padding: '10px 20px', 
+                borderRadius: '6px', 
+                backgroundColor: 'transparent', 
+                color: '#4b5563', 
+                border: '1px solid #d1d5db', 
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Limpar
+            </button>
+          )}
+        </form>
       </div>
 
       <div className="leads-table-wrapper">
@@ -101,7 +175,9 @@ const LeadsDashboard = () => {
           <tbody>
             {leads.length === 0 ? (
               <tr>
-                <td colSpan="4" className="mensagem-sistema">Nenhum lead no momento.</td>
+                <td colSpan="4" className="mensagem-sistema">
+                  {busca ? 'Nenhum lead encontrado para esta busca.' : 'Nenhum lead no momento.'}
+                </td>
               </tr>
             ) : (
               leads.map((lead) => {
@@ -114,7 +190,7 @@ const LeadsDashboard = () => {
                       <div className="lead-info-compact">
                         <strong>{lead.nome}</strong>
                         <span>{lead.whatsapp}</span>
-                        {/* NOVA LINHA: Exibe a tag do revendedor se existir */}
+                        {/* Exibe a tag do revendedor se existir */}
                         {lead.nomeRevendedor ? (
                           <span className="lead-revendedor">Loja: {lead.nomeRevendedor}</span>
                         ) : (
@@ -147,12 +223,8 @@ const LeadsDashboard = () => {
                       </div>
                     </td>
 
-                
-                   {/* COLUNA 4: AÇÕES FOCADAS */}
                     {/* COLUNA 4: AÇÕES FOCADAS */}
-                    {/* 👇 O td fica sem nenhuma classe especial para não quebrar a borda */}
                     <td>
-                      {/* 👇 A div flexbox volta para cá, abraçando tudo! */}
                       <div className="acoes-compactas">
                         
                         {/* Botão Principal: WhatsApp */}

@@ -1,160 +1,98 @@
-.card-item {
-    background: white;
-    border: 1px solid #f0f0f0;
-    padding: 15px;
-    border-radius: 8px;
-    transition: 0.3s;
-    text-align: center;
-  }
-  
-  .card-item:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  }
-  
-  .card-item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
-
-  .slider-wrapper {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
-    border-radius: 8px;
-    background: #f4f4f4;
-  }
-  
-  .img-principal {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .seta {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    opacity: 0;
-    transition: 0.3s;
-  }
-  
-  .card-item:hover .seta {
-    opacity: 1;
-  }
-  
-  .seta:hover {
-    background: #D4AF37;
-    color: white;
-  }
-  
-  .seta.esquerda { left: 8px; }
-  .seta.direita { right: 8px; }
-
-  .pontinhos {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 4px;
-  }
-  
-  .ponto {
-    width: 6px;
-    height: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 50%;
-    transition: 0.3s;
-  }
-  
-  .ponto.ativo {
-    background: #D4AF37;
-    width: 12px;
-    border-radius: 10px;
-  }
-
-  .btn-add {
-    background: #1A1A1A;
-    color: white;
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    margin-top: 10px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-/* O container que segura a imagem */
-.slider-wrapper {
-  position: relative;
-  width: 100%;
-  height: auto !important; /* Força a altura a ser automática */
-  display: block; /* Removemos o flex, pois no Grid ele pode forçar alturas indesejadas */
-  overflow: hidden;
-  border-radius: 8px 8px 0 0;
-  background-color: #ffffff;
-}
-
-/* A imagem */
-.img-principal {
-  width: 100%;
-  height: auto !important; /* A altura sempre vai ser proporcional à largura */
-  display: block;
-  
-  /* Removemos o object-fit! 
-     Com width 100% e height auto, o navegador faz o escalonamento 
-     natural da foto sem cortar 1 único pixel. */
-  object-fit: unset; 
-}
-
-/* --- NOVOS ESTILOS PARA A INFORMAÇÃO DA JOIA --- */
-
-.info-joia {
-  padding-top: 15px;
+.card-joia {
+  background: transparent;
+  border: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 6px; /* Cria um espaçamento uniforme entre os elementos */
 }
 
-.codigo-joia {
-  font-size: 0.75rem;
-  color: #999999;
+/* Fundo cinza bem claro atrás da foto da joia */
+.card-img-container {
+  background-color: #f7f7f7; 
+  border-radius: 12px;
+  padding: 15px;
+  position: relative;
+  margin-bottom: 12px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.imagem-padrao-card {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Força a foto a ficar quadrada */
+  object-fit: contain; /* Evita cortar a joia */
+  mix-blend-mode: multiply; /* Tira o fundo branco da foto original se houver */
+}
+
+/* Textos do Card */
+.card-sku {
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 4px;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+}
+
+.card-titulo {
+  font-size: 11px;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limita a 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 32px;
+}
+
+.card-estoque-tag {
+  font-size: 10px;
+  color: #666;
+  margin-bottom: 10px;
   font-weight: 500;
 }
 
-.info-joia h4 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #1A1A1A;
+/* Rodapé do Card (Preço e Botão) */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.card-preco {
+  font-weight: 700;
+  font-size: 14px;
+  color: #111;
+}
+
+/* O Botão de Comprar no tom de Areia/Marrom claro */
+.btn-comprar-pill {
+  background-color: #A38A70; /* Cor inspirada na imagem */
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
   font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.material-joia {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #666666;
+.btn-comprar-pill:hover {
+  background-color: #8B735A;
 }
 
-.preco {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #D4AF37; /* Mantendo um tom dourado caso queira destacar o preço */
-  margin-top: 5px;
+/* Ícone de + para mobile (opcional se quiser deixar igual a 2ª imagem) */
+.btn-comprar-icon {
+  background-color: #A38A70;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
 }

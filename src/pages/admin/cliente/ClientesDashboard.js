@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import './ClientesDashboard.css';
 import { ClienteService } from '../../../services/ClienteService';
 import ModalBaixaPagamento from './ModalBaixaPagamento';
+// IMPORTANTE: Adicione o import do seu componente de paginação
+import Paginacao from '../../../components/paginacao/Paginacao'; 
 
 const ClientesDashboard = () => {
   const [clientes, setClientes] = useState([]);
   const [filtro, setFiltro] = useState('todos');
   const [busca, setBusca] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // NOVO: Estados da Paginação
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [clienteExpandido, setClienteExpandido] = useState(null);
   const [detalhesCompras, setDetalhesCompras] = useState({});
@@ -19,22 +25,40 @@ const ClientesDashboard = () => {
 
   const usuarioLogado = "Diego Oliveira";
 
+  // ATUALIZADO: Recarrega quando a página ou o filtro mudam
   useEffect(() => {
-    carregarClientes();
-  }, [filtro]);
+    carregarClientes(currentPage);
+  }, [currentPage, filtro]);
 
-  const carregarClientes = async () => {
+  // NOVO: Volta para a página 0 sempre que mudar o filtro (Todos -> Pendentes)
+  const handleFiltroChange = (e) => {
+    setFiltro(e.target.value);
+    setCurrentPage(0);
+  };
+
+  // ATUALIZADO: Agora recebe a página e lê o content/totalPages
+  const carregarClientes = async (pageIndex = 0) => {
     setIsLoading(true);
     try {
-      let dados = [];
+      let dadosPaginados;
       if (filtro === 'pendentes') {
-        dados = await ClienteService.listarPendentes();
+        dadosPaginados = await ClienteService.listarPendentes(pageIndex, 10);
       } else {
-        dados = await ClienteService.listarTodos();
+        dadosPaginados = await ClienteService.listarTodos(pageIndex, 10);
       }
-      setClientes(dados);
+      
+      // Se a API retornar o formato Page do Spring:
+      if (dadosPaginados && dadosPaginados.content) {
+        setClientes(dadosPaginados.content);
+        setTotalPages(dadosPaginados.totalPages);
+      } else {
+        // Fallback de segurança caso a API ainda retorne lista
+        setClientes(Array.isArray(dadosPaginados) ? dadosPaginados : []);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error("Erro ao buscar clientes", error);
+      setClientes([]);
     } finally {
       setIsLoading(false);
     }
@@ -43,7 +67,7 @@ const ClientesDashboard = () => {
   const handleCobrarWhatsApp = async (cliente) => {
     try {
       await ClienteService.registrarCobranca(cliente.id, usuarioLogado);
-      carregarClientes();
+      carregarClientes(currentPage); // Mantém na mesma página após cobrar
       alert("Cobrança enviada com sucesso!");
     } catch (error) {
       console.error("Erro ao cobrar cliente", error);
@@ -81,7 +105,7 @@ const ClientesDashboard = () => {
     setIsModalOpen(false);
     setClienteParaPagamento(null);
     setParcelaSelecionada(null);
-    carregarClientes();
+    carregarClientes(currentPage); // Mantém na mesma página após pagar
     setDetalhesCompras({});
     alert("Pagamento registrado com sucesso!");
   };
@@ -98,19 +122,13 @@ const ClientesDashboard = () => {
       cliente.vendas.forEach(venda => {
         if (venda.parcelas && Array.isArray(venda.parcelas)) {
           venda.parcelas.forEach(parcela => {
-
-            //  MUDANÇA AQUI: Agora ele aceita PENDENTE ou ATRASADA
             if (parcela.status === 'PENDENTE' || parcela.status === 'ATRASADA') {
               valorTotalPendente += parcela.valor;
-
               let parcelaEstaAtrasada = false;
 
-              // Se o backend já carimbou como ATRASADA, já sabemos que está atrasada
               if (parcela.status === 'ATRASADA') {
                 parcelaEstaAtrasada = true;
-              }
-              // Se for PENDENTE, verificamos se a data já passou de hoje
-              else if (parcela.dataVencimento) {
+              } else if (parcela.dataVencimento) {
                 const [ano, mes, dia] = parcela.dataVencimento.split('-');
                 const dataVencimento = new Date(ano, mes - 1, dia);
 
@@ -119,7 +137,6 @@ const ClientesDashboard = () => {
                 }
               }
 
-              // Se a parcela caiu em qualquer regra de atraso, soma no valor vencido
               if (parcelaEstaAtrasada) {
                 temAtraso = true;
                 valorVencido += parcela.valor;
@@ -139,6 +156,8 @@ const ClientesDashboard = () => {
     }
   };
 
+  // O filtro do frontend continua funcionando apenas para a página ATUAL que está visível.
+  // Se quiser que a busca pesquise no banco inteiro, precisaremos implementar o 'termoBusca' no endpoint igual foi feito nos Leads.
   const clientesFiltrados = clientes.filter(c =>
     c.nome.toLowerCase().includes(busca.toLowerCase()) ||
     (c.telefone && c.telefone.includes(busca))
@@ -156,12 +175,12 @@ const ClientesDashboard = () => {
       <div className="dashboard-filters">
         <input
           type="text"
-          placeholder="Buscar por nome ou telefone..."
+          placeholder="Buscar por nome ou telefone (nesta página)..."
           className="dashboard-search"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
-        <select className="dashboard-select" value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+        <select className="dashboard-select" value={filtro} onChange={handleFiltroChange}>
           <option value="todos">Todos os Clientes</option>
           <option value="pendentes">Somente Inadimplentes (Devendo)</option>
         </select>
@@ -176,7 +195,7 @@ const ClientesDashboard = () => {
               <tr>
                 <th>Nome</th>
                 <th>WhatsApp</th>
-                <th>Revendedor</th> {/* NOVA COLUNA AQUI */}
+                <th>Revendedor</th>
                 <th>Status / Saldo</th>
                 <th>Última Cobrança</th>
                 <th>Ações</th>
@@ -184,7 +203,6 @@ const ClientesDashboard = () => {
             </thead>
             <tbody>
               {clientesFiltrados.length === 0 ? (
-                /* colSpan alterado de 5 para 6 */
                 <tr><td colSpan="6" className="empty-text">Nenhum cliente encontrado.</td></tr>
               ) : (
                 clientesFiltrados.map(cliente => {
@@ -196,7 +214,6 @@ const ClientesDashboard = () => {
                         <td className="font-semibold">{cliente.nome}</td>
                         <td>{cliente.telefone}</td>
                         
-                        {/* NOVO DADO DA COLUNA AQUI */}
                         <td>
                           {cliente.nomeRevendedor ? (
                             <span className="text-gray-700">{cliente.nomeRevendedor}</span>
@@ -244,7 +261,6 @@ const ClientesDashboard = () => {
 
                       {clienteExpandido === cliente.id && (
                         <tr className="details-expanded-row">
-                          {/* colSpan alterado de 5 para 6 para alinhar corretamente com a nova estrutura */}
                           <td colSpan="6" className="details-cell">
                             <div className="details-content-box">
                               <h4 className="details-title">Extrato de Movimentações</h4>
@@ -254,7 +270,6 @@ const ClientesDashboard = () => {
                               ) : (
                                 detalhesCompras[cliente.id] && detalhesCompras[cliente.id].length > 0 ? (
                                   <ul className="details-purchase-list">
-                                    {/* ... SEU CÓDIGO DE DETALHES INTACTO ... */}
                                     {detalhesCompras[cliente.id].map((compra, index) => {
                                       const dataCompra = compra.dataVenda || compra.data;
                                       const valorTotalCompra = compra.total || compra.valor;
@@ -347,6 +362,13 @@ const ClientesDashboard = () => {
           </table>
         )}
       </div>
+
+      {/* NOVO: Componente de Paginação adicionado abaixo da tabela */}
+      <Paginacao 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage} 
+      />
 
       {isModalOpen && (
         <ModalBaixaPagamento

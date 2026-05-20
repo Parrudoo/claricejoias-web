@@ -1,10 +1,11 @@
 /* =========================================================
-   ESTRUTURA GERAL
+   1. ESTRUTURA GERAL (Clean e Minimalista)
    ========================================================= */
-.catalogo-container {
-    padding-top: 100px; 
-    background-color: #fafafa; 
+   .catalogo-container {
+    padding-top: 80px; 
+    background-color: #ffffff; /* Fundo totalmente branco como na referência */
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
   
 /* --- CABEÇALHO / MENU --- */
@@ -58,7 +59,7 @@
 }
   
 .espacador-topo {
-    height: 20px; 
+    height: 10px; 
 }
   
 /* =========================================================
@@ -189,37 +190,43 @@
 /* =========================================================
    VITRINE E GRID DE PRODUTOS
    ========================================================= */
-.vitrine-conteudo {
-    max-width: 1300px;
+   .vitrine-conteudo {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 15px;
 }
   
 .secao-categoria {
-    margin-bottom: 50px;
-    padding: 0 20px;
+    margin-bottom: 40px;
 }
   
+/* Título discreto da categoria */
 .titulo-categoria {
-    font-family: 'Playfair Display', serif;
-    font-size: 32px;
-    color: #1a1a1a;
-    border-bottom: 2px solid #D4AF37;
-    display: inline-block;
-    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: none; /* Removendo a borda dourada antiga */
 }
   
 .titulo-subcategoria {
-    font-size: 18px;
-    color: #666;
-    margin: 15px 0;
-    text-transform: italic;
+    display: none; /* Ocultando para ficar mais clean, como na referência */
 }
   
 .grid-produtos {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 30px;
+    /* No celular: 2 colunas. No PC: 4 colunas */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .grid-produtos {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
 }
   
 .imagem-padrao-card {

@@ -5,6 +5,11 @@ export const EstoqueRevendedorService = {
         const response = await api.post('/estoque-revendedor/transferir', dados);
         return response.data;
     },
+    // NOVO MÉTODO AQUI
+    devolver: async (dados) => {
+        const response = await api.post('/estoque-revendedor/devolver', dados);
+        return response.data;
+    },
     listarMaleta: async (revendedorId) => {
         const response = await api.get(`/estoque-revendedor/maleta/${revendedorId}`);
         return response.data;

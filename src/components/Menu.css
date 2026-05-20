@@ -11,388 +11,513 @@
 }
 
 /* =========================================
-   1ª BARRA: PRETA DO TOPO (LOGO + LOGIN)
+   1ª BARRA: TOPO (LOGO + LOGIN) - COR CAFÉ CLARA
    ========================================= */
-.secao-login {
-  background-color: #000;
-  height: 35px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-}
+   .secao-login {
+    background-color: #BEA78D; /* Cor de café clara / areia, inspirada na referência */
+    height: 55px; /* Deixei um pouquinho mais alto para acomodar bem tudo */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    border-bottom: none; /* Sem borda para manter o visual "chapado" */
+  }
+  
+  .topo-logo {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+  }
+  
+  .topo-logo:hover {
+    transform: scale(1.02);
+  }
+  
+  .topo-logo h2 {
+    font-family: 'Playfair Display', serif;
+    margin: 0;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    color: #1a1a1a; /* Preto chumbo para dar contraste com o fundo café */
+  }
+  
+  .topo-logo h2 span {
+    color: #ffffff; /* Branco puro no "Joias" para dar um super destaque elegante */
+    font-style: italic;
+    margin-left: 3px;
+    font-weight: 500;
+  }
+  
+  .login-container {
+    color: #1a1a1a; /* Textos do login em chumbo para leitura perfeita */
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .login-container svg {
+    color: #1a1a1a; /* Ícone de usuário combinando com a fonte */
+    font-size: 16px;
+    margin-right: -4px;
+  }
+  
+  
+  
+  .btn-texto-login:hover {
+    opacity: 0.6; /* Dá um efeitinho de transparência ao passar o mouse */
+  }
+  
 
-.topo-logo {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: transform 0.2s ease;
-}
-
-.topo-logo:hover {
-  transform: scale(1.03);
-}
-
-.topo-logo h2 {
-  font-family: 'Playfair Display', serif;
-  margin: 0;
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-  color: #fff;
-}
-
-.topo-logo h2 span {
-  color: #D4AF37;
-}
-
-.login-container {
-  color: #D4AF37;
-  font-size: 11px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-
-.btn-texto-login {
-  background: none;
-  border: none;
-  color: inherit;
-  font-family: inherit;
-  font-size: inherit;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
-}
-
-.btn-texto-login:hover {
-  color: #fff;
-  text-decoration: underline;
-}
-
-.divisor {
-  color: #555;
-}
+  .login-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaço entre os ícones */
+  }
+  
+  /* Esconde o ícone antigo do usuário se ele ainda estiver solto no HTML */
+  .login-container > svg:first-child {
+    display: none; 
+  }
+  
+  .saudacao-texto {
+    color: #1a1a1a;
+    font-size: 12px;
+    margin-right: 5px;
+  }
+  
+  .btn-icone-login {
+    background: none;
+    border: none;
+    color: #1a1a1a;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-icone-login:hover {
+    color: #ffffff; /* Fica branco ao passar o mouse por cima do fundo café */
+    transform: scale(1.15); /* Dá um pulinho suave */
+  }
+  
+  /* Ajustes para telas de celular */
+  @media (max-width: 768px) {
+    .login-container {
+      gap: 8px;
+    }
+    .saudacao-texto {
+      display: none; /* Esconde o 'Olá, Diego' no celular para não espremer os ícones */
+    }
+  }
+  
+  /* Ajustes para telas de celular */
+  @media (max-width: 768px) {
+    .secao-login {
+      padding: 0 15px;
+      height: 50px;
+    }
+    .login-container {
+      gap: 8px;
+      font-size: 10px;
+    }
+    .topo-logo h2 {
+      font-size: 1.2rem;
+    }
+  }
 
 /* =========================================
-   2ª BARRA: CATEGORIAS (MENU PRINCIPAL ARRASTÁVEL)
+   2ª BARRA: CATEGORIAS (ESTILO BOLHAS / STORIES)
    ========================================= */
-.secao-categorias {
-  background-color: #1a1a1a;
-  border-top: 1px solid #333;
-  width: 100%;
-  overflow-x: auto; 
-  -webkit-overflow-scrolling: touch; 
-  scrollbar-width: none; 
-  cursor: grab; 
-}
-
-/* Esconde a barra de rolagem no Chrome/Safari/Edge */
-.secao-categorias::-webkit-scrollbar {
-  display: none;
-}
-
-/* Muda o cursor quando está arrastando no computador */
-.secao-categorias.active {
-  cursor: grabbing;
-}
-
-.menu-lista {
-  display: flex;
-  flex-wrap: nowrap; 
-  list-style: none;
-  margin: 0 auto; 
-  padding: 0;
-  min-width: 100%; 
-  width: max-content; 
+   .secao-categorias-bolhas {
+    background-color: #ffffff; /* Fundo branco para bater com o design */
+    border-bottom: 1px solid #eaeaea;
+    padding: 15px 0;
+    width: 100%;
+  }
   
+  .menu-lista-bolhas {
+    display: flex;
+    flex-wrap: nowrap;
+    list-style: none;
+    margin: 0;
+    padding: 0 15px; 
+    gap: 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; 
+    cursor: grab;
+    justify-content: flex-start;
+  }
   
-  justify-content: center; 
-}
+  @media (min-width: 1024px) {
+    .menu-lista-bolhas {
+      justify-content: center;
+    }
+  }
+  
+  .menu-lista-bolhas::-webkit-scrollbar {
+    display: none; 
+  }
+  
+  .menu-lista-bolhas.active {
+    cursor: grabbing;
+  }
+  
+  /* 1. O item individual (SEM NENHUM TRANSFORM) */
+  .bolha-item {
+    flex: 0 0 auto; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    width: 80px; 
+    position: static; /* Vital para o submenu flutuar livremente */
+  }
+  
+  /* 2. O contêiner da foto */
+  .bolha-img-container {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: #f7f7f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid #ddd; 
+    padding: 2px; 
+    transition: all 0.2s ease; 
+  }
+  
+  .bolha-img-container img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  /* Efeito de pulinho vai APENAS para a foto */
+  .bolha-item:hover .bolha-img-container {
+    border-color: #A38A70; 
+    transform: translateY(-3px); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  
+  /* 3. O texto da bolha */
+  .bolha-texto {
+    font-size: 10px;
+    color: #333;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+  }
+  
+  /* =========================================
+     ESTILO DO SUBMENU FLUTUANTE
+     ========================================= */
+  .submenu-bolhas {
+    position: fixed !important; 
+    background-color: #ffffff;
+    min-width: 180px;
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 9999; 
+  }
+  
+  .bolha-item:hover .submenu-bolhas {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .submenu-bolhas li button {
+    width: 100%;
+    text-align: left;
+    padding: 12px 20px;
+    color: #555;
+    font-size: 13px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    font-family: inherit;
+    font-weight: 500;
+    text-transform: uppercase; 
+  }
+  
+  .submenu-bolhas li button:hover {
+    background-color: #f9f9f9;
+    color: #A38A70; 
+    font-weight: 600;
+  }
 
-.menu-item {
-  /* O SEGREDO ESTÁ AQUI: flex: 0 0 auto impede o item de encolher ou descolar o layout */
-  flex: 0 0 auto; 
-}
-
-.btn-categoria {
-  background: none;
-  border: none;
-  color: #D4AF37;
-  padding: 18px 25px;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: 0.3s;
-}
-
-.btn-categoria:hover {
-  background-color: #252525;
-}
-
-/* --- ESTILO DO SUBMENU --- */
-/* --- ESTILO DO SUBMENU --- */
-.submenu {
-  position: fixed; /* 👈 ESSENCIAL para o JS posicionar livremente e escapar do corte! */
-  margin-top: 0px; 
-  background-color: #1a1a1a;
+  /* =========================================
+   ESTILO DO SUBMENU FLUTUANTE (PORTAL)
+   ========================================= */
+.submenu-bolhas-portal {
+  position: fixed; /* Agora ele funciona 100% livre */
+  background-color: #ffffff;
   min-width: 180px;
   list-style: none;
-  padding: 10px 0;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.5);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(10px);
-  transition: all 0.3s ease;
-  z-index: 3001;
-}
-
-.menu-item:hover .submenu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.submenu li button {
-  width: 100%;
-  text-align: left;
-  padding: 12px 20px;
-  color: #fff;
-  font-size: 12px;
-  text-transform: none;
-  font-weight: 400;
-  border: none;
-  background: none;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.submenu li button:hover {
-  background-color: #D4AF37;
-  color: #000;
-}
-
-.seta-menu {
-  font-size: 12px;
-  transition: 0.3s;
-}
-
-.menu-item:hover .seta-menu {
-  transform: rotate(180deg);
-}
-
-/* =========================================
-   ESTILOS DO MODAL DE AUTENTICAÇÃO
-   ========================================= */
-.modal-auth-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: fadeInModal 0.2s ease-out;
-}
-
-@keyframes fadeInModal {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-auth-card {
-  background: #ffffff;
-  width: 90%;
-  max-width: 400px;
-  border-radius: 12px;
-  padding: 40px 30px;
-  position: relative;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  transform: translateY(0);
-  animation: slideUpModal 0.3s ease-out;
-}
-
-@keyframes slideUpModal {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.btn-fechar-modal-auth {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-fechar-modal-auth:hover {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.modal-auth-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.modal-auth-header h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 26px;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-}
-
-.modal-auth-header p {
-  color: #666;
-  font-size: 14px;
+  padding: 8px 0;
   margin: 0;
-}
-
-.auth-form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-}
-
-.auth-form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.auth-form-group input {
-  padding: 12px 15px;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
   border-radius: 8px;
-  font-size: 15px;
-  background-color: #fafafa;
-  transition: all 0.3s;
-  font-family: 'Montserrat', sans-serif;
+  border: 1px solid #eaeaea;
+  z-index: 99999; /* Por cima de absolutamente tudo na tela */
+  animation: fadeInSubmenu 0.2s ease-out;
 }
 
-.auth-form-group input:focus {
-  outline: none;
-  border-color: #D4AF37;
-  background-color: #fff;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-}
-
-.btn-auth-submit {
-  width: 100%;
-  background-color: #1a1a1a;
-  color: #D4AF37;
-  border: none;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 10px;
-}
-
-.btn-auth-submit:hover {
-  background-color: #333;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.modal-auth-footer {
-  text-align: center;
-  margin-top: 25px;
-  font-size: 14px;
-  color: #666;
-}
-
-.modal-auth-footer button {
-  background: none;
-  border: none;
-  color: #D4AF37;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 5px;
-}
-
-.modal-auth-footer button:hover {
-  text-decoration: underline;
-}
-
-/* Efeitos de Transição para os Steps do Modal */
-.fade-in {
-  animation: fadeInStep 0.3s ease-in-out;
-}
-
-@keyframes fadeInStep {
-  from { opacity: 0; transform: translateY(5px); }
+@keyframes fadeInSubmenu {
+  from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Campos de entrada com Ícone embutido */
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.icon-inside {
-  position: absolute;
-  left: 15px;
-  color: #999;
-  font-size: 18px;
-}
-
-.input-with-icon input {
+.submenu-bolhas-portal li button {
   width: 100%;
-  padding-left: 45px !important;
-}
-
-/* Input do Código OTP gigante e centralizado */
-.input-codigo-centralizado {
-  letter-spacing: 10px;
-  text-align: center;
-  font-size: 20px !important;
-  font-weight: bold;
-  padding-left: 15px !important; /* Sobrescreve o padding do ícone para ficar no centro */
-}
-
-/* Botão em formato de link (para "Corrigir número") */
-.btn-link-auth {
-  background: none;
-  border: none;
-  color: #666;
+  text-align: left;
+  padding: 12px 20px;
+  color: #555;
   font-size: 13px;
-  width: 100%;
-  margin-top: 15px;
+  border: none;
+  background: none;
   cursor: pointer;
-  text-decoration: underline;
-  transition: color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  font-family: inherit;
+  font-weight: 500;
+  text-transform: uppercase; 
 }
 
-.btn-link-auth:hover {
-  color: #D4AF37;
+.submenu-bolhas-portal li button:hover {
+  background-color: #f9f9f9;
+  color: #A38A70; 
+  font-weight: 600;
 }
+
+/* =========================================
+   ESTILOS DOS MODAIS (LOGIN, CADASTRO, RECUPERAÇÃO)
+   ========================================= */
+   .modal-auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999; /* Por cima de tudo na tela */
+    animation: fadeInModal 0.2s ease-out;
+  }
+  
+  @keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .modal-auth-card {
+    background: #ffffff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 12px;
+    padding: 40px 30px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: translateY(0);
+    animation: slideUpModal 0.3s ease-out;
+  }
+  
+  @keyframes slideUpModal {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .btn-fechar-modal-auth {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-fechar-modal-auth:hover {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  .modal-auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .modal-auth-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+  }
+  
+  .modal-auth-header p {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+  }
+  
+  .auth-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+  }
+  
+  .auth-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .auth-form-group input {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: #fafafa;
+    transition: all 0.3s;
+    font-family: 'Montserrat', sans-serif;
+  }
+  
+  .auth-form-group input:focus {
+    outline: none;
+    border-color: #BEA78D; /* Cor de café clara */
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(190, 167, 141, 0.2);
+  }
+  
+  .btn-auth-submit {
+    width: 100%;
+    background-color: #1a1a1a; /* Preto chumbo */
+    color: #BEA78D; /* Letras no tom café */
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+  }
+  
+  .btn-auth-submit:hover:not(:disabled) {
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .btn-auth-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .modal-auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .modal-auth-footer button {
+    background: none;
+    border: none;
+    color: #BEA78D; /* Tom café */
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 5px;
+  }
+  
+  .modal-auth-footer button:hover {
+    text-decoration: underline;
+  }
+  
+  /* Transições e Icones no Input */
+  .fade-in {
+    animation: fadeInStep 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeInStep {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon-inside {
+    position: absolute;
+    left: 15px;
+    color: #999;
+    font-size: 18px;
+  }
+  
+  .input-with-icon input {
+    width: 100%;
+    padding-left: 45px !important;
+  }
+  
+  /* Campo do Código OTP */
+  .input-codigo-centralizado {
+    letter-spacing: 10px;
+    text-align: center;
+    font-size: 20px !important;
+    font-weight: bold;
+    padding-left: 15px !important; 
+  }
+  
+  .btn-link-auth {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 13px;
+    width: 100%;
+    margin-top: 15px;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+  
+  .btn-link-auth:hover {
+    color: #BEA78D;
+  }

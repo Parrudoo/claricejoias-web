@@ -2,9 +2,14 @@ import api from './api';
 
 export const ClienteService = {
     // Busca todos os clientes
-    listarTodos: async () => {
-        const response = await api.get('/clientes');
-        return response.data;
+    listarTodos: async (page = 0, size = 10) => {
+        try {
+            const response = await api.get(`/clientes?page=${page}&size=${size}`);
+            return response.data; // Retorna o objeto Page completo
+        } catch (error) {
+            console.error("Erro ao listar todos os clientes:", error);
+            throw error;
+        }
     },
 
     obterMeuPerfil: async () => {
@@ -13,9 +18,14 @@ export const ClienteService = {
     },
 
     // Busca apenas clientes que estão devendo (fiado pendente)
-    listarPendentes: async () => {
-        const response = await api.get('/clientes/pendentes');
-        return response.data;
+    listarPendentes: async (page = 0, size = 10) => {
+        try {
+            const response = await api.get(`/clientes/pendentes?page=${page}&size=${size}`);
+            return response.data; // Retorna o objeto Page completo
+        } catch (error) {
+            console.error("Erro ao listar clientes pendentes:", error);
+            throw error;
+        }
     },
 
     // Registra no banco que o funcionário X fez a cobrança
