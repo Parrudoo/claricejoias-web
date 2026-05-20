@@ -32,8 +32,13 @@ export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
     <div className="card-joia">
       <div className="card-img-container" onClick={() => abrirDetalhes(joia)}>
         {/* MUDANÇA: Usando a foto ativa do array em vez de joia.imagem fixa */}
-        <img src={fotos[imgAtiva]} alt={joia.nome} className="imagem-padrao-card" />
-        
+        <img
+          key={imgAtiva} // <-- ISSO É O MAIS IMPORTANTE PARA A ANIMAÇÃO
+          src={fotos[imgAtiva]}
+          alt={joia.nome}
+          className="imagem-padrao-card"
+        />
+
         {/* Renderiza as setinhas e pontinhos apenas se houver mais de 1 foto */}
         {fotos.length > 1 && (
           <>
@@ -46,8 +51,8 @@ export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
 
             <div className="dots-container">
               {fotos.map((_, index) => (
-                <span 
-                  key={index} 
+                <span
+                  key={index}
                   className={`dot ${index === imgAtiva ? 'ativo' : ''}`}
                 />
               ))}
@@ -56,7 +61,7 @@ export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
         )}
       </div>
 
-      <div className="card-sku">SKU T-BF-{joia.id}</div>
+      <div className="card-sku">Código{joia.id}</div>
       <h3 className="card-titulo">{joia.nome}</h3>
 
       <div className="card-estoque-tag">
@@ -70,8 +75,8 @@ export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
         </span>
 
         {/* Botão estilo Pill (Pílula) */}
-        <button 
-          className="btn-comprar-pill" 
+        <button
+          className="btn-comprar-pill"
           onClick={(e) => {
             e.stopPropagation(); // Evita abrir o modal de detalhes quando clica em comprar
             adicionarItem(joia);

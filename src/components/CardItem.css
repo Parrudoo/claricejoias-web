@@ -8,21 +8,44 @@
 
 /* Fundo cinza bem claro atrás da foto da joia */
 .card-img-container {
-  background-color: #f7f7f7; 
+  background-color: #f7f7f7;
   border-radius: 12px;
-  padding: 15px;
   position: relative;
   margin-bottom: 12px;
   cursor: pointer;
+  
+  /* Mantém o formato quadrado perfeito */
+  aspect-ratio: 1 / 1; 
+  
+  /* Essencial para centralizar a imagem dentro do quadrado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Garante que o padding não "empurre" a imagem para fora */
+  padding: 10px; 
+  box-sizing: border-box; 
   overflow: hidden;
 }
 
 .imagem-padrao-card {
-  width: 100%;
-  aspect-ratio: 1 / 1; /* Força a foto a ficar quadrada */
-  object-fit: contain; /* Evita cortar a joia */
-  mix-blend-mode: multiply; /* Tira o fundo branco da foto original se houver */
+  /* Força a imagem a nunca passar dos limites do container */
+  max-width: 100%;
+  max-height: 100%;
+  
+  /* Contain garante: se for grande, diminui. Se for pequena, mantém o tamanho original */
+  object-fit: contain;
+  
+  /* Transição suave de mudança */
+  transition: opacity 0.3s ease-in-out;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
 
 /* Textos do Card */
 .card-sku {
@@ -95,4 +118,48 @@
   justify-content: center;
   font-size: 18px;
   cursor: pointer;
+}
+
+/* Posicionamento das setas para ficarem sobre a imagem */
+.seta-carrossel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.6); /* Fundo translúcido */
+  border: none;
+  border-radius: 50%;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.seta-carrossel:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.esquerda { left: 8px; }
+.direita { right: 8px; }
+
+/* Posiciona os dots no fundo da imagem */
+.dots-container {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 50%;
+}
+
+.dot.ativo {
+  background: #A38A70; /* Cor do seu botão */
 }

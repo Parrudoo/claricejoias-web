@@ -22,6 +22,7 @@ import { CatalogoService } from '../services/CatalogoService'; // <-- NOVO IMPOR
 // Estilos
 import './Catalogo.css';
 import { useLoja } from '../context/LojaContext';
+import { ImagemService } from '../services/ImagemService';
 
 // ============================================================================
 // RECEBE O SLUG COMO PROP (Passado pelo App.js)
@@ -56,7 +57,7 @@ export default function Catalogo() {
         // REGRA NOVA: Se tem slug na URL, mas o contexto ainda não 
         // terminou de baixar o revendedor do banco de dados, ESPERA.
         if (slug && !lojaRevendedor) {
-            return; 
+            return;
         }
 
         carregarDadosVitrine();
@@ -67,8 +68,8 @@ export default function Catalogo() {
         }, 10000);
 
         return () => clearTimeout(timerBotao);
-        
-    //IMPORTANTE: Adicione o lojaRevendedor no array aqui embaixo!
+
+        //IMPORTANTE: Adicione o lojaRevendedor no array aqui embaixo!
     }, [slug, lojaRevendedor]);
 
     const checarStatusLead = async () => {
@@ -82,7 +83,7 @@ export default function Catalogo() {
             console.error("Erro ao verificar status do visitante:", error);
         }
     };
-   
+
 
     useEffect(() => {
         if (bannersAtivos.length <= 1) return;
@@ -96,8 +97,8 @@ export default function Catalogo() {
         setLoading(true);
 
         try {
-            
-            if (slug && lojaRevendedor) {                
+
+            if (slug && lojaRevendedor) {
                 localStorage.setItem('revendedorIdAtivo', lojaRevendedor.id);
                 setPerfilRevendedor(lojaRevendedor);
             } else if (!slug) {
@@ -237,7 +238,8 @@ export default function Catalogo() {
                     )}
 
                     <div className="banner-conteudo" key={indiceBanner}>
-                        <h2>{bannersAtivos.length > 0 ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Clarice Joias"}</h2>
+                        {/* Adicionamos a verificação para garantir que o título não venha vazio do banco */}
+                        <h2>{bannersAtivos.length > 0 && bannersAtivos[indiceBanner].titulo ? bannersAtivos[indiceBanner].titulo : "Nova Coleção Clarice Joias"}</h2>
                         <p>Descubra peças exclusivas para momentos inesquecíveis.</p>
                         <button
                             className="btn-banner"
@@ -367,12 +369,12 @@ export default function Catalogo() {
                         <div className="modal-detalhes-content">
                             <div className="galeria-joia">
                                 <div className="foto-principal">
-                                    {fotoDestaque ? <img src={fotoDestaque} alt={produtoSelecionado.nome} /> : <div className="placeholder-foto">Sem foto</div>}
+                                    {fotoDestaque ? <img src={ImagemService.getUrl(fotoDestaque)} alt={produtoSelecionado.nome} /> : <div className="placeholder-foto">Sem foto</div>}
                                 </div>
                                 {produtoSelecionado.imagens && produtoSelecionado.imagens.length > 1 && (
                                     <div className="lista-miniaturas">
                                         {produtoSelecionado.imagens.map((imgUrl, index) => (
-                                            <img key={index} src={imgUrl} alt={`Ângulo ${index + 1}`} onClick={() => setFotoDestaque(imgUrl)} className={`miniatura ${fotoDestaque === imgUrl ? 'selecionada' : ''}`} />
+                                            <img key={index} src={ImagemService.getUrl(imgUrl)} alt={`Ângulo ${index + 1}`} onClick={() => setFotoDestaque(imgUrl)} className={`miniatura ${fotoDestaque === imgUrl ? 'selecionada' : ''}`} />
                                         ))}
                                     </div>
                                 )}

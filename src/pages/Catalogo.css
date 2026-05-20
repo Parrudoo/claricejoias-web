@@ -1,11 +1,18 @@
 /* =========================================================
    1. ESTRUTURA GERAL (Clean e Minimalista)
    ========================================================= */
-   .catalogo-container {
-    padding-top: 80px; 
-    background-color: #ffffff; /* Fundo totalmente branco como na referência */
+.catalogo-container {
+    /* Aumentamos de 80px para 190px para compensar a altura do novo menu duplo */
+    padding-top: 190px; 
+    background-color: #ffffff; 
     min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (max-width: 768px) {
+    .catalogo-container {
+        padding-top: 175px; 
+    }
 }
   
 /* --- CABEÇALHO / MENU --- */
@@ -88,7 +95,44 @@
   
 .banner-conteudo {
     animation: fadeInText 0.5s ease-out;
-    padding: 0 60px;
+    padding: 0 20px; /* Reduzido de 60px para 20px padrão */
+    width: 100%;
+    max-width: 800px; /* Evita que o texto fique gigante em telas grandes */
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* 2. Regras Específicas para Celular (Media Query) */
+@media (max-width: 768px) {
+    .banner-destaque { 
+        height: 280px !important; /* Um pouco mais alto para acomodar os textos confortavelmente */
+    }
+    
+    .banner-conteudo {
+        padding: 0 10px !important; /* Dá o máximo de largura possível para o texto no celular */
+    }
+
+    .banner-conteudo h2 { 
+        font-size: 24px !important; 
+        margin-bottom: 8px !important;
+        line-height: 1.2;
+    }
+    
+    .banner-conteudo p { 
+        font-size: 15px !important; 
+        margin-bottom: 20px !important; /* Afasta o botão do texto */
+        line-height: 1.4;
+        padding: 0 10px; /* Evita que o texto encoste na borda da tela */
+    }
+
+    .btn-banner {
+        padding: 10px 24px !important; /* Botão um pouco mais compacto no celular */
+        font-size: 14px !important;
+    }
+    
+    .btn-seta-banner { width: 35px; height: 35px; }
+    .btn-seta-banner.esquerda { left: 5px; }
+    .btn-seta-banner.direita { right: 5px; }
 }
   
 .banner-conteudo h2 {
@@ -178,14 +222,7 @@
     border-color: transparent;
 }
   
-@media (max-width: 768px) {
-    .banner-destaque { height: 250px; }
-    .banner-conteudo h2 { font-size: 28px; }
-    .banner-conteudo p { font-size: 14px; }
-    .btn-seta-banner { width: 35px; height: 35px; }
-    .btn-seta-banner.esquerda { left: 10px; }
-    .btn-seta-banner.direita { right: 10px; }
-}
+
   
 /* =========================================================
    VITRINE E GRID DE PRODUTOS

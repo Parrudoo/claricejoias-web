@@ -107,8 +107,8 @@ function App() {
                   {/* ========================================================= */}
                   {/* ÁREA DA REVENDEDORA */}
                   {/* ========================================================= */}
-                  <Route path="/:slug?/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/revendedor" element={<RotaProtegida revendedoraOnly={true}><RevendedorLayout /></RotaProtegida>}>
+                    <Route index element={<Navigate to="/revendedor/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardRevendedora />} />
                     <Route path="pdv" element={<TelaPDV isRevendedor={true} />} />
                     <Route path="maleta" element={<MaletaRevendedora isRevendedor={true} />} />
