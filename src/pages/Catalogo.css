@@ -302,15 +302,16 @@
     right: 30px; 
     width: 65px;
     height: 65px;
-    background-color: #1a1a1a; 
-    color: #D4AF37; 
+    background-color: #BEA78D; /* Cor café clara/areia combinando com o topo */
+    color: #1a1a1a; /* Ícone da sacola em chumbo escuro */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    border: 2px solid #D4AF37;
+    /* Sombra suave e elegante no tom da marca, não preta */
+    box-shadow: 0 8px 25px rgba(190, 167, 141, 0.5); 
+    border: 3px solid #ffffff; /* Borda branca para dar um acabamento premium */
     transition: transform 0.3s ease, background-color 0.3s;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: auto; 
@@ -318,26 +319,26 @@
 }
   
 .botao-maleta-flutuante:hover {
-    transform: scale(1.1); 
-    background-color: #333;
+    transform: scale(1.08) translateY(-5px); /* Efeito de flutuar ao passar o mouse */
+    background-color: #A38A70; /* Um tom levemente mais escuro ao focar */
 }
   
 .badge-contagem {
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: #D4AF37;
-    color: #1a1a1a;
-    font-size: 14px;
-    font-weight: bold;
-    min-width: 24px;
-    height: 24px;
+    background-color: #1a1a1a; /* Fundo da bolinha escuro para contraste */
+    color: #ffffff; /* Texto branco */
+    font-size: 13px;
+    font-weight: 800;
+    min-width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #1a1a1a;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 2px solid #ffffff; /* Combina com a borda principal */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
   
 @keyframes popIn {
@@ -617,128 +618,143 @@
     overflow-y: auto;
 }
 
-/* =========================================================
-   RODAPÉ ELEGANTE E REDES SOCIAIS (VERSÃO COMPACTA)
-   ========================================================= */
-.rodape-elegante {
-    background-color: #1a1a1a;
-    color: #fff;
-    padding: 25px 20px 15px 20px; 
-    margin-top: 50px;
-    border-top: 3px solid #D4AF37;
-    position: relative;
-    z-index: 10;
+.rodape-novo {
+    background-color: #f1f1f1; /* O fundo cinza agora fica no contêiner principal */
+    border-radius: 30px 30px 0 0; /* Bordas arredondadas no topo */
+    padding: 30px 20px 120px 20px; /* Espaçamento interno */
+    width: 100%;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin-top: 50px; /* Descola do fim da vitrine de produtos */
 }
 
-.rodape-conteudo {
-    max-width: 1200px;
-    margin: 0 auto;
+.rodape-card {
+    width: 100%;
+    max-width: 1200px; /* Evita que o texto estique infinitamente em telas de PC */
+    margin: 0 auto; /* Centraliza o conteúdo interno */
+}
+
+/* HEADER DO RODAPÉ (Logo e textos) */
+.rodape-header {
     display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 15px;
+    margin-bottom: 20px;
 }
 
-.rodape-logo {
-    text-align: left;
-}
-
-.rodape-logo h2 {
-    font-family: 'Playfair Display', serif;
-    color: #D4AF37;
-    font-size: 22px; 
-    margin: 0 0 4px 0;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.rodape-logo p {
-    color: #999;
-    font-size: 13px;
-    font-style: italic;
-    margin: 0;
-}
-
-.rodape-social {
-    display: flex;
-    gap: 12px;
-}
-
-.rodape-social a {
-    color: #fff;
-    font-size: 16px;
+.rodape-logo-icon {
+    background-color: #ffffff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px; 
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    background-color: rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.rodape-social a:hover {
-    color: #1a1a1a;
-    background-color: #D4AF37;
-    border-color: #D4AF37;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
-}
-
-.rodape-copyright {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-    font-size: 12px;
-    color: #777;
-    letter-spacing: 0.5px;
-}
-
-/* Ajustes para telas menores (Celular) */
-@media (max-width: 600px) {
-    .rodape-conteudo {
-        flex-direction: column;
-        text-align: center;
-    }
-    .rodape-logo {
-        text-align: center;
-    }
-    .rodape-elegante {
-        padding-bottom: 90px; /* Evita que o texto fique atrás dos botões no celular */
-    }
-}
-
-.rodape-logo {
-    text-align: left;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.rodape-logo:hover {
-    transform: scale(1.03);
-}
-
-.rodape-logo h2 {
+    font-weight: bold;
     font-family: 'Playfair Display', serif;
-    color: #fff; 
-    font-size: 26px; 
+    font-size: 20px;
+    color: #D4AF37; /* Dourado da sua marca */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.rodape-info h3 {
     margin: 0 0 4px 0;
-    letter-spacing: 1px;
-    text-transform: none; /* 👈 Isso garante que ele respeite as letras maiúsculas e minúsculas que você digitou */
+    font-size: 16px;
+    color: #333333;
+    text-transform: uppercase;
 }
 
-.rodape-logo h2 span {
-    color: #D4AF37; /* 'Joias' em dourado */
-}
-
-.rodape-logo p {
-    color: #999;
+.rodape-info p {
+    margin: 0 0 12px 0;
     font-size: 13px;
-    font-style: italic;
+    color: #666666;
+}
+
+.rodape-contatos {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.rodape-contatos a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555555;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.rodape-contatos a:hover {
+    color: #D4AF37;
+}
+
+/* LINHAS DIVISÓRIAS */
+.rodape-card hr {
+    border: none;
+    border-top: 1px solid #dcdcdc;
+    margin: 20px 0;
+}
+
+/* MEIO: ENDEREÇO, POLÍTICAS E SELO */
+.rodape-meio {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.rodape-meio p {
     margin: 0;
+    font-size: 13px;
+    color: #666666;
+}
+
+.link-politicas {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333333;
+    text-decoration: underline;
+}
+
+.selo-seguranca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.selo-seguranca div {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.selo-seguranca div strong {
+    font-size: 13px;
+    color: #333333;
+}
+
+.selo-seguranca div span {
+    font-size: 12px;
+    color: #666666;
+}
+
+/* CRÉDITOS FINAIS */
+.rodape-creditos {
+    text-align: center;
+}
+
+.rodape-creditos p {
+    margin: 0;
+    font-size: 12px;
+    color: #666666;
+}
+
+.rodape-creditos strong {
+    color: #333333;
 }

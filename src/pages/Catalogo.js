@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     FiShoppingBag, FiX, FiFileText, FiChevronLeft,
     FiChevronRight, FiMaximize2,
-    FiInstagram, FiTwitter, FiFacebook, FiUser
+    FiInstagram, FiTwitter, FiFacebook, FiUser, FiShield
 } from 'react-icons/fi';
 import { FaWhatsapp } from 'react-icons/fa';
 
@@ -398,29 +398,57 @@ export default function Catalogo() {
             )}
 
             {/* RODAPÉ ELEGANTE */}
-            <footer className="rodape-elegante">
-                <div className="rodape-conteudo">
-                    <div
-                        className="rodape-logo"
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        title="Voltar ao início"
-                    >
-                        <h2>Clarice<span>Joias</span></h2>
-                        <p>Peças exclusivas para momentos inesquecíveis.</p>
+            <footer className="rodape-novo">
+                <div className="rodape-card">
+                    {/* Seção Superior: Logo e Contatos */}
+                    <div className="rodape-header">
+                        <div
+                            className="rodape-logo-icon"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        >
+                            CJ
+                        </div>
+
+                        <div className="rodape-info">
+                            <h3>Clarice Joias</h3>
+                            <p>Peças exclusivas para momentos inesquecíveis.</p>
+                            <div className="rodape-contatos">
+                                <a href="https://wa.me/5586995646615" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp /> (86) 99564-6615
+                                </a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+                                    <FiInstagram /> @claricejoias
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="rodape-social">
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" title="Instagram">
-                            <FiInstagram />
-                        </a>
-                        <a href="https://wa.me/5586995646615" target="_blank" rel="noopener noreferrer" title="WhatsApp">
-                            <FaWhatsapp />
-                        </a>
-                    </div>
-                </div>
+                    <hr />
 
-                <div className="rodape-copyright">
-                    <p>&copy; {new Date().getFullYear()} Clarice Joias. Todos os direitos reservados.</p>
+                    {/* Seção do Meio: Endereço, Políticas e Selo */}
+                    <div className="rodape-meio">
+                        {/* Oculte ou mude o endereço abaixo conforme os dados da sua loja */}
+                        <p>Teresina - PI | Atendimento Online</p>
+
+                        <a href="#" className="link-politicas">Políticas da marca</a>
+
+                        <div className="selo-seguranca">
+                            <FiShield size={24} />
+                            <div>
+                                <strong>Compra segura</strong>
+                                <span>Certificado SSL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    {/* Seção Inferior: Créditos */}
+                    <div className="rodape-creditos">
+                        <p>
+                            Catálogo criado por <strong>Clarice Joias</strong> | &copy; {new Date().getFullYear()}
+                        </p>
+                    </div>
                 </div>
             </footer>
         </div>
