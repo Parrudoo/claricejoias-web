@@ -24,6 +24,14 @@ import './Catalogo.css';
 import { useLoja } from '../context/LojaContext';
 import { ImagemService } from '../services/ImagemService';
 
+// Formata um número de WhatsApp (com ou sem 55/DDI) como "(86) 99564-6615".
+// Se não bater com o formato esperado (ex: número de outro país), devolve como veio.
+function formatarWhatsappExibicao(numero) {
+    const digitos = (numero || '').replace(/\D/g, '').replace(/^55/, '');
+    if (digitos.length !== 11) return numero;
+    return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+}
+
 // ============================================================================
 // RECEBE O SLUG COMO PROP (Passado pelo App.js)
 // ============================================================================
@@ -209,6 +217,10 @@ export default function Catalogo() {
     const backgroundUrl = bannersAtivos.length > 0
         ? `${API_BASE_URL}/api/arquivos/view/${bannersAtivos[indiceBanner].objectName}`
         : 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop';
+
+    // Rodapé: WhatsApp da revendedora dona da vitrine. Sem revendedora ativa (loja matriz)
+    // ou sem número cadastrado, cai no WhatsApp da loja matriz.
+    const whatsappContatoRodape = perfilRevendedor?.whatsappContato || '5586995646615';
 
     return (
         <div className="catalogo-container">
@@ -413,8 +425,8 @@ export default function Catalogo() {
                             <h3>Clarice Joias</h3>
                             <p>Peças exclusivas para momentos inesquecíveis.</p>
                             <div className="rodape-contatos">
-                                <a href="https://wa.me/5586995646615" target="_blank" rel="noopener noreferrer">
-                                    <FaWhatsapp /> (86) 99564-6615
+                                <a href={`https://wa.me/${whatsappContatoRodape.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp /> {formatarWhatsappExibicao(whatsappContatoRodape)}
                                 </a>
                                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
                                     <FiInstagram /> @claricejoias

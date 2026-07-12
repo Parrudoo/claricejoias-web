@@ -13,7 +13,8 @@ const CadastrarRevendedor = () => {
         id: '',
         nome: '',
         email: '',
-        slug: '' 
+        slug: '',
+        whatsappContato: ''
     });
 
     useEffect(() => {
@@ -45,7 +46,7 @@ const CadastrarRevendedor = () => {
             await RevendedorService.cadastrar(formData);
             setSucesso('Revendedor vinculado com sucesso!');
             // 2. Limpar o campo 'slug' após o sucesso
-            setFormData({ id: '', nome: '', email: '', slug: '' });
+            setFormData({ id: '', nome: '', email: '', slug: '', whatsappContato: '' });
             carregarRevendedores(); // Atualiza a tabela
         } catch (error) {
             setErro('Erro ao vincular revendedor. Verifique se o ID ou Slug já existem.');
@@ -110,9 +111,18 @@ const CadastrarRevendedor = () => {
                     {/* 3. Novo input para o Slug */}
                     <div style={{ display: 'flex', flexDirection: 'column', flex: '2', minWidth: '200px' }}>
                         <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>Slug*</label>
-                        <input 
+                        <input
                             type="text" name="slug" required value={formData.slug} onChange={handleChange}
                             placeholder="Ex: maria-joias"
+                            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: '2', minWidth: '200px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>WhatsApp de Contato</label>
+                        <input
+                            type="text" name="whatsappContato" value={formData.whatsappContato} onChange={handleChange}
+                            placeholder="Ex: 5586995646615"
                             style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                         />
                     </div>
@@ -137,13 +147,14 @@ const CadastrarRevendedor = () => {
                                 <th>E-mail</th>
                                 {/* 4. Adicionado cabeçalho do Slug na tabela */}
                                 <th>Slug</th>
+                                <th>WhatsApp</th>
                                 <th>Status</th>
                                 <th className="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {revendedores.length === 0 ? (
-                                <tr><td colSpan="6" className="text-center">Nenhum revendedor vinculado.</td></tr>
+                                <tr><td colSpan="7" className="text-center">Nenhum revendedor vinculado.</td></tr>
                             ) : (
                                 revendedores.map(rev => (
                                     <tr key={rev.id}>
@@ -152,6 +163,7 @@ const CadastrarRevendedor = () => {
                                         <td>{rev.email}</td>
                                         {/* 5. Exibição do Slug na tabela */}
                                         <td style={{ color: '#0056b3' }}>{rev.slug}</td>
+                                        <td>{rev.whatsappContato || '—'}</td>
                                         <td>
                                             <span style={{ background: rev.ativo ? '#e8f5e9' : '#ffebee', color: rev.ativo ? '#2e7d32' : '#c62828', padding: '4px 8px', borderRadius: '12px', fontSize: '12px' }}>
                                                 {rev.ativo ? 'Ativo' : 'Inativo'}

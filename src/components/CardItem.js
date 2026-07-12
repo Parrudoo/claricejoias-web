@@ -61,7 +61,7 @@ export function CardItem({ joia, adicionarItem, abrirDetalhes }) {
         )}
       </div>
 
-      <div className="card-sku">Código{joia.id}</div>
+      <div className="card-sku">Código: {joia.codigo}</div>
       <h3 className="card-titulo">{joia.nome}</h3>
 
       <div className="card-estoque-tag">

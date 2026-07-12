@@ -6,7 +6,6 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
     const { keycloakData } = useAuth();
 
     const [instancias, setInstancias] = useState([]);
-    const [nomeInstancia, setNomeInstancia] = useState('');
     const [qrCodeBase64, setQrCodeBase64] = useState('');
     const [loading, setLoading] = useState(false);
     const [mensagem, setMensagem] = useState('');
@@ -17,20 +16,12 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
 
     const carregarInstancias = async () => {
         try {
-            // DICA DE OURO: O ideal é que para o revendedor, você chame uma rota tipo:
-            // await evolutionService.listarMinhasInstancias(); 
-            // Para que o backend já devolva apenas as dele.
-            const data = await evolutionService.listarInstancias();
+            // Revendedora só pode ver a própria (rota self-scoped); admin vê todas.
+            const data = isRevendedor
+                ? await evolutionService.listarMinhaInstancia()
+                : await evolutionService.listarInstancias();
             const arrayInstancias = typeof data === 'string' ? JSON.parse(data) : data;
-
-            if (isRevendedor) {
-                // Como agora o nome é livre, se você ainda busca a lista global, 
-                // você precisará de uma forma de saber quais são as do usuário.
-                // Se o backend já retorna filtrado, basta fazer:
-                setInstancias(arrayInstancias || []);
-            } else {
-                setInstancias(arrayInstancias || []);
-            }
+            setInstancias(arrayInstancias || []);
         } catch (error) {
             console.error("Erro ao carregar lista de instâncias:", error);
             setMensagem("Erro ao carregar as instâncias. Verifique sua conexão.");
@@ -39,30 +30,18 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
 
     const handleCriarInstancia = async (e) => {
         e.preventDefault();
-        
-        // Remove espaços e caracteres especiais que quebram a API
-        const nomeFormatado = nomeInstancia.trim().replace(/[^a-zA-Z0-9_-]/g, '');
-        if (!nomeFormatado) {
-            setMensagem('Por favor, digite um nome válido sem espaços.');
-            return;
-        }
-
         setLoading(true);
         setMensagem('');
 
         try {
-            if (isRevendedor) {
-                // AGORA VOCÊ ENVIA O NOME QUE ELE DIGITOU PARA O BACKEND
-                await evolutionService.criarInstancia({ instanceName: nomeFormatado }); 
-            } else {
-                await evolutionService.criarInstancia({ instanceName: nomeFormatado });
-            }
+            // O nome da instância é sempre decidido pelo backend (a partir do usuário logado),
+            // então não há nada para o usuário digitar aqui.
+            await evolutionService.criarInstancia();
 
             setMensagem('Instância criada com sucesso!');
-            setNomeInstancia(''); // Limpa o campo
             await carregarInstancias();
-            // Passa o nome criado para buscar o QR Code
-            buscarQrCode(nomeFormatado); 
+            // Instância recém-criada é sempre "a minha" — busca o QR sem precisar saber o nome gerado.
+            buscarQrCode();
 
         } catch (error) {
             if (error.response?.data?.message?.includes("already exists")) {
@@ -75,6 +54,7 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
         }
     };
 
+    // Sem nome: age na própria instância (revendedora). Com nome: admin agindo sobre a de outra pessoa.
     const buscarQrCode = async (nome) => {
         setMensagem(`Buscando QR Code...`);
         try {
@@ -95,11 +75,7 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
 
         try {
             setMensagem(`Desconectando a instância ${nomeParaDesconectar}...`);
-            if (isRevendedor) {
-                await evolutionService.desconectarInstancia(nomeParaDesconectar);
-            } else {
-                await evolutionService.desconectarInstancia(nomeParaDesconectar);
-            }
+            await evolutionService.desconectarInstancia(isRevendedor ? undefined : nomeParaDesconectar);
             setMensagem(`WhatsApp desconectado com sucesso!`);
             setQrCodeBase64('');
             carregarInstancias();
@@ -112,11 +88,7 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
         if (!window.confirm(`Tem certeza que deseja apagar a instância "${nomeParaDeletar}"?`)) return;
 
         try {
-            if (isRevendedor) {
-                await evolutionService.deletarInstancia(nomeParaDeletar);
-            } else {
-                await evolutionService.deletarInstancia(nomeParaDeletar);
-            }
+            await evolutionService.deletarInstancia(isRevendedor ? undefined : nomeParaDeletar);
             setMensagem(`Instância "${nomeParaDeletar}" apagada com sucesso!`);
             setQrCodeBase64('');
             carregarInstancias();
@@ -135,7 +107,7 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
 
             {isRevendedor && (
                 <p style={{ color: '#666' }}>
-                    Conecte o seu WhatsApp pessoal ou profissional. Escolha um nome para identificar sua conexão.
+                    Conecte o seu WhatsApp pessoal ou profissional para atender suas clientes.
                 </p>
             )}
 
@@ -148,18 +120,12 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
             {!revendedorJaTemInstancia && (
                 <div style={{ marginBottom: '30px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px' }}>
                     <h3>{isRevendedor ? 'Iniciar Minha Conexão' : 'Criar Nova Instância'}</h3>
-                    <form onSubmit={handleCriarInstancia} style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
-                        
-                        {/* AGORA O INPUT APARECE PARA TODOS */}
-                        <input
-                            type="text"
-                            value={nomeInstancia}
-                            onChange={(e) => setNomeInstancia(e.target.value)}
-                            placeholder={isRevendedor ? "Ex: minha_loja_whatsapp" : "Ex: atendimento_matriz"}
-                            required
-                            style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                        />
-
+                    <p style={{ color: '#666', fontSize: '14px' }}>
+                        {isRevendedor
+                            ? 'Clique abaixo para criar sua conexão de WhatsApp e ler o QR Code.'
+                            : 'Cria a instância global (loja matriz) de WhatsApp.'}
+                    </p>
+                    <form onSubmit={handleCriarInstancia} style={{ marginTop: '10px' }}>
                         <button type="submit" disabled={loading} style={{ padding: '8px 15px', cursor: 'pointer', backgroundColor: '#D4AF37', border: 'none', color: '#fff', borderRadius: '4px', fontWeight: 'bold' }}>
                             {loading ? 'Processando...' : 'Criar e Conectar'}
                         </button>
@@ -212,7 +178,7 @@ const GerenciadorWhatsapp = ({ isRevendedor = false }) => {
                                     <td style={{ padding: '10px', borderBottom: '1px solid #ddd', display: 'flex', gap: '10px' }}>
                                         {inst.instance.status !== 'open' && (
                                             <button
-                                                onClick={() => buscarQrCode(inst.instance.instanceName)}
+                                                onClick={() => buscarQrCode(isRevendedor ? undefined : inst.instance.instanceName)}
                                                 style={{ padding: '5px 10px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                                             >
                                                 Conectar (QR)

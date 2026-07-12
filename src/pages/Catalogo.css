@@ -77,7 +77,8 @@
     height: 350px;
     background-color: #1a1a1a; 
     background-position: center;
-    background-size: cover;
+    /* O primeiro valor (cover) é para o gradient, o segundo (contain) é para a foto */
+    background-size: cover, contain; 
     background-repeat: no-repeat;
     display: flex;
     align-items: center;
